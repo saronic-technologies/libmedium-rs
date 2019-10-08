@@ -1,0 +1,24 @@
+[package]
+name = "libsensors-rs"
+version = "0.1.0"
+authors = ["Malte Veerman <malte.veerman@gmail.com>"]
+license = "GPL"
+description = "Library to interface with lm_sensors"
+edition = "2018"
+
+[dependencies]
+failure = "0.1.5"
+failure_derive = "0.1.5"
+
+[lib]
+doctest = false
+
+[features]
+default = ["writable"]
+
+# Feature that enables the writable versions of all structs and functions to interact with the system's sensors.
+writable = []
+
+# Feature that enables parsing of arbitrary paths for hwmons and sensors.
+# It should only be needed for debug ant testing purposes.
+unrestricted_parsing = []
