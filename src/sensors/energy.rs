@@ -159,16 +159,6 @@ impl From<ReadWriteEnergy> for ReadOnlyEnergy {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteEnergy> for ReadOnlyEnergy {
-    fn from(write_energy: &ReadWriteEnergy) -> ReadOnlyEnergy {
-        ReadOnlyEnergy {
-            hwmon_path: write_energy.hwmon_path().to_path_buf(),
-            index: write_energy.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write energy sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

@@ -353,16 +353,6 @@ impl From<ReadWriteTemp> for ReadOnlyTemp {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteTemp> for ReadOnlyTemp {
-    fn from(write_temp: &ReadWriteTemp) -> ReadOnlyTemp {
-        ReadOnlyTemp {
-            hwmon_path: write_temp.hwmon_path().to_path_buf(),
-            index: write_temp.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write temp sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

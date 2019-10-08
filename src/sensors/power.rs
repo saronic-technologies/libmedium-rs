@@ -320,16 +320,6 @@ impl From<ReadWritePower> for ReadOnlyPower {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWritePower> for ReadOnlyPower {
-    fn from(write_power: &ReadWritePower) -> ReadOnlyPower {
-        ReadOnlyPower {
-            hwmon_path: write_power.hwmon_path().to_path_buf(),
-            index: write_power.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write power sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

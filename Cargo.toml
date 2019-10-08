@@ -1,5 +1,5 @@
 [package]
-name = "libsensors-rs"
+name = "rsl"
 version = "0.1.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
 license = "GPL"
@@ -20,5 +20,5 @@ default = ["writable"]
 writable = []
 
 # Feature that enables parsing of arbitrary paths for hwmons and sensors.
-# It should only be needed for debug ant testing purposes.
+# It should only be needed for debug and testing purposes.
 unrestricted_parsing = []

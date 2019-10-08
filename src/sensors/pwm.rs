@@ -295,16 +295,6 @@ impl From<ReadWritePwm> for ReadOnlyPwm {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWritePwm> for ReadOnlyPwm {
-    fn from(write_pwm: &ReadWritePwm) -> ReadOnlyPwm {
-        ReadOnlyPwm {
-            hwmon_path: write_pwm.hwmon_path().to_path_buf(),
-            index: write_pwm.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write pwm sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

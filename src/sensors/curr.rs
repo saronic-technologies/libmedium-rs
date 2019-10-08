@@ -166,16 +166,6 @@ impl From<ReadWriteCurr> for ReadOnlyCurr {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteCurr> for ReadOnlyCurr {
-    fn from(write_curr: &ReadWriteCurr) -> ReadOnlyCurr {
-        ReadOnlyCurr {
-            hwmon_path: write_curr.hwmon_path().to_path_buf(),
-            index: write_curr.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write current sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

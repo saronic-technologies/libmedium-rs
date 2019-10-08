@@ -227,16 +227,6 @@ impl From<ReadWriteFan> for ReadOnlyFan {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteFan> for ReadOnlyFan {
-    fn from(write_fan: &ReadWriteFan) -> ReadOnlyFan {
-        ReadOnlyFan {
-            hwmon_path: write_fan.hwmon_path().to_path_buf(),
-            index: write_fan.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write fan sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

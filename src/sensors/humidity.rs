@@ -154,16 +154,6 @@ impl From<ReadWriteHumidity> for ReadOnlyHumidity {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteHumidity> for ReadOnlyHumidity {
-    fn from(write_humidity: &ReadWriteHumidity) -> ReadOnlyHumidity {
-        ReadOnlyHumidity {
-            hwmon_path: write_humidity.hwmon_path().to_path_buf(),
-            index: write_humidity.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write humidity sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]

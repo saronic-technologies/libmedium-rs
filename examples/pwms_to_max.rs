@@ -1,5 +1,5 @@
-use libsensors_rs::parse_hwmons_read_write;
-use libsensors_rs::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
+use rsl::parse_hwmons_read_write;
+use rsl::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 
 fn main() {
     let hwmons = parse_hwmons_read_write().unwrap();

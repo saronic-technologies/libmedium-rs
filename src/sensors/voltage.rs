@@ -166,16 +166,6 @@ impl From<ReadWriteVolt> for ReadOnlyVolt {
     }
 }
 
-#[cfg(feature = "writable")]
-impl From<&ReadWriteVolt> for ReadOnlyVolt {
-    fn from(write_voltage: &ReadWriteVolt) -> ReadOnlyVolt {
-        ReadOnlyVolt {
-            hwmon_path: write_voltage.hwmon_path().to_path_buf(),
-            index: write_voltage.index(),
-        }
-    }
-}
-
 /// Struct that represents a read/write voltage sensor.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]
