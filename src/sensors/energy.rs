@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -133,17 +133,21 @@ impl SensorBase for ReadOnlyEnergy {
 
 impl Parseable for ReadOnlyEnergy {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let energy = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&energy)?;
-
-        Ok(energy)
+        if sensor_valid(&energy) {
+            Ok(energy)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "energy sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -185,17 +189,21 @@ impl SensorBase for ReadWriteEnergy {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteEnergy {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let energy = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&energy)?;
-
-        Ok(energy)
+        if sensor_valid(&energy) {
+            Ok(energy)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "energy sensor",
+                index,
+            })
+        }
     }
 }
 

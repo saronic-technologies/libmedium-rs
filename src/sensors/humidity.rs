@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -128,17 +128,21 @@ impl SensorBase for ReadOnlyHumidity {
 
 impl Parseable for ReadOnlyHumidity {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let humidity = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&humidity)?;
-
-        Ok(humidity)
+        if sensor_valid(&humidity) {
+            Ok(humidity)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "humidity sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -180,17 +184,21 @@ impl SensorBase for ReadWriteHumidity {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteHumidity {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let humidity = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&humidity)?;
-
-        Ok(humidity)
+        if sensor_valid(&humidity) {
+            Ok(humidity)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "humidity sensor",
+                index,
+            })
+        }
     }
 }
 

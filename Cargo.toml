@@ -7,8 +7,7 @@ description = "Library to interface with lm_sensors"
 edition = "2018"
 
 [dependencies]
-failure = "0.1.5"
-failure_derive = "0.1.5"
+snafu = "0.6.0"
 
 [lib]
 doctest = false

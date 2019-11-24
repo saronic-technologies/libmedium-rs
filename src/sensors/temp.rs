@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::convert::Into;
@@ -326,17 +326,21 @@ impl SensorBase for ReadOnlyTemp {
 
 impl Parseable for ReadOnlyTemp {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let temp = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&temp)?;
-
-        Ok(temp)
+        if sensor_valid(&temp) {
+            Ok(temp)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "temp sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -379,17 +383,21 @@ impl SensorBase for ReadWriteTemp {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteTemp {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let temp = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&temp)?;
-
-        Ok(temp)
+        if sensor_valid(&temp) {
+            Ok(temp)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "temp sensor",
+                index,
+            })
+        }
     }
 }
 

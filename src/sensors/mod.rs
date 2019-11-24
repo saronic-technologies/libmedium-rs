@@ -30,6 +30,7 @@ pub mod temp;
 pub mod voltage;
 
 use crate::hwmon::*;
+use crate::ParsingError;
 use subfunction::*;
 
 use std::collections::HashMap;
@@ -38,26 +39,25 @@ use std::fs::{read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use failure_derive::*;
+use snafu::Snafu;
 
 type RawSensorResult<T> = std::result::Result<T, RawError>;
 type SensorResult<T> = std::result::Result<T, SensorError>;
 
 /// Error which can be returned from reading a raw sensor value.
-#[derive(Fail, Debug)]
+#[allow(missing_docs)]
+#[derive(Snafu, Debug)]
 pub enum RawError {
-    /// The read string is invalid and can not be converted inot the desired value type.
-    #[fail(display = "Invalid raw string: {}", _0)]
-    InvalidRawString(String),
-
-    /// An I/O error occured.
-    #[fail(display = "Read error: {}", _0)]
-    Io(#[cause] std::io::Error),
+    /// The read string is invalid and can not be converted into the desired value type.
+    #[snafu(display("Invalid raw string: {}", raw))]
+    InvalidRawString { raw: String },
 }
 
 impl<T: AsRef<str>> From<T> for RawError {
     fn from(raw: T) -> Self {
-        RawError::InvalidRawString(raw.as_ref().to_string())
+        RawError::InvalidRawString {
+            raw: raw.as_ref().to_string(),
+        }
     }
 }
 
@@ -111,54 +111,50 @@ impl Raw for Duration {
 }
 
 /// Error which can be returned from interacting with sensors.
-#[derive(Fail, Debug)]
+#[allow(missing_docs)]
+#[derive(Snafu, Debug)]
 pub enum SensorError {
-    /// An I/O error occured.
-    #[fail(display = "Write error: {}", _0)]
-    Io(#[cause] std::io::Error),
+    /// Error reading from sensor.
+    #[snafu(display("Reading from sensor at {} failed: {}", path.display(), source))]
+    Read {
+        source: std::io::Error,
+        path: PathBuf,
+    },
 
-    /// This sensor does not exist in your filesystem.
-    #[fail(display = "Sensor does not exist")]
-    NonExistent,
+    /// Error writing to sensor.
+    #[snafu(display("Writing to sensor at {} failed: {}", path.display(), source))]
+    Write {
+        source: std::io::Error,
+        path: PathBuf,
+    },
 
     /// A RawSensorError occurred.
-    #[fail(display = "Raw value error")]
-    RawSensorError(#[cause] RawError),
+    #[snafu(display("Raw value error: {}", source))]
+    RawSensorError { source: RawError },
 
     /// You have insufficient rights. Try using the read only variant of whatever returned this error.
-    #[fail(display = "Insufficient rights for path {}", _0)]
-    InsufficientRights(String),
+    #[snafu(display("Insufficient rights for path {}", path.display()))]
+    InsufficientRights { path: PathBuf },
 
     /// The subfunction you requested ist not supported by this sensor.
-    #[fail(display = "Sensor does not support the subtype {}", _0)]
-    SubtypeNotSupported(SensorSubFunctionType),
+    #[snafu(display("Sensor does not support the subtype {}", sub_type))]
+    SubtypeNotSupported { sub_type: SensorSubFunctionType },
 
     /// The sensor you tried to read from is faulty.
-    #[fail(display = "The sensor is faulty")]
+    #[snafu(display("The sensor is faulty"))]
     FaultySensor,
 
     /// The sensor your tried to read from or write to is disabled.
-    #[fail(display = "The sensor is disabled")]
+    #[snafu(display("The sensor is disabled"))]
     DisabledSensor,
-}
-
-impl SensorError {
-    fn from_io(io_err: std::io::Error, path: &Path, sub_type: SensorSubFunctionType) -> Self {
-        match io_err.kind() {
-            std::io::ErrorKind::PermissionDenied => {
-                SensorError::InsufficientRights(path.to_string_lossy().to_string())
-            }
-            std::io::ErrorKind::NotFound => SensorError::SubtypeNotSupported(sub_type),
-            _ => SensorError::Io(io_err),
-        }
-    }
 }
 
 impl From<RawError> for SensorError {
     fn from(raw_error: RawError) -> SensorError {
-        match raw_error {
-            RawError::Io(e) => SensorError::Io(e),
-            RawError::InvalidRawString(_) => SensorError::RawSensorError(raw_error),
+        match &raw_error {
+            RawError::InvalidRawString { .. } => {
+                SensorError::RawSensorError { source: raw_error }
+            }
         }
     }
 }
@@ -198,9 +194,23 @@ pub trait SensorBase {
     fn read_raw(&self, sub_type: SensorSubFunctionType) -> SensorResult<String> {
         let path = self.subfunction_path(sub_type);
 
-        read_to_string(&path)
-            .map(|s| s.trim().to_string())
-            .map_err(|e| SensorError::from_io(e, &path, sub_type))
+        match read_to_string(&path) {
+            Ok(s) => Ok(s.trim().to_string()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => {
+                    Err(SensorError::SubtypeNotSupported { sub_type })
+                }
+                std::io::ErrorKind::PermissionDenied => {
+                    Err(SensorError::InsufficientRights { path })
+                }
+                _ => {
+                    Err(SensorError::Read {
+                        source: e,
+                        path,
+                    })
+                }
+            },
+        }
     }
 
     /// Returns the path this sensor's subfunction of the given type would have.
@@ -239,7 +249,14 @@ pub trait WritableSensorBase: SensorBase {
     fn write_raw(&self, sub_type: SensorSubFunctionType, raw_value: &str) -> SensorResult<()> {
         let path = self.subfunction_path(sub_type);
 
-        write(&path, raw_value.as_bytes()).map_err(|e| SensorError::from_io(e, &path, sub_type))
+        write(&path, raw_value.as_bytes()).map_err(|e| match e.kind() {
+            std::io::ErrorKind::NotFound => SensorError::SubtypeNotSupported { sub_type },
+            std::io::ErrorKind::PermissionDenied => SensorError::InsufficientRights { path },
+            _ => SensorError::Read {
+                source: e,
+                path,
+            },
+        })
     }
 
     /// Resets this sensor's history.
@@ -272,27 +289,29 @@ pub trait WritableSensorBase: SensorBase {
             .keys()
             .find(|s| !self.supported_write_sub_functions().contains(s))
         {
-            return Err(SensorError::SubtypeNotSupported(sub_type));
+            return Err(SensorError::SubtypeNotSupported { sub_type });
         }
 
-        for (&sub_type, raw_value) in &state.states {
-            let path = self.subfunction_path(sub_type);
-            write(&path, raw_value.as_bytes())
-                .map_err(|e| SensorError::from_io(e, &path, sub_type))?;
-        }
-
-        Ok(())
+        self.write_state_lossy(state)
     }
 
     /// Writes the given state to this sensor.
     /// All subfunction types contained in the given state that are not supported by this sensor will be ignored.
-    #[allow(unused_must_use)]
-    fn write_state_lossy(&self, state: &SensorState) {
+    fn write_state_lossy(&self, state: &SensorState) -> SensorResult<()> {
         for (&sub_type, raw_value) in &state.states {
             let path = self.subfunction_path(sub_type);
-            write(&path, raw_value.as_bytes())
-                .map_err(|e| SensorError::from_io(e, &path, sub_type));
+            if let Err(e) = write(&path, raw_value.as_bytes()) {
+                match e.kind() {
+                    std::io::ErrorKind::PermissionDenied => {
+                        return Err(SensorError::InsufficientRights { path })
+                    }
+                    std::io::ErrorKind::NotFound => continue,
+                    _ => return Err(SensorError::Write { source: e, path }),
+                }
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -306,7 +325,7 @@ pub trait Sensor<P: Raw>: SensorBase {
         P::from_raw(&raw).map_err(SensorError::from)
     }
 
-    /// reads whether or not this sensor is enabled.
+    /// Reads whether or not this sensor is enabled.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_enable(&self) -> SensorResult<bool> {
         let raw = self.read_raw(SensorSubFunctionType::Enable)?;
@@ -465,12 +484,8 @@ impl SensorState {
     }
 }
 
-fn check_sensor(sensor: &dyn SensorBase) -> SensorResult<()> {
-    if sensor.supported_read_sub_functions().is_empty() {
-        return Err(SensorError::NonExistent);
-    }
-
-    Ok(())
+fn sensor_valid(sensor: &dyn SensorBase) -> bool {
+    !sensor.supported_read_sub_functions().is_empty()
 }
 
 #[cfg(test)]

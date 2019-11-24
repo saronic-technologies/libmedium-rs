@@ -19,7 +19,7 @@
 
 //! Module containing the Hwmon struct and related functionality.
 
-use super::{Hwmons, Parseable};
+use super::{Hwmons, Parseable, ParsingError, ParsingResult};
 use crate::sensors::curr::*;
 use crate::sensors::energy::*;
 use crate::sensors::fan::*;
@@ -30,124 +30,59 @@ use crate::sensors::temp::*;
 use crate::sensors::voltage::*;
 use crate::sensors::*;
 
-use std::any::{type_name, Any};
+use std::any::Any;
 use std::collections::BTreeMap;
-use std::fmt;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
-use failure::{Backtrace, Context, Fail};
-
-type Result<T> = std::result::Result<T, HwmonError>;
-
-/// The kinds of errors that can be encountered when parsing a hwmon.
-#[derive(Clone, Eq, PartialEq, Debug, Fail)]
-pub enum HwmonErrorKind {
-    /// Error if you are trying to parse a hwmon for which you have insufficient rights.
-    #[fail(display = "Insufficient rights for path {}", _0)]
-    InsufficientRights(String),
-
-    /// Error which is returned if you are trying to parse a invalid path as a hwmon.
-    #[fail(display = "Invalid hwmon path")]
-    InvalidPath,
-
-    /// Error which is returned if reading the name file of an hwmon fails.
-    #[fail(display = "Error reading name file")]
-    NameFile,
-
-    /// Error when creating a new sensor.
-    #[fail(display = "Error creating sensor of type {} with index {}", _0, _1)]
-    SensorCreationError(&'static str, u16),
-}
-
-/// Error that can be encountered when parsing a hwmon.
-#[derive(Debug)]
-pub struct HwmonError {
-    inner: Context<HwmonErrorKind>,
-}
-
-impl HwmonError {
-    /// The error kind of this error.
-    pub fn kind(&self) -> &HwmonErrorKind {
-        &self.inner.get_context()
-    }
-}
-
-impl Fail for HwmonError {
-    fn cause(&self) -> Option<&dyn Fail> {
-        self.inner.cause()
-    }
-
-    fn backtrace(&self) -> Option<&Backtrace> {
-        self.inner.backtrace()
-    }
-}
-
-impl fmt::Display for HwmonError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.inner, f)
-    }
-}
-
-impl From<HwmonErrorKind> for HwmonError {
-    fn from(kind: HwmonErrorKind) -> HwmonError {
-        HwmonError {
-            inner: Context::new(kind),
-        }
-    }
-}
-
-impl From<Context<HwmonErrorKind>> for HwmonError {
-    fn from(inner: Context<HwmonErrorKind>) -> HwmonError {
-        HwmonError { inner }
-    }
-}
-
-fn check_path(path: impl AsRef<Path>) -> Result<()> {
+fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
     let path = path.as_ref();
 
+    if !path.exists() {
+        return Err(ParsingError::PathDoesNotExist {
+            path: path.to_path_buf(),
+        });
+    }
+
     if !path.is_dir() {
-        return Err(HwmonErrorKind::InvalidPath.into());
+        return Err(ParsingError::InvalidPath { path: path.into() });
     }
 
     if let Err(e) = path.metadata() {
         match e.kind() {
             std::io::ErrorKind::PermissionDenied => {
-                return Err(
-                    HwmonErrorKind::InsufficientRights(path.to_string_lossy().to_string()).into(),
-                )
+                return Err(ParsingError::InsufficientRights { path: path.into() })
             }
-            _ => return Err(e.context(HwmonErrorKind::InvalidPath).into()),
+            _ => return Err(ParsingError::InvalidPath { path: path.into() }),
         }
     }
 
     Ok(())
 }
 
-fn get_name(path: impl AsRef<Path>) -> Result<String> {
+fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
     let path = path.as_ref();
 
     let name_path = path.join("name");
     let name = match read_to_string(&name_path) {
         Ok(name) => name.trim().to_string(),
         Err(e) => match e.kind() {
-            std::io::ErrorKind::NotFound => return Err(HwmonErrorKind::InvalidPath.into()),
-            std::io::ErrorKind::PermissionDenied => {
-                return Err(HwmonErrorKind::InsufficientRights(
-                    name_path.to_string_lossy().to_string(),
-                )
-                .into())
+            std::io::ErrorKind::NotFound => {
+                return Err(ParsingError::InvalidPath { path: name_path })
             }
-            _ => return Err(e.context(HwmonErrorKind::NameFile).into()),
+            std::io::ErrorKind::PermissionDenied => {
+                return Err(ParsingError::InsufficientRights { path: name_path })
+            }
+            _ => return Err(ParsingError::NameFile { source: e }),
         },
     };
 
     Ok(name)
 }
 
-fn init_sensors<S, H>(hwmon: &H, start_index: u16) -> Result<BTreeMap<u16, S>>
+fn init_sensors<S, H>(hwmon: &H, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
 where
-    S: SensorBase + Parseable<Parent = H, Error = SensorError> + Clone + Any,
+    S: SensorBase + Parseable<Parent = H> + Clone + Any,
     H: Hwmon,
 {
     let mut sensors = BTreeMap::new();
@@ -157,15 +92,10 @@ where
                 sensors.insert(index, sensor);
             }
             Err(sensor_error) => match sensor_error {
-                SensorError::NonExistent => break,
-                SensorError::InsufficientRights(p) => {
-                    return Err(HwmonErrorKind::InsufficientRights(p).into())
+                ParsingError::InsufficientRights { path } => {
+                    return Err(ParsingError::InsufficientRights { path })
                 }
-                e => {
-                    return Err(e
-                        .context(HwmonErrorKind::SensorCreationError(type_name::<S>(), index))
-                        .into());
-                }
+                _ => break,
             },
         }
     }
@@ -251,9 +181,8 @@ impl Hwmon for ReadOnlyHwmon {
 
 impl Parseable for ReadOnlyHwmon {
     type Parent = Hwmons<Self>;
-    type Error = HwmonError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> Result<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let path = parent.path().join(format!("hwmon{}", index));
 
         check_path(&path)?;
@@ -357,9 +286,8 @@ impl Hwmon for ReadWriteHwmon {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteHwmon {
     type Parent = Hwmons<Self>;
-    type Error = HwmonError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> Result<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let path = parent.path().join(format!("hwmon{}", index));
 
         check_path(&path)?;

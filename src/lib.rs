@@ -26,15 +26,17 @@
 //! Print the temperature of all the temp sensors in your system:
 //!
 //! ```
-//! use libsensors_rs::parse_hwmons_read_only;
-//! use libsensors_rs::sensors::{Sensor, SensorBase};
+//! use rsl::parse_hwmons_read_only;
+//! use rsl::sensors::{Sensor, SensorBase};
 //!
-//! let hwmons = parse_hwmons_read_only().unwrap();
-//! for (hwmon_name, hwmon) in hwmons.get_hwmons_with_names() {
-//!     println!("Hwmon {}:", hwmon_name);
-//!     for (_, temp_sensor) in hwmon.temps() {
-//!         let temperature = temp_sensor.read_input().unwrap();
-//!         println!("\t{}: {}°C", temp_sensor.name(), temperature.as_degrees_celsius());
+//! fn main() {
+//!     let hwmons = parse_hwmons_read_only().unwrap();
+//!     for (hwmon_index, hwmon_name, hwmon) in &hwmons {
+//!         println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
+//!         for (_, temp_sensor) in hwmon.temps() {
+//!             let temperature = temp_sensor.read_input().unwrap();
+//!             println!("\t{}: {}", temp_sensor.name(), temperature);
+//!         }
 //!     }
 //! }
 //! ```
@@ -42,13 +44,16 @@
 //! Set the pwm value of all your pwm capable fans to full speed:
 //!
 //! ```
-//! use libsensors_rs::parse_hwmons_read_write;
-//! use libsensors_rs::sensors::pwm::WritablePwmSensor;
+//! use rsl::parse_hwmons_read_write;
+//! use rsl::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 //!
-//! let hwmons = parse_hwmons_read_write().unwrap();
-//! for (_, hwmon) in hwmons.get_hwmons_with_indexes() {
-//!     for (_, pwm) in hwmon.pwms() {
-//!         pwm.write_pwm(255).unwrap();
+//! fn main() {
+//!     let hwmons = parse_hwmons_read_write().unwrap();
+//!     for (_, _, hwmon) in &hwmons {
+//!         for (_, pwm) in hwmon.pwms() {
+//!             pwm.write_enable(PwmEnable::ManualControl).unwrap();
+//!             pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
+//!         }
 //!     }
 //! }
 //! ```
@@ -70,73 +75,40 @@ use hwmon::*;
 
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
-use std::fmt;
 use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
-use failure::{Backtrace, Context, Fail};
+use snafu::Snafu;
 
 const HWMON_PATH: &str = "/sys/class/hwmon/";
 
 type ParsingResult<T> = std::result::Result<T, ParsingError>;
 
-/// Error which can be returned from parsing hwmons.
-#[derive(Debug)]
-pub struct ParsingError {
-    inner: Context<ParsingErrorKind>,
-}
-
-/// The different error types ParsingError can be.
-#[derive(Clone, Eq, PartialEq, Debug, Fail)]
-pub enum ParsingErrorKind {
+#[allow(missing_docs)]
+#[derive(Debug, Snafu)]
+pub enum ParsingError {
     /// You have insufficient rights. Try using the read only version of the parse_hwmons* functions.
-    #[fail(display = "Insufficient rights for path {}", _0)]
-    InsufficientRights(String),
+    #[snafu(display("Insufficient rights for path {}", path.display()))]
+    InsufficientRights { path: PathBuf },
 
-    /// The standard path for hwmons does not exist on your system or is not a valid directory.
-    #[fail(display = "Invalid path to parse")]
-    InvalidPath,
+    /// The path you are trying to parse is not valid.
+    #[snafu(display("Invalid path to parse: {}", path.display()))]
+    InvalidPath { path: PathBuf },
 
-    /// An error occured during the parsing of a hwmon.
-    #[fail(display = "Error parsing hwmon with index {}", _0)]
-    ParseHwmonError(u16),
-}
+    /// The path you are trying to parse does not exist.
+    #[snafu(display("Path does not exist: {}", path.display()))]
+    PathDoesNotExist { path: PathBuf },
 
-impl ParsingError {
-    /// Returns this error's kind.
-    pub fn kind(&self) -> &ParsingErrorKind {
-        &self.inner.get_context()
-    }
-}
+    /// Error which is returned if reading the name file of an hwmon fails.
+    #[snafu(display("Error reading name file: {}", source))]
+    NameFile { source: std::io::Error },
 
-impl Fail for ParsingError {
-    fn cause(&self) -> Option<&dyn Fail> {
-        self.inner.cause()
-    }
-
-    fn backtrace(&self) -> Option<&Backtrace> {
-        self.inner.backtrace()
-    }
-}
-
-impl fmt::Display for ParsingError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.inner, f)
-    }
-}
-
-impl From<ParsingErrorKind> for ParsingError {
-    fn from(kind: ParsingErrorKind) -> ParsingError {
-        ParsingError {
-            inner: Context::new(kind),
-        }
-    }
-}
-
-impl From<Context<ParsingErrorKind>> for ParsingError {
-    fn from(inner: Context<ParsingErrorKind>) -> ParsingError {
-        ParsingError { inner }
-    }
+    /// Error when creating a new sensor.
+    #[snafu(display("Error creating sensor of type {} with index {}", sensor_type, index))]
+    SensorCreationError {
+        sensor_type: &'static str,
+        index: u16,
+    },
 }
 
 /// This crate's central struct.
@@ -222,12 +194,14 @@ impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
 
 fn parse<H>(path: impl AsRef<Path>) -> ParsingResult<Hwmons<H>>
 where
-    H: Hwmon + Parseable<Parent = Hwmons<H>, Error = HwmonError>,
+    H: Hwmon + Parseable<Parent = Hwmons<H>>,
 {
     let path = path.as_ref();
 
     if !path.is_dir() {
-        return Err(ParsingErrorKind::InvalidPath.into());
+        return Err(ParsingError::InvalidPath {
+            path: path.to_path_buf(),
+        });
     }
 
     let mut hwmons = Hwmons {
@@ -243,12 +217,9 @@ where
                 hwmons.names.insert(index, hwmon_name.clone());
                 hwmons.hwmons.insert(hwmon_name, hwmon);
             }
-            Err(e) => match e.kind() {
-                HwmonErrorKind::InvalidPath => break,
-                HwmonErrorKind::InsufficientRights(p) => {
-                    return Err(ParsingErrorKind::InsufficientRights(p.clone()).into())
-                }
-                _ => return Err(e.context(ParsingErrorKind::ParseHwmonError(index)).into()),
+            Err(e) => match e {
+                ParsingError::PathDoesNotExist { .. } => break,
+                e => return Err(e),
             },
         }
     }
@@ -278,9 +249,8 @@ pub fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Hwmons<ReadWriteHwmon
 
 pub(crate) trait Parseable: Sized {
     type Parent;
-    type Error;
 
-    fn parse(parent: &Self::Parent, index: u16) -> std::result::Result<Self, Self::Error>;
+    fn parse(parent: &Self::Parent, index: u16) -> std::result::Result<Self, ParsingError>;
 }
 
 #[cfg(test)]

@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -200,17 +200,21 @@ impl SensorBase for ReadOnlyFan {
 
 impl Parseable for ReadOnlyFan {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let fan = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&fan)?;
-
-        Ok(fan)
+        if sensor_valid(&fan) {
+            Ok(fan)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "fan sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -253,17 +257,21 @@ impl SensorBase for ReadWriteFan {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteFan {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let fan = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&fan)?;
-
-        Ok(fan)
+        if sensor_valid(&fan) {
+            Ok(fan)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "fan sensor",
+                index,
+            })
+        }
     }
 }
 

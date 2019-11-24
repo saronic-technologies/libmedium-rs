@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -140,17 +140,21 @@ impl SensorBase for ReadOnlyVolt {
 
 impl Parseable for ReadOnlyVolt {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let volt = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&volt)?;
-
-        Ok(volt)
+        if sensor_valid(&volt) {
+            Ok(volt)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "voltage sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -192,17 +196,21 @@ impl SensorBase for ReadWriteVolt {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteVolt {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let volt = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&volt)?;
-
-        Ok(volt)
+        if sensor_valid(&volt) {
+            Ok(volt)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "voltage sensor",
+                index,
+            })
+        }
     }
 }
 

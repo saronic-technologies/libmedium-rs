@@ -21,7 +21,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -140,17 +140,21 @@ impl SensorBase for ReadOnlyCurr {
 
 impl Parseable for ReadOnlyCurr {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let curr = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&curr)?;
-
-        Ok(curr)
+        if sensor_valid(&curr) {
+            Ok(curr)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "current sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -192,17 +196,21 @@ impl SensorBase for ReadWriteCurr {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWriteCurr {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let curr = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&curr)?;
-
-        Ok(curr)
+        if sensor_valid(&curr) {
+            Ok(curr)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "current sensor",
+                index,
+            })
+        }
     }
 }
 

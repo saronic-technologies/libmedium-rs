@@ -20,7 +20,7 @@
 //! Module containing the pwm sensors and their related functionality.
 
 use super::*;
-use crate::Parseable;
+use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -59,8 +59,8 @@ impl Raw for Pwm {
 
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.parse::<u8>()
-            .map(Self::from_u8)
-            .map_err(|_| RawError::InvalidRawString(raw.to_string()))
+            .map(Pwm::from_u8)
+            .map_err(|_| RawError::from(raw))
     }
 }
 
@@ -101,7 +101,9 @@ impl Raw for PwmEnable {
             "0" => Ok(PwmEnable::FullSpeed),
             "1" => Ok(PwmEnable::ManualControl),
             "2" => Ok(PwmEnable::BiosControl),
-            raw => Err(RawError::InvalidRawString(raw.to_string())),
+            raw => Err(RawError::InvalidRawString {
+                raw: raw.to_string(),
+            }),
         }
     }
 }
@@ -135,7 +137,9 @@ impl Raw for PwmMode {
             "0" => Ok(PwmMode::DC),
             "1" => Ok(PwmMode::PWM),
             "2" => Ok(PwmMode::Automatic),
-            raw => Err(RawError::InvalidRawString(raw.to_string())),
+            raw => Err(RawError::InvalidRawString {
+                raw: raw.to_string(),
+            }),
         }
     }
 }
@@ -269,17 +273,21 @@ impl SensorBase for ReadOnlyPwm {
 
 impl Parseable for ReadOnlyPwm {
     type Parent = ReadOnlyHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let pwm = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&pwm)?;
-
-        Ok(pwm)
+        if sensor_valid(&pwm) {
+            Ok(pwm)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "pwm sensor",
+                index,
+            })
+        }
     }
 }
 
@@ -321,17 +329,21 @@ impl SensorBase for ReadWritePwm {
 #[cfg(feature = "writable")]
 impl Parseable for ReadWritePwm {
     type Parent = ReadWriteHwmon;
-    type Error = SensorError;
 
-    fn parse(parent: &Self::Parent, index: u16) -> SensorResult<Self> {
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let pwm = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        check_sensor(&pwm)?;
-
-        Ok(pwm)
+        if sensor_valid(&pwm) {
+            Ok(pwm)
+        } else {
+            Err(ParsingError::SensorCreationError {
+                sensor_type: "pwm sensor",
+                index,
+            })
+        }
     }
 }
 
