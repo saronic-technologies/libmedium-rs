@@ -26,8 +26,8 @@
 //! Print the temperature of all the temp sensors in your system:
 //!
 //! ```
-//! use rsl::parse_hwmons_read_only;
-//! use rsl::sensors::{Sensor, SensorBase};
+//! use libmedium::parse_hwmons_read_only;
+//! use libmedium::sensors::{Sensor, SensorBase};
 //!
 //! fn main() {
 //!     let hwmons = parse_hwmons_read_only().unwrap();
@@ -44,8 +44,8 @@
 //! Set the pwm value of all your pwm capable fans to full speed:
 //!
 //! ```
-//! use rsl::parse_hwmons_read_write;
-//! use rsl::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
+//! use libmedium::parse_hwmons_read_write;
+//! use libmedium::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 //!
 //! fn main() {
 //!     let hwmons = parse_hwmons_read_write().unwrap();
