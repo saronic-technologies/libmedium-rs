@@ -1,10 +1,10 @@
 [package]
-name = "rsl"
+name = "libmedium"
 version = "0.1.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
 license = "GPL"
 description = "Library to interface with lm_sensors"
-repository = "https://github.com/Maldela/rsl"
+repository = "https://github.com/Maldela/libmedium"
 edition = "2018"
 
 [dependencies]
