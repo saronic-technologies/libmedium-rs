@@ -1,5 +1,5 @@
-use rsl::parse_hwmons_read_only;
-use rsl::sensors::{Sensor, SensorBase};
+use libmedium::parse_hwmons_read_only;
+use libmedium::sensors::{Sensor, SensorBase};
 
 fn main() {
     let hwmons = parse_hwmons_read_only().unwrap();

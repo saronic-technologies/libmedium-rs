@@ -1,5 +1,5 @@
-use rsl::parse_hwmons_read_write;
-use rsl::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
+use libmedium::parse_hwmons_read_write;
+use libmedium::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 
 fn main() {
     let hwmons = parse_hwmons_read_write().unwrap();
