@@ -2,7 +2,7 @@
 name = "libmedium"
 version = "0.1.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
-license = "GPL"
+license = "GPL-2.0-or-later"
 description = "Library to interface with lm_sensors"
 repository = "https://github.com/Maldela/libmedium"
 edition = "2018"
