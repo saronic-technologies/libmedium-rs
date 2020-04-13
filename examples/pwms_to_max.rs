@@ -1,3 +1,4 @@
+use libmedium::hwmon::Hwmon;
 use libmedium::parse_hwmons_read_write;
 use libmedium::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 

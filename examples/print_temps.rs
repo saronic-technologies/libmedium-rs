@@ -1,3 +1,4 @@
+use libmedium::hwmon::Hwmon;
 use libmedium::parse_hwmons_read_only;
 use libmedium::sensors::{Sensor, SensorBase};
 
