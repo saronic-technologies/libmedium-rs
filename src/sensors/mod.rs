@@ -152,9 +152,7 @@ pub enum SensorError {
 impl From<RawError> for SensorError {
     fn from(raw_error: RawError) -> SensorError {
         match &raw_error {
-            RawError::InvalidRawString { .. } => {
-                SensorError::RawSensorError { source: raw_error }
-            }
+            RawError::InvalidRawString { .. } => SensorError::RawSensorError { source: raw_error },
         }
     }
 }
@@ -197,18 +195,11 @@ pub trait SensorBase {
         match read_to_string(&path) {
             Ok(s) => Ok(s.trim().to_string()),
             Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => {
-                    Err(SensorError::SubtypeNotSupported { sub_type })
-                }
+                std::io::ErrorKind::NotFound => Err(SensorError::SubtypeNotSupported { sub_type }),
                 std::io::ErrorKind::PermissionDenied => {
                     Err(SensorError::InsufficientRights { path })
                 }
-                _ => {
-                    Err(SensorError::Read {
-                        source: e,
-                        path,
-                    })
-                }
+                _ => Err(SensorError::Read { source: e, path }),
             },
         }
     }
@@ -252,10 +243,7 @@ pub trait WritableSensorBase: SensorBase {
         write(&path, raw_value.as_bytes()).map_err(|e| match e.kind() {
             std::io::ErrorKind::NotFound => SensorError::SubtypeNotSupported { sub_type },
             std::io::ErrorKind::PermissionDenied => SensorError::InsufficientRights { path },
-            _ => SensorError::Read {
-                source: e,
-                path,
-            },
+            _ => SensorError::Read { source: e, path },
         })
     }
 
@@ -508,7 +496,7 @@ mod tests {
             .add_fan(1, 60);
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(&0).unwrap();
+        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
         let fan = ReadOnlyFan::parse(hwmon, 1).unwrap();
 
@@ -528,7 +516,7 @@ mod tests {
         VirtualHwmonBuilder::create(test_path, 0, "system").add_temp(1, 40000, "test_temp1\n");
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(&0).unwrap();
+        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
 
         assert_eq!(temp.name(), String::from("test_temp1"));

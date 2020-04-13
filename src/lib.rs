@@ -29,14 +29,12 @@
 //! use libmedium::parse_hwmons_read_only;
 //! use libmedium::sensors::{Sensor, SensorBase};
 //!
-//! fn main() {
-//!     let hwmons = parse_hwmons_read_only().unwrap();
-//!     for (hwmon_index, hwmon_name, hwmon) in &hwmons {
-//!         println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
-//!         for (_, temp_sensor) in hwmon.temps() {
-//!             let temperature = temp_sensor.read_input().unwrap();
-//!             println!("\t{}: {}", temp_sensor.name(), temperature);
-//!         }
+//! let hwmons = parse_hwmons_read_only().unwrap();
+//! for (hwmon_index, hwmon_name, hwmon) in &hwmons {
+//!     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
+//!     for (_, temp_sensor) in hwmon.temps() {
+//!         let temperature = temp_sensor.read_input().unwrap();
+//!         println!("\t{}: {}", temp_sensor.name(), temperature);
 //!     }
 //! }
 //! ```
@@ -47,13 +45,11 @@
 //! use libmedium::parse_hwmons_read_write;
 //! use libmedium::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
 //!
-//! fn main() {
-//!     let hwmons = parse_hwmons_read_write().unwrap();
-//!     for (_, _, hwmon) in &hwmons {
-//!         for (_, pwm) in hwmon.pwms() {
-//!             pwm.write_enable(PwmEnable::ManualControl).unwrap();
-//!             pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
-//!         }
+//! let hwmons = parse_hwmons_read_write().unwrap();
+//! for (_, _, hwmon) in &hwmons {
+//!     for (_, pwm) in hwmon.pwms() {
+//!         pwm.write_enable(PwmEnable::ManualControl).unwrap();
+//!         pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
 //!     }
 //! }
 //! ```
@@ -73,9 +69,6 @@ pub mod sensors;
 
 use hwmon::*;
 
-use std::borrow::Borrow;
-use std::collections::{BTreeMap, HashMap};
-use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
 use snafu::Snafu;
@@ -117,8 +110,7 @@ pub enum ParsingError {
 #[derive(Debug, Clone)]
 pub struct Hwmons<H: Hwmon> {
     path: PathBuf,
-    hwmons: HashMap<String, H>,
-    names: BTreeMap<u16, String>,
+    hwmons: Vec<H>,
 }
 
 impl<H: Hwmon> Hwmons<H> {
@@ -127,36 +119,25 @@ impl<H: Hwmon> Hwmons<H> {
         &self.path
     }
 
-    /// Get a hwmon by its name.
-    /// Returns None if there is no hwmon with the given name.
-    pub fn get_hwmon_by_name<T>(&self, name: &T) -> Option<&H>
-    where
-        T: Hash + Eq + ?Sized,
-        String: Borrow<T>,
-    {
-        self.hwmons.get(name)
+    /// Get hwmons by their name.
+    /// Returns an empty `Vec`, if there is no hwmon with the given name.
+    pub fn get_hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &H> {
+        self.hwmons
+            .iter()
+            .filter(move |hwmon| hwmon.name() == name.as_ref())
     }
 
     /// Get a hwmon by its index.
     /// Returns None if there is no hwmon with the given index.
-    pub fn get_hwmon_by_index<T>(&self, index: &T) -> Option<&H>
-    where
-        T: Ord + ?Sized,
-        u16: Borrow<T>,
-    {
-        if let Some(name) = self.names.get(&index) {
-            self.hwmons.get(name)
-        } else {
-            None
-        }
+    pub fn get_hwmon_by_index(&self, index: usize) -> Option<&H> {
+        self.hwmons.get(index)
     }
 
-    /// Returns an iterator over all hwmons, their names and their indexes.
+    /// Returns an iterator over all hwmons, their names and their indices.
     pub fn iter(&self) -> Iter<'_, H> {
         Iter {
             index: 0,
             hwmons: &self.hwmons,
-            names: &self.names,
         }
     }
 }
@@ -164,27 +145,24 @@ impl<H: Hwmon> Hwmons<H> {
 /// An iterator over all parsed hwmons.
 #[derive(Debug, Copy, Clone)]
 pub struct Iter<'a, H: Hwmon> {
-    hwmons: &'a HashMap<String, H>,
-    names: &'a BTreeMap<u16, String>,
-    index: u16,
+    hwmons: &'a Vec<H>,
+    index: usize,
 }
 
 impl<'a, H: Hwmon> Iterator for Iter<'a, H> {
-    type Item = (u16, &'a str, &'a H);
+    type Item = (usize, &'a str, &'a H);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(name) = self.names.get(&self.index) {
-            if let Some(hwmon) = self.hwmons.get(name) {
-                self.index += 1;
-                return Some((self.index - 1, name, hwmon));
-            }
+        if let Some(hwmon) = self.hwmons.get(self.index) {
+            self.index += 1;
+            return Some((self.index - 1, hwmon.name(), hwmon));
         }
         None
     }
 }
 
 impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
-    type Item = (u16, &'a str, &'a H);
+    type Item = (usize, &'a str, &'a H);
     type IntoIter = Iter<'a, H>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -206,16 +184,13 @@ where
 
     let mut hwmons = Hwmons {
         path: path.to_path_buf(),
-        names: BTreeMap::new(),
-        hwmons: HashMap::new(),
+        hwmons: Vec::new(),
     };
 
     for index in 0.. {
         match H::parse(&hwmons, index) {
             Ok(hwmon) => {
-                let hwmon_name = hwmon.name().to_string();
-                hwmons.names.insert(index, hwmon_name.clone());
-                hwmons.hwmons.insert(hwmon_name, hwmon);
+                hwmons.hwmons.push(hwmon);
             }
             Err(e) => match e {
                 ParsingError::PathDoesNotExist { .. } => break,
@@ -412,14 +387,14 @@ mod tests {
             .add_fan(2, 1000);
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon0 = hwmons.get_hwmon_by_name("system").unwrap();
-        let hwmon1 = hwmons.get_hwmon_by_name("other").unwrap();
+        let hwmon0 = hwmons.get_hwmons_by_name("system").next().unwrap();
+        let hwmon1 = hwmons.get_hwmons_by_name("other").next().unwrap();
 
-        assert_eq!(hwmon0.name(), hwmons.get_hwmon_by_index(&0).unwrap().name());
-        assert_eq!(hwmon1.name(), hwmons.get_hwmon_by_index(&1).unwrap().name());
+        assert_eq!(hwmon0.name(), hwmons.get_hwmon_by_index(0).unwrap().name());
+        assert_eq!(hwmon1.name(), hwmons.get_hwmon_by_index(1).unwrap().name());
 
-        assert_eq!(hwmons.get_hwmon_by_index(&2).is_none(), true);
-        assert_eq!(hwmons.get_hwmon_by_name("alias").is_none(), true);
+        assert_eq!(hwmons.get_hwmon_by_index(2).is_none(), true);
+        assert_eq!(hwmons.get_hwmons_by_name("alias").next().is_none(), true);
 
         assert_eq!(hwmon0.temps().len(), 2);
         assert_eq!(hwmon1.temps().len(), 1);

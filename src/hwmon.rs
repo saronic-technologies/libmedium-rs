@@ -334,7 +334,7 @@ pub mod tests {
         VirtualHwmonBuilder::create(test_path, 0, "system");
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(&0).unwrap();
+        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
 
         assert_eq!("system", hwmon.name());
         assert_eq!(test_path.join("hwmon0"), hwmon.path());
@@ -351,7 +351,7 @@ pub mod tests {
             .add_temp(2, 60000, "temp2");
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(&0).unwrap();
+        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
         let temps = hwmon.temps();
 
         temps.get(&1u16).unwrap();
@@ -371,7 +371,7 @@ pub mod tests {
             .add_pwm(2, true, true);
 
         let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(&0).unwrap();
+        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
         let pwms = hwmon.pwms();
 
         pwms.get(&1u16).unwrap();
