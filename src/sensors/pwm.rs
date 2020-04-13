@@ -23,6 +23,7 @@ use super::*;
 use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
+use std::convert::TryFrom;
 use std::fmt;
 use std::path::Path;
 
@@ -351,3 +352,27 @@ impl Parseable for ReadWritePwm {
 impl PwmSensor for ReadWritePwm {}
 #[cfg(feature = "writable")]
 impl WritableSensorBase for ReadWritePwm {}
+
+#[cfg(feature = "writable")]
+impl TryFrom<ReadOnlyPwm> for ReadWritePwm {
+    type Error = SensorError;
+
+    fn try_from(value: ReadOnlyPwm) -> Result<Self, Self::Error> {
+        let read_write = ReadWritePwm {
+            hwmon_path: value.hwmon_path,
+            index: value.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(SensorError::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}

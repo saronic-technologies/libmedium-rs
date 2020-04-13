@@ -26,10 +26,9 @@
 //! Print the temperature of all the temp sensors in your system:
 //!
 //! ```
-//! use libmedium::parse_hwmons_read_only;
-//! use libmedium::sensors::{Sensor, SensorBase};
+//! use libmedium::{Hwmon, Hwmons, Sensor, SensorBase};
 //!
-//! let hwmons = parse_hwmons_read_only().unwrap();
+//! let hwmons = Hwmons::parse_read_only().unwrap();
 //! for (hwmon_index, hwmon_name, hwmon) in &hwmons {
 //!     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
 //!     for (_, temp_sensor) in hwmon.temps() {
@@ -42,10 +41,9 @@
 //! Set the pwm value of all your pwm capable fans to full speed:
 //!
 //! ```
-//! use libmedium::parse_hwmons_read_write;
-//! use libmedium::sensors::pwm::{Pwm, PwmEnable, PwmSensor};
+//! use libmedium::{Hwmon, Hwmons, sensors::{Pwm, PwmEnable, PwmSensor}};
 //!
-//! let hwmons = parse_hwmons_read_write().unwrap();
+//! let hwmons = Hwmons::parse_read_write().unwrap();
 //! for (_, _, hwmon) in &hwmons {
 //!     for (_, pwm) in hwmon.pwms() {
 //!         pwm.write_enable(PwmEnable::ManualControl).unwrap();
@@ -67,8 +65,12 @@
 pub mod hwmon;
 pub mod sensors;
 
+pub use hwmon::Hwmon;
+pub use sensors::{Sensor, SensorBase, SensorError};
+
 use hwmon::*;
 
+use std::iter::FusedIterator;
 use std::path::{Path, PathBuf};
 
 use snafu::Snafu;
@@ -92,7 +94,7 @@ pub enum ParsingError {
     #[snafu(display("Path does not exist: {}", path.display()))]
     PathDoesNotExist { path: PathBuf },
 
-    /// Error which is returned if reading the name file of an hwmon fails.
+    /// Error which is returned if reading the name file of an `Hwmon` fails.
     #[snafu(display("Error reading name file: {}", source))]
     NameFile { source: std::io::Error },
 
@@ -106,7 +108,6 @@ pub enum ParsingError {
 
 /// This crate's central struct.
 /// It stores all parsed hwmons which you can query either by name or by index.
-/// You should not create this struct yourself but use the parse_hwmons* functions.
 #[derive(Debug, Clone)]
 pub struct Hwmons<H: Hwmon> {
     path: PathBuf,
@@ -119,17 +120,17 @@ impl<H: Hwmon> Hwmons<H> {
         &self.path
     }
 
-    /// Get hwmons by their name.
-    /// Returns an empty `Vec`, if there is no hwmon with the given name.
-    pub fn get_hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &H> {
+    /// Get `Hwmon`s by their name.
+    /// Returns an empty iterator, if there is no `Hwmon` with the given name.
+    pub fn hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &H> {
         self.hwmons
             .iter()
             .filter(move |hwmon| hwmon.name() == name.as_ref())
     }
 
-    /// Get a hwmon by its index.
-    /// Returns None if there is no hwmon with the given index.
-    pub fn get_hwmon_by_index(&self, index: usize) -> Option<&H> {
+    /// Get a `Hwmon` by its index.
+    /// Returns None if there is no `Hwmon` with the given index.
+    pub fn hwmon_by_index(&self, index: usize) -> Option<&H> {
         self.hwmons.get(index)
     }
 
@@ -140,12 +141,74 @@ impl<H: Hwmon> Hwmons<H> {
             hwmons: &self.hwmons,
         }
     }
+
+    fn parse(path: impl AsRef<Path>) -> ParsingResult<Self>
+    where
+        H: Parseable<Parent = Self>,
+    {
+        let path = path.as_ref();
+
+        if !path.exists() {
+            return Err(ParsingError::PathDoesNotExist {
+                path: path.to_path_buf(),
+            });
+        }
+
+        if !path.is_dir() {
+            return Err(ParsingError::InvalidPath {
+                path: path.to_path_buf(),
+            });
+        }
+
+        let mut hwmons = Hwmons {
+            path: path.to_path_buf(),
+            hwmons: Vec::new(),
+        };
+
+        for index in 0.. {
+            match H::parse(&hwmons, index) {
+                Ok(hwmon) => {
+                    hwmons.hwmons.push(hwmon);
+                }
+                Err(e) => match e {
+                    ParsingError::PathDoesNotExist { .. } => break,
+                    e => return Err(e),
+                },
+            }
+        }
+
+        Ok(hwmons)
+    }
+}
+
+impl Hwmons<ReadOnlyHwmon> {
+    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
+    pub fn parse_read_only() -> ParsingResult<Self> {
+        Self::parse(HWMON_PATH)
+    }
+}
+
+#[cfg(feature = "writable")]
+impl Hwmons<ReadWriteHwmon> {
+    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
+    /// Be sure you have sufficient rights to write to your sensors. Usually only root has those rights.
+    pub fn parse_read_write() -> ParsingResult<Self> {
+        Self::parse(HWMON_PATH)
+    }
+
+    /// Parses the given path and returns the found hwmons as a `Hwmons` object.
+    /// This function should only be used for debug and test purposes. Usually you should use
+    /// parse_read_write() or parse_read_only().
+    #[cfg(feature = "unrestricted_parsing")]
+    pub fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Self> {
+        Self::parse(path)
+    }
 }
 
 /// An iterator over all parsed hwmons.
 #[derive(Debug, Copy, Clone)]
 pub struct Iter<'a, H: Hwmon> {
-    hwmons: &'a Vec<H>,
+    hwmons: &'a [H],
     index: usize,
 }
 
@@ -161,6 +224,14 @@ impl<'a, H: Hwmon> Iterator for Iter<'a, H> {
     }
 }
 
+impl<'a, H: Hwmon> FusedIterator for Iter<'a, H> {}
+
+impl<'a, H: Hwmon> ExactSizeIterator for Iter<'a, H> {
+    fn len(&self) -> usize {
+        self.hwmons.len()
+    }
+}
+
 impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
     type Item = (usize, &'a str, &'a H);
     type IntoIter = Iter<'a, H>;
@@ -170,62 +241,10 @@ impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
     }
 }
 
-fn parse<H>(path: impl AsRef<Path>) -> ParsingResult<Hwmons<H>>
-where
-    H: Hwmon + Parseable<Parent = Hwmons<H>>,
-{
-    let path = path.as_ref();
-
-    if !path.is_dir() {
-        return Err(ParsingError::InvalidPath {
-            path: path.to_path_buf(),
-        });
-    }
-
-    let mut hwmons = Hwmons {
-        path: path.to_path_buf(),
-        hwmons: Vec::new(),
-    };
-
-    for index in 0.. {
-        match H::parse(&hwmons, index) {
-            Ok(hwmon) => {
-                hwmons.hwmons.push(hwmon);
-            }
-            Err(e) => match e {
-                ParsingError::PathDoesNotExist { .. } => break,
-                e => return Err(e),
-            },
-        }
-    }
-
-    Ok(hwmons)
-}
-
-/// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
-/// Be sure you have sufficient rights to write to your sensors. Usually only root has those rights.
-#[cfg(feature = "writable")]
-pub fn parse_hwmons_read_write() -> ParsingResult<Hwmons<ReadWriteHwmon>> {
-    parse(HWMON_PATH)
-}
-
-/// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
-pub fn parse_hwmons_read_only() -> ParsingResult<Hwmons<ReadOnlyHwmon>> {
-    parse(HWMON_PATH)
-}
-
-/// Parses the given path and returns the found hwmons as a Hwmons object.
-/// This function should only be used for debug and test purposes. Usually you should use
-/// parse_hwmons_read_write() or parse_hwmons_read_only().
-#[cfg(feature = "unrestricted_parsing")]
-pub fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Hwmons<ReadWriteHwmon>> {
-    parse(path)
-}
-
 pub(crate) trait Parseable: Sized {
     type Parent;
 
-    fn parse(parent: &Self::Parent, index: u16) -> std::result::Result<Self, ParsingError>;
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self>;
 }
 
 #[cfg(test)]
@@ -386,15 +405,15 @@ mod tests {
             .add_temp(1, 40000, "temp1")
             .add_fan(2, 1000);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon0 = hwmons.get_hwmons_by_name("system").next().unwrap();
-        let hwmon1 = hwmons.get_hwmons_by_name("other").next().unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
+        let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
 
-        assert_eq!(hwmon0.name(), hwmons.get_hwmon_by_index(0).unwrap().name());
-        assert_eq!(hwmon1.name(), hwmons.get_hwmon_by_index(1).unwrap().name());
+        assert_eq!(hwmon0.name(), hwmons.hwmon_by_index(0).unwrap().name());
+        assert_eq!(hwmon1.name(), hwmons.hwmon_by_index(1).unwrap().name());
 
-        assert_eq!(hwmons.get_hwmon_by_index(2).is_none(), true);
-        assert_eq!(hwmons.get_hwmons_by_name("alias").next().is_none(), true);
+        assert_eq!(hwmons.hwmon_by_index(2).is_none(), true);
+        assert_eq!(hwmons.hwmons_by_name("alias").next().is_none(), true);
 
         assert_eq!(hwmon0.temps().len(), 2);
         assert_eq!(hwmon1.temps().len(), 1);

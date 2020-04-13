@@ -19,19 +19,28 @@
 
 //! Module containing the sensors and their functionality.
 
-pub mod curr;
-pub mod energy;
-pub mod fan;
-pub mod humidity;
-pub mod power;
-pub mod pwm;
-pub mod subfunction;
-pub mod temp;
-pub mod voltage;
+mod curr;
+mod energy;
+mod fan;
+mod humidity;
+mod power;
+mod pwm;
+mod subfunction;
+mod temp;
+mod voltage;
+
+pub use curr::*;
+pub use energy::*;
+pub use fan::*;
+pub use humidity::*;
+pub use power::*;
+pub use pwm::*;
+pub use subfunction::*;
+pub use temp::*;
+pub use voltage::*;
 
 use crate::hwmon::*;
 use crate::ParsingError;
-use subfunction::*;
 
 use std::collections::HashMap;
 use std::convert::AsRef;
@@ -144,7 +153,7 @@ pub enum SensorError {
     #[snafu(display("The sensor is faulty"))]
     FaultySensor,
 
-    /// The sensor your tried to read from or write to is disabled.
+    /// The sensor you tried to read from or write to is disabled.
     #[snafu(display("The sensor is disabled"))]
     DisabledSensor,
 }
@@ -172,9 +181,7 @@ pub trait SensorBase {
     /// Returns a list of all readable subfunction types supported by this sensor.
     fn supported_read_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::read_list()
-            .iter()
-            .filter(|&&s| self.read_raw(s).is_ok())
-            .copied()
+            .filter(|&s| self.read_raw(s).is_ok())
             .collect()
     }
 
@@ -221,15 +228,12 @@ pub trait WritableSensorBase: SensorBase {
     /// Returns a list of all writable subfunction types supported by this sensor.
     fn supported_write_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::write_list()
-            .iter()
-            .filter(|&&s| {
-                if let Ok(m) = self.subfunction_path(s).metadata() {
-                    !m.permissions().readonly()
-                } else {
-                    false
-                }
+            .filter(|&s| {
+                self.subfunction_path(s)
+                    .metadata()
+                    .map(|m| !m.permissions().readonly())
+                    .unwrap_or(false)
             })
-            .copied()
             .collect()
     }
 
@@ -495,8 +499,8 @@ mod tests {
             .add_temp(1, 40000, "temp1")
             .add_fan(1, 60);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
         let fan = ReadOnlyFan::parse(hwmon, 1).unwrap();
 
@@ -515,8 +519,8 @@ mod tests {
 
         VirtualHwmonBuilder::create(test_path, 0, "system").add_temp(1, 40000, "test_temp1\n");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
 
         assert_eq!(temp.name(), String::from("test_temp1"));

@@ -20,14 +20,6 @@
 //! Module containing the Hwmon struct and related functionality.
 
 use super::{Hwmons, Parseable, ParsingError, ParsingResult};
-use crate::sensors::curr::*;
-use crate::sensors::energy::*;
-use crate::sensors::fan::*;
-use crate::sensors::humidity::*;
-use crate::sensors::power::*;
-use crate::sensors::pwm::*;
-use crate::sensors::temp::*;
-use crate::sensors::voltage::*;
 use crate::sensors::*;
 
 use std::collections::BTreeMap;
@@ -105,28 +97,28 @@ where
 /// Base trait that all hwmon must implement.
 pub trait Hwmon {
     /// The type of current sensor this `Hwmon` supports.
-    type Current;
+    type Current: CurrSensor;
 
     /// The type of energy sensor this `Hwmon` supports.
-    type Energy;
+    type Energy: EnergySensor;
 
     /// The type of fan sensor this `Hwmon` supports.
-    type Fan;
+    type Fan: FanSensor;
 
     /// The type of humidity sensor this `Hwmon` supports.
-    type Humidity;
+    type Humidity: HumiditySensor;
 
     /// The type of power sensor this `Hwmon` supports.
-    type Power;
+    type Power: PowerSensor;
 
     /// The type of pwm sensor this `Hwmon` supports.
-    type Pwm;
+    type Pwm: PwmSensor;
 
     /// The type of temp sensor this `Hwmon` supports.
-    type Temp;
+    type Temp: TempSensor;
 
     /// The type of voltage sensor this `Hwmon` supports.
-    type Voltage;
+    type Voltage: VoltSensor;
 
     /// Returns the hwmon's name.
     fn name(&self) -> &str;
@@ -157,6 +149,54 @@ pub trait Hwmon {
 
     /// Returns all voltage sensors found in this `Hwmon`.
     fn voltages(&self) -> &BTreeMap<u16, Self::Voltage>;
+
+    /// Returns the current sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn current(&self, index: u16) -> Option<&Self::Current> {
+        self.currents().get(&index)
+    }
+
+    /// Returns the energy sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn energy(&self, index: u16) -> Option<&Self::Energy> {
+        self.energies().get(&index)
+    }
+
+    /// Returns the fan sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn fan(&self, index: u16) -> Option<&Self::Fan> {
+        self.fans().get(&index)
+    }
+
+    /// Returns the humidity sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn humidity(&self, index: u16) -> Option<&Self::Humidity> {
+        self.humidities().get(&index)
+    }
+
+    /// Returns the power sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn power(&self, index: u16) -> Option<&Self::Power> {
+        self.powers().get(&index)
+    }
+
+    /// Returns the pwm sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn pwm(&self, index: u16) -> Option<&Self::Pwm> {
+        self.pwms().get(&index)
+    }
+
+    /// Returns the temp sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn temp(&self, index: u16) -> Option<&Self::Temp> {
+        self.temps().get(&index)
+    }
+
+    /// Returns the voltage sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    fn voltage(&self, index: u16) -> Option<&Self::Voltage> {
+        self.voltages().get(&index)
+    }
 }
 
 /// The read only variant of Hwmon. It contains all sensors found whithin its directory path.
@@ -377,8 +417,8 @@ pub mod tests {
 
         VirtualHwmonBuilder::create(test_path, 0, "system");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon = hwmons.hwmon_by_index(0).unwrap();
 
         assert_eq!("system", hwmon.name());
         assert_eq!(test_path.join("hwmon0"), hwmon.path());
@@ -394,8 +434,8 @@ pub mod tests {
             .add_temp(1, 40000, "temp1")
             .add_temp(2, 60000, "temp2");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let temps = hwmon.temps();
 
         temps.get(&1u16).unwrap();
@@ -414,8 +454,8 @@ pub mod tests {
             .add_pwm(1, true, true)
             .add_pwm(2, true, true);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = parse(test_path).unwrap();
-        let hwmon = hwmons.get_hwmon_by_index(0).unwrap();
+        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let pwms = hwmon.pwms();
 
         pwms.get(&1u16).unwrap();

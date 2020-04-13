@@ -125,20 +125,18 @@ impl SensorSubFunctionType {
         &ARRAY
     }
 
-    pub(crate) fn read_list() -> Vec<SensorSubFunctionType> {
+    pub(crate) fn read_list() -> impl Iterator<Item = SensorSubFunctionType> {
         Self::read_only_list()
             .iter()
             .chain(Self::read_write_list())
             .copied()
-            .collect()
     }
 
-    pub(crate) fn write_list() -> Vec<SensorSubFunctionType> {
+    pub(crate) fn write_list() -> impl Iterator<Item = SensorSubFunctionType> {
         Self::write_only_list()
             .iter()
             .chain(Self::read_write_list())
             .copied()
-            .collect()
     }
 
     pub(crate) fn to_suffix(self) -> &'static str {

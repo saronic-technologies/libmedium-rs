@@ -24,6 +24,7 @@ use crate::hwmon::*;
 use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;
+use std::convert::TryFrom;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
 use std::path::{Path, PathBuf};
@@ -206,3 +207,27 @@ impl Parseable for ReadWriteHumidity {
 impl HumiditySensor for ReadWriteHumidity {}
 #[cfg(feature = "writable")]
 impl WritableSensorBase for ReadWriteHumidity {}
+
+#[cfg(feature = "writable")]
+impl TryFrom<ReadOnlyHumidity> for ReadWriteHumidity {
+    type Error = SensorError;
+
+    fn try_from(value: ReadOnlyHumidity) -> Result<Self, Self::Error> {
+        let read_write = ReadWriteHumidity {
+            hwmon_path: value.hwmon_path,
+            index: value.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(SensorError::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
