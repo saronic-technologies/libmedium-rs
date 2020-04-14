@@ -64,6 +64,7 @@
 
 pub mod hwmon;
 pub mod sensors;
+pub mod units;
 
 pub use hwmon::Hwmon;
 pub use sensors::{Sensor, SensorBase, SensorError};

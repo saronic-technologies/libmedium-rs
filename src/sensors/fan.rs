@@ -21,80 +21,11 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::units::{Frequency, Raw, RawError, RawSensorResult};
 use crate::{Parseable, ParsingResult};
 
-use std::cmp::Ordering;
 use std::convert::TryFrom;
-use std::fmt;
-use std::ops::{Add, Div, Mul};
 use std::path::{Path, PathBuf};
-
-/// Struct that represents used Revs.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
-pub struct Revs(u32);
-
-impl Revs {
-    /// Create a Revs struct from a value measuring times per minute.
-    pub fn from_times_per_minute(rpm: u32) -> Revs {
-        Revs(rpm)
-    }
-
-    /// Return this Revs's value in times per minute.
-    pub fn as_times_per_minute(self) -> u32 {
-        self.0
-    }
-}
-
-impl Raw for Revs {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
-        raw.trim()
-            .parse::<u32>()
-            .map(Revs::from_times_per_minute)
-            .map_err(|_| RawError::from(raw))
-    }
-
-    fn to_raw(&self) -> String {
-        self.as_times_per_minute().to_string()
-    }
-}
-
-impl fmt::Display for Revs {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}rpm", self.as_times_per_minute())
-    }
-}
-
-impl Eq for Revs {}
-
-impl Ord for Revs {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
-    }
-}
-
-impl Add for Revs {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        Revs(self.0 + other.0)
-    }
-}
-
-impl<T: Into<u32>> Mul<T> for Revs {
-    type Output = Self;
-
-    fn mul(self, other: T) -> Revs {
-        Revs(self.0 * other.into())
-    }
-}
-
-impl<T: Into<u32>> Div<T> for Revs {
-    type Output = Self;
-
-    fn div(self, other: T) -> Revs {
-        Revs(self.0 / other.into())
-    }
-}
 
 /// A struct representing a fan divisor. Fan divisors can only be powers of two.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
@@ -127,9 +58,9 @@ pub trait FanSensor: SensorBase {
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_target(&self) -> SensorResult<Revs> {
+    fn read_target(&self) -> SensorResult<Frequency> {
         let raw = self.read_raw(SensorSubFunctionType::Target)?;
-        Revs::from_raw(&raw).map_err(SensorError::from)
+        Frequency::from_raw(&raw).map_err(SensorError::from)
     }
 
     /// Reads the div subfunction of this fan sensor.
@@ -144,7 +75,7 @@ pub trait FanSensor: SensorBase {
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_target(&self, target: Revs) -> SensorResult<()>
+    fn write_target(&self, target: Frequency) -> SensorResult<()>
     where
         Self: WritableSensorBase,
     {
@@ -162,21 +93,21 @@ pub trait FanSensor: SensorBase {
     }
 }
 
-impl<S: FanSensor + Faulty> Sensor<Revs> for S {
+impl<S: FanSensor + Faulty> Sensor<Frequency> for S {
     /// Reads the input subfunction of this fan sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_input(&self) -> SensorResult<Revs> {
+    fn read_input(&self) -> SensorResult<Frequency> {
         if self.read_faulty().unwrap_or(false) {
             return Err(SensorError::FaultySensor);
         }
 
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        Revs::from_raw(&raw).map_err(SensorError::from)
+        Frequency::from_raw(&raw).map_err(SensorError::from)
     }
 }
 
-impl<S: FanSensor> Min<Revs> for S {}
-impl<S: FanSensor> Max<Revs> for S {}
+impl<S: FanSensor> Min<Frequency> for S {}
+impl<S: FanSensor> Max<Frequency> for S {}
 
 /// Struct that represents a read only fan sensor.
 #[derive(Debug, Clone)]

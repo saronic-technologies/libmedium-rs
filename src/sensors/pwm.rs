@@ -20,6 +20,7 @@
 //! Module containing the pwm sensors and their related functionality.
 
 use super::*;
+use crate::units::{Raw, RawError, RawSensorResult};
 use crate::{Parseable, ParsingResult};
 
 use std::cmp::Ordering;

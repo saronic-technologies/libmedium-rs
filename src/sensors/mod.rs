@@ -40,84 +40,17 @@ pub use temp::*;
 pub use voltage::*;
 
 use crate::hwmon::*;
+use crate::units::{Raw, RawError};
 use crate::ParsingError;
 
 use std::collections::HashMap;
-use std::convert::AsRef;
 use std::fs::{read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use snafu::Snafu;
 
-type RawSensorResult<T> = std::result::Result<T, RawError>;
 type SensorResult<T> = std::result::Result<T, SensorError>;
-
-/// Error which can be returned from reading a raw sensor value.
-#[allow(missing_docs)]
-#[derive(Snafu, Debug)]
-pub enum RawError {
-    /// The read string is invalid and can not be converted into the desired value type.
-    #[snafu(display("Invalid raw string: {}", raw))]
-    InvalidRawString { raw: String },
-}
-
-impl<T: AsRef<str>> From<T> for RawError {
-    fn from(raw: T) -> Self {
-        RawError::InvalidRawString {
-            raw: raw.as_ref().to_string(),
-        }
-    }
-}
-
-/// Trait that needs to be implemented by all types that raw sensor strings should be converted into.
-pub trait Raw: Sized {
-    /// Converts a raw sensor string into a usable type.
-    fn from_raw(raw: &str) -> RawSensorResult<Self>;
-
-    /// Converts self into a writable raw sensor string.
-    fn to_raw(&self) -> String;
-}
-
-impl Raw for bool {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
-        match raw.trim() {
-            "1" => Ok(true),
-            "0" => Ok(false),
-            other => Err(RawError::from(other)),
-        }
-    }
-
-    fn to_raw(&self) -> String {
-        match self {
-            true => String::from("1"),
-            false => String::from("0"),
-        }
-    }
-}
-
-impl Raw for String {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
-        Ok(raw.trim().to_string())
-    }
-
-    fn to_raw(&self) -> String {
-        self.clone()
-    }
-}
-
-impl Raw for Duration {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
-        raw.trim()
-            .parse::<u64>()
-            .map(Duration::from_millis)
-            .map_err(|_| RawError::from(raw))
-    }
-
-    fn to_raw(&self) -> String {
-        self.as_millis().to_string()
-    }
-}
 
 /// Error which can be returned from interacting with sensors.
 #[allow(missing_docs)]
@@ -483,10 +416,10 @@ fn sensor_valid(sensor: &dyn SensorBase) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sensors::fan::ReadOnlyFan;
-    use crate::sensors::temp::{ReadOnlyTemp, Temperature};
+    use crate::sensors::{ReadOnlyFan, ReadOnlyTemp};
     use crate::tests::*;
-    use crate::*;
+    use crate::units::Temperature;
+    use crate::{Hwmons, Parseable};
 
     use std::fs::remove_dir_all;
     use std::path::Path;
@@ -504,11 +437,20 @@ mod tests {
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
         let fan = ReadOnlyFan::parse(hwmon, 1).unwrap();
 
+        #[cfg(not(feature = "measurements_units"))]
         assert_eq!(
-            Temperature::from_millidegrees_celsius(40000),
+            Temperature::from_degrees_celsius(40.0),
             temp.read_input().unwrap()
         );
+
+        #[cfg(feature = "measurements_units")]
+        assert_eq!(Temperature::from_celsius(40.0), temp.read_input().unwrap());
+
+        #[cfg(not(feature = "measurements_units"))]
         assert_eq!(60, fan.read_input().unwrap().as_times_per_minute());
+
+        #[cfg(feature = "measurements_units")]
+        assert_eq!(60.0, fan.read_input().unwrap().as_hertz() * 60.0);
 
         remove_dir_all(test_path).unwrap();
     }
