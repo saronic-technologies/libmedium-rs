@@ -299,6 +299,56 @@ impl Parseable for ReadOnlyHwmon {
     }
 }
 
+#[cfg(feature = "writable")]
+impl From<ReadWriteHwmon> for ReadOnlyHwmon {
+    fn from(read_write: ReadWriteHwmon) -> Self {
+        ReadOnlyHwmon {
+            name: read_write.name,
+            path: read_write.path,
+            currs: read_write
+                .currs
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            energies: read_write
+                .energies
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            fans: read_write
+                .fans
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            humidities: read_write
+                .humidities
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            powers: read_write
+                .powers
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            pwms: read_write
+                .pwms
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            temps: read_write
+                .temps
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+            voltages: read_write
+                .voltages
+                .into_iter()
+                .map(|(i, s)| (i, s.into()))
+                .collect(),
+        }
+    }
+}
+
 /// The read/write variant of Hwmon. It contains all sensors found whithin its directory path.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]
