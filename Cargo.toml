@@ -14,7 +14,7 @@ measurements = { version = "0.10", optional = true }
 doctest = false
 
 [features]
-default = ["writable", "measurements_units"]
+default = ["writable"]
 
 # Feature that enables the writable versions of all structs and functions to interact with the system's sensors.
 writable = []
