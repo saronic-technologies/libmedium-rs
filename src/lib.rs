@@ -258,7 +258,7 @@ impl<'a, H: Hwmon> FusedIterator for Iter<'a, H> {}
 
 impl<'a, H: Hwmon> ExactSizeIterator for Iter<'a, H> {
     fn len(&self) -> usize {
-        self.hwmons.len()
+        self.hwmons.len() - self.index
     }
 }
 
