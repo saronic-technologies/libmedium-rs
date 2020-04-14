@@ -41,15 +41,14 @@ pub use voltage::*;
 
 use crate::hwmon::*;
 use crate::units::{Raw, RawError};
-use crate::ParsingError;
+use crate::{ParsingError, ParsingResult};
 
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::fs::{read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 
 type SensorResult<T> = std::result::Result<T, SensorError>;
 
@@ -439,8 +438,32 @@ impl SensorState {
     }
 }
 
-fn sensor_valid(sensor: &dyn SensorBase) -> bool {
-    !sensor.supported_read_sub_functions().is_empty()
+fn inspect_sensor<Sensor: SensorBase>(sensor: Sensor) -> ParsingResult<Sensor> {
+    let mut count = 0;
+
+    for sub in SensorSubFunctionType::read_list() {
+        let path = sensor.subfunction_path(sub);
+
+        if path.exists() {
+            if path.metadata().is_err() {
+                return Err(ParsingError::InsufficientRights { path });
+            }
+
+            count += 1;
+        }
+    }
+
+    if count == 0 {
+        Err(ParsingError::InvalidPath {
+            path: sensor.hwmon_path().join(format!(
+                "{}{}",
+                sensor.base(),
+                sensor.index(),
+            ))
+        })
+    } else {
+        Ok(sensor)
+    }
 }
 
 #[cfg(test)]

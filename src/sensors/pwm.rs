@@ -278,14 +278,7 @@ impl Parseable for ReadOnlyPwm {
             index,
         };
 
-        if sensor_valid(&pwm) {
-            Ok(pwm)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "pwm sensor",
-                index,
-            })
-        }
+        inspect_sensor(pwm)
     }
 }
 
@@ -334,14 +327,7 @@ impl Parseable for ReadWritePwm {
             index,
         };
 
-        if sensor_valid(&pwm) {
-            Ok(pwm)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "pwm sensor",
-                index,
-            })
-        }
+        inspect_sensor(pwm)
     }
 }
 

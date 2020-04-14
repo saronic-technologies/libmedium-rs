@@ -92,14 +92,8 @@ pub enum ParsingError {
     /// The path you are trying to parse does not exist.
     PathDoesNotExist { path: PathBuf },
 
-    /// Error which is returned if reading the name file of an `Hwmon` fails.
-    NameFile { source: std::io::Error },
-
-    /// Error when creating a new sensor.
-    SensorCreationError {
-        sensor_type: &'static str,
-        index: u16,
-    },
+    /// Everything else
+    Other { source: std::io::Error },
 }
 
 impl Error for ParsingError {
@@ -108,8 +102,7 @@ impl Error for ParsingError {
             ParsingError::InsufficientRights { .. } => None,
             ParsingError::InvalidPath { .. } => None,
             ParsingError::PathDoesNotExist { .. } => None,
-            ParsingError::NameFile { source } => Some(source),
-            ParsingError::SensorCreationError { .. } => None,
+            ParsingError::Other { source } => Some(source),
         }
     }
 }
@@ -126,12 +119,7 @@ impl Display for ParsingError {
             ParsingError::PathDoesNotExist { path } => {
                 write!(f, "Path does not exist: {}", path.display())
             }
-            ParsingError::NameFile { .. } => write!(f, "Error reading name file"),
-            ParsingError::SensorCreationError { sensor_type, index } => write!(
-                f,
-                "Error creating sensor of type {} with index {}",
-                sensor_type, index
-            ),
+            ParsingError::Other { .. } => write!(f, "I/O error"),
         }
     }
 }

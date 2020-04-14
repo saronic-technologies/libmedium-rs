@@ -139,14 +139,7 @@ impl Parseable for ReadOnlyFan {
             index,
         };
 
-        if sensor_valid(&fan) {
-            Ok(fan)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "fan sensor",
-                index,
-            })
-        }
+        inspect_sensor(fan)
     }
 }
 
@@ -196,14 +189,7 @@ impl Parseable for ReadWriteFan {
             index,
         };
 
-        if sensor_valid(&fan) {
-            Ok(fan)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "fan sensor",
-                index,
-            })
-        }
+        inspect_sensor(fan)
     }
 }
 

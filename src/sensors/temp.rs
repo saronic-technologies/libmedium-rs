@@ -244,14 +244,7 @@ impl Parseable for ReadOnlyTemp {
             index,
         };
 
-        if sensor_valid(&temp) {
-            Ok(temp)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "temp sensor",
-                index,
-            })
-        }
+        inspect_sensor(temp)
     }
 }
 
@@ -301,14 +294,7 @@ impl Parseable for ReadWriteTemp {
             index,
         };
 
-        if sensor_valid(&temp) {
-            Ok(temp)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "temp sensor",
-                index,
-            })
-        }
+        inspect_sensor(temp)
     }
 }
 

@@ -62,14 +62,7 @@ impl Parseable for ReadOnlyHumidity {
             index,
         };
 
-        if sensor_valid(&humidity) {
-            Ok(humidity)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "humidity sensor",
-                index,
-            })
-        }
+        inspect_sensor(humidity)
     }
 }
 
@@ -118,14 +111,7 @@ impl Parseable for ReadWriteHumidity {
             index,
         };
 
-        if sensor_valid(&humidity) {
-            Ok(humidity)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "humidity sensor",
-                index,
-            })
-        }
+        inspect_sensor(humidity)
     }
 }
 

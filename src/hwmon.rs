@@ -41,10 +41,13 @@ fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
 
     if let Err(e) = path.metadata() {
         match e.kind() {
+            std::io::ErrorKind::NotFound => {
+                return Err(ParsingError::PathDoesNotExist { path: path.into() })
+            }
             std::io::ErrorKind::PermissionDenied => {
                 return Err(ParsingError::InsufficientRights { path: path.into() })
             }
-            _ => return Err(ParsingError::InvalidPath { path: path.into() }),
+            _ => return Err(ParsingError::Other { source: e }),
         }
     }
 
@@ -59,12 +62,12 @@ fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
         Ok(name) => name.trim().to_string(),
         Err(e) => match e.kind() {
             std::io::ErrorKind::NotFound => {
-                return Err(ParsingError::InvalidPath { path: name_path })
+                return Err(ParsingError::PathDoesNotExist { path: name_path })
             }
             std::io::ErrorKind::PermissionDenied => {
                 return Err(ParsingError::InsufficientRights { path: name_path })
             }
-            _ => return Err(ParsingError::NameFile { source: e }),
+            _ => return Err(ParsingError::Other { source: e }),
         },
     };
 

@@ -225,14 +225,7 @@ impl Parseable for ReadOnlyPower {
             index,
         };
 
-        if sensor_valid(&power) {
-            Ok(power)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "power sensor",
-                index,
-            })
-        }
+        inspect_sensor(power)
     }
 }
 
@@ -281,14 +274,7 @@ impl Parseable for ReadWritePower {
             index,
         };
 
-        if sensor_valid(&power) {
-            Ok(power)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "power sensor",
-                index,
-            })
-        }
+        inspect_sensor(power)
     }
 }
 

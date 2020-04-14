@@ -62,14 +62,7 @@ impl Parseable for ReadOnlyEnergy {
             index,
         };
 
-        if sensor_valid(&energy) {
-            Ok(energy)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "energy sensor",
-                index,
-            })
-        }
+        inspect_sensor(energy)
     }
 }
 
@@ -118,14 +111,7 @@ impl Parseable for ReadWriteEnergy {
             index,
         };
 
-        if sensor_valid(&energy) {
-            Ok(energy)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "energy sensor",
-                index,
-            })
-        }
+        inspect_sensor(energy)
     }
 }
 

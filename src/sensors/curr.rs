@@ -69,14 +69,7 @@ impl Parseable for ReadOnlyCurr {
             index,
         };
 
-        if sensor_valid(&curr) {
-            Ok(curr)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "current sensor",
-                index,
-            })
-        }
+        inspect_sensor(curr)
     }
 }
 
@@ -125,14 +118,7 @@ impl Parseable for ReadWriteCurr {
             index,
         };
 
-        if sensor_valid(&curr) {
-            Ok(curr)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "current sensor",
-                index,
-            })
-        }
+        inspect_sensor(curr)
     }
 }
 

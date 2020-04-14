@@ -125,14 +125,14 @@ impl SensorSubFunctionType {
         &ARRAY
     }
 
-    pub(crate) fn read_list() -> impl Iterator<Item = SensorSubFunctionType> {
+    pub(crate) fn read_list() -> impl Iterator<Item = Self> {
         Self::read_only_list()
             .iter()
             .chain(Self::read_write_list())
             .copied()
     }
 
-    pub(crate) fn write_list() -> impl Iterator<Item = SensorSubFunctionType> {
+    pub(crate) fn write_list() -> impl Iterator<Item = Self> {
         Self::write_only_list()
             .iter()
             .chain(Self::read_write_list())

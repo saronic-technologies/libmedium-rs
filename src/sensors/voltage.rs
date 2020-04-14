@@ -69,14 +69,7 @@ impl Parseable for ReadOnlyVolt {
             index,
         };
 
-        if sensor_valid(&volt) {
-            Ok(volt)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "voltage sensor",
-                index,
-            })
-        }
+        inspect_sensor(volt)
     }
 }
 
@@ -125,14 +118,7 @@ impl Parseable for ReadWriteVolt {
             index,
         };
 
-        if sensor_valid(&volt) {
-            Ok(volt)
-        } else {
-            Err(ParsingError::SensorCreationError {
-                sensor_type: "voltage sensor",
-                index,
-            })
-        }
+        inspect_sensor(volt)
     }
 }
 
