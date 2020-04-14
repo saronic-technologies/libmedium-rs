@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents a frequency.
-pub type Frequency = measurements::Frequency;
+pub use measurements::Frequency;
 
 impl Raw for Frequency {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {

@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents a temperature.
-pub type Temperature = measurements::Temperature;
+pub use measurements::Temperature;
 
 impl Raw for Temperature {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {

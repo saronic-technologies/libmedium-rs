@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents an electrical current.
-pub type Current = measurements::Current;
+pub use measurements::Current;
 
 impl Raw for Current {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {

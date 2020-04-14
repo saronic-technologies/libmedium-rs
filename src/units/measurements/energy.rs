@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents used energy.
-pub type Energy = measurements::Energy;
+pub use measurements::Energy;
 
 impl Raw for Energy {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {

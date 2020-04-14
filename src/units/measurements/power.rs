@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents electrical power.
-pub type Power = measurements::Power;
+pub use measurements::Power;
 
 impl Raw for Power {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {

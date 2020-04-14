@@ -3,7 +3,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 use ::measurements;
 
 /// Struct that represents an electrical voltage.
-pub type Voltage = measurements::Voltage;
+pub use measurements::Voltage;
 
 impl Raw for Voltage {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
