@@ -8,7 +8,6 @@ repository = "https://github.com/Maldela/libmedium"
 edition = "2018"
 
 [dependencies]
-snafu = "0.6.0"
 measurements = { version = "0.10", optional = true }
 
 [lib]

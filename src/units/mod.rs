@@ -16,28 +16,30 @@ pub use native::*;
 #[cfg(feature = "measurements_units")]
 pub use self::measurements::*;
 
-use snafu::Snafu;
-
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::time::Duration;
 
 pub(crate) type RawSensorResult<T> = std::result::Result<T, RawError>;
 
 /// Error which can be returned from reading a raw sensor value.
-#[derive(Snafu, Debug)]
-pub enum RawError {
-    /// The read string is invalid and can not be converted into the desired value type.
-    #[snafu(display("Invalid raw string: {}", raw))]
-    InvalidRawString {
-        /// The string that can not be converted.
-        raw: String,
-    },
+#[derive(Debug)]
+pub struct RawError {
+    /// The string that can not be converted.
+    raw: String,
 }
 
-impl<T: AsRef<str>> From<T> for RawError {
+impl Error for RawError {}
+
+impl Display for RawError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid raw string: {}", &self.raw)
+    }
+}
+
+impl<T: Into<String>> From<T> for RawError {
     fn from(raw: T) -> Self {
-        RawError::InvalidRawString {
-            raw: raw.as_ref().to_string(),
-        }
+        RawError { raw: raw.into() }
     }
 }
 

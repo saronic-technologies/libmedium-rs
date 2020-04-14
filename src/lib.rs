@@ -71,40 +71,69 @@ pub use sensors::{Sensor, SensorBase, SensorError};
 
 use hwmon::*;
 
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::iter::FusedIterator;
 use std::path::{Path, PathBuf};
-
-use snafu::Snafu;
 
 const HWMON_PATH: &str = "/sys/class/hwmon/";
 
 type ParsingResult<T> = std::result::Result<T, ParsingError>;
 
 #[allow(missing_docs)]
-#[derive(Debug, Snafu)]
+#[derive(Debug)]
 pub enum ParsingError {
     /// You have insufficient rights. Try using the read only version of the parse_hwmons* functions.
-    #[snafu(display("Insufficient rights for path {}", path.display()))]
     InsufficientRights { path: PathBuf },
 
     /// The path you are trying to parse is not valid.
-    #[snafu(display("Invalid path to parse: {}", path.display()))]
     InvalidPath { path: PathBuf },
 
     /// The path you are trying to parse does not exist.
-    #[snafu(display("Path does not exist: {}", path.display()))]
     PathDoesNotExist { path: PathBuf },
 
     /// Error which is returned if reading the name file of an `Hwmon` fails.
-    #[snafu(display("Error reading name file: {}", source))]
     NameFile { source: std::io::Error },
 
     /// Error when creating a new sensor.
-    #[snafu(display("Error creating sensor of type {} with index {}", sensor_type, index))]
     SensorCreationError {
         sensor_type: &'static str,
         index: u16,
     },
+}
+
+impl Error for ParsingError {
+    fn cause(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            ParsingError::InsufficientRights { .. } => None,
+            ParsingError::InvalidPath { .. } => None,
+            ParsingError::PathDoesNotExist { .. } => None,
+            ParsingError::NameFile { source } => Some(source),
+            ParsingError::SensorCreationError { .. } => None,
+        }
+    }
+}
+
+impl Display for ParsingError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParsingError::InsufficientRights { path } => {
+                write!(f, "Insufficient rights for path {}", path.display())
+            }
+            ParsingError::InvalidPath { path } => {
+                write!(f, "Invalid path to parse: {}", path.display())
+            }
+            ParsingError::PathDoesNotExist { path } => {
+                write!(f, "Path does not exist: {}", path.display())
+            }
+            ParsingError::NameFile { .. } => write!(f, "Error reading name file"),
+            ParsingError::SensorCreationError { sensor_type, index } => write!(
+                f,
+                "Error creating sensor of type {} with index {}",
+                sensor_type, index
+            ),
+        }
+    }
 }
 
 /// This crate's central struct.

@@ -103,9 +103,7 @@ impl Raw for PwmEnable {
             "0" => Ok(PwmEnable::FullSpeed),
             "1" => Ok(PwmEnable::ManualControl),
             "2" => Ok(PwmEnable::BiosControl),
-            raw => Err(RawError::InvalidRawString {
-                raw: raw.to_string(),
-            }),
+            raw => Err(raw.into()),
         }
     }
 }
@@ -139,9 +137,7 @@ impl Raw for PwmMode {
             "0" => Ok(PwmMode::DC),
             "1" => Ok(PwmMode::PWM),
             "2" => Ok(PwmMode::Automatic),
-            raw => Err(RawError::InvalidRawString {
-                raw: raw.to_string(),
-            }),
+            raw => Err(raw.into()),
         }
     }
 }

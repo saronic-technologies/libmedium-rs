@@ -48,54 +48,84 @@ use std::fs::{read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use snafu::Snafu;
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 
 type SensorResult<T> = std::result::Result<T, SensorError>;
 
 /// Error which can be returned from interacting with sensors.
 #[allow(missing_docs)]
-#[derive(Snafu, Debug)]
+#[derive(Debug)]
 pub enum SensorError {
     /// Error reading from sensor.
-    #[snafu(display("Reading from sensor at {} failed: {}", path.display(), source))]
     Read {
         source: std::io::Error,
         path: PathBuf,
     },
 
     /// Error writing to sensor.
-    #[snafu(display("Writing to sensor at {} failed: {}", path.display(), source))]
     Write {
         source: std::io::Error,
         path: PathBuf,
     },
 
     /// A RawSensorError occurred.
-    #[snafu(display("Raw value error: {}", source))]
     RawSensorError { source: RawError },
 
     /// You have insufficient rights. Try using the read only variant of whatever returned this error.
-    #[snafu(display("Insufficient rights for path {}", path.display()))]
     InsufficientRights { path: PathBuf },
 
     /// The subfunction you requested ist not supported by this sensor.
-    #[snafu(display("Sensor does not support the subtype {}", sub_type))]
     SubtypeNotSupported { sub_type: SensorSubFunctionType },
 
     /// The sensor you tried to read from is faulty.
-    #[snafu(display("The sensor is faulty"))]
     FaultySensor,
 
     /// The sensor you tried to read from or write to is disabled.
-    #[snafu(display("The sensor is disabled"))]
     DisabledSensor,
+}
+
+impl Error for SensorError {
+    fn cause(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            SensorError::Read { source, .. } => Some(source),
+            SensorError::Write { source, .. } => Some(source),
+            SensorError::RawSensorError { source } => Some(source),
+            SensorError::InsufficientRights { .. } => None,
+            SensorError::SubtypeNotSupported { .. } => None,
+            SensorError::FaultySensor => None,
+            SensorError::DisabledSensor => None,
+        }
+    }
+}
+
+impl Display for SensorError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SensorError::Read { path, .. } => {
+                write!(f, "Reading from sensor at {} failed", path.display())
+            }
+            SensorError::Write { path, .. } => {
+                write!(f, "Writing to sensor at {} failed", path.display())
+            }
+            SensorError::RawSensorError { .. } => write!(f, "Raw sensor error"),
+            SensorError::InsufficientRights { path } => write!(
+                f,
+                "You have insufficient rights to read/write {}",
+                path.display()
+            ),
+            SensorError::SubtypeNotSupported { sub_type } => {
+                write!(f, "Sensor does not support the subtype {}", sub_type)
+            }
+            SensorError::FaultySensor => write!(f, "The sensor is faulty"),
+            SensorError::DisabledSensor => write!(f, "The sensor is disabled"),
+        }
+    }
 }
 
 impl From<RawError> for SensorError {
     fn from(raw_error: RawError) -> SensorError {
-        match &raw_error {
-            RawError::InvalidRawString { .. } => SensorError::RawSensorError { source: raw_error },
-        }
+        SensorError::RawSensorError { source: raw_error }
     }
 }
 
