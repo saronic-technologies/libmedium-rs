@@ -7,7 +7,7 @@ Just add this to your `Cargo.toml` file:
 
 ```
 [dependencies]
-libmedium = "0.1"
+libmedium = "0.2"
 ```
 
 Look in the [examples](examples) folder for information on how to use libmedium.
