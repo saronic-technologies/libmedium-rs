@@ -26,7 +26,10 @@
 //! Print the temperature of all the temp sensors in your system:
 //!
 //! ```
-//! use libmedium::{Hwmon, Hwmons, Sensor, SensorBase};
+//! use libmedium::{
+//!     Hwmon, Hwmons,
+//!     sensors::{Sensor, SensorBase},
+//! };
 //!
 //! let hwmons = Hwmons::parse_read_only().unwrap();
 //! for (hwmon_index, hwmon_name, hwmon) in &hwmons {
@@ -41,7 +44,11 @@
 //! Set the pwm value of all your pwm capable fans to full speed:
 //!
 //! ```
-//! use libmedium::{Hwmon, Hwmons, sensors::{Pwm, PwmEnable, PwmSensor}};
+//! use libmedium::{
+//!     Hwmon, Hwmons,
+//!     sensors::PwmSensor,
+//!     units::{Pwm, PwmEnable},
+//! };
 //!
 //! let hwmons = Hwmons::parse_read_write().unwrap();
 //! for (_, _, hwmon) in &hwmons {
