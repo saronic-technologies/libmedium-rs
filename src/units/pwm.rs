@@ -1,6 +1,6 @@
 use crate::units::{Raw, RawError, RawSensorResult};
-use std::fmt;
 use std::borrow::Cow;
+use std::fmt;
 
 /// Struct that represents a pwm value between 0 and 255.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]

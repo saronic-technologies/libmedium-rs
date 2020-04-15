@@ -1,7 +1,7 @@
 use crate::units::{Raw, RawError, RawSensorResult};
+use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::fmt;
-use std::borrow::Cow;
 
 /// Struct that represents the accuracy of a power sensor.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]

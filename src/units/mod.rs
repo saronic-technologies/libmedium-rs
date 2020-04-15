@@ -24,10 +24,10 @@ pub use native::*;
 #[cfg(feature = "measurements_units")]
 pub use self::measurements::*;
 
+use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::time::Duration;
-use std::borrow::Cow;
 
 pub(crate) type RawSensorResult<T> = std::result::Result<T, RawError>;
 

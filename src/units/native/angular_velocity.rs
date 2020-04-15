@@ -1,8 +1,8 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
+use std::borrow::Cow;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
-use std::borrow::Cow;
 
 /// Struct that represents a frequency.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]

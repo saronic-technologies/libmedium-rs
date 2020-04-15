@@ -19,4 +19,3 @@ impl Raw for Frequency {
         Cow::Owned(self.as_hertz().round().to_string())
     }
 }
-
