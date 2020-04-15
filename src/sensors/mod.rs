@@ -455,11 +455,9 @@ fn inspect_sensor<Sensor: SensorBase>(sensor: Sensor) -> ParsingResult<Sensor> {
 
     if count == 0 {
         Err(ParsingError::InvalidPath {
-            path: sensor.hwmon_path().join(format!(
-                "{}{}",
-                sensor.base(),
-                sensor.index(),
-            ))
+            path: sensor
+                .hwmon_path()
+                .join(format!("{}{}", sensor.base(), sensor.index(),)),
         })
     } else {
         Ok(sensor)
@@ -500,7 +498,7 @@ mod tests {
         assert_eq!(Temperature::from_celsius(40.0), temp.read_input().unwrap());
 
         #[cfg(not(feature = "measurements_units"))]
-        assert_eq!(60, fan.read_input().unwrap().as_times_per_minute());
+        assert_eq!(60, fan.read_input().unwrap().as_rpm());
 
         #[cfg(feature = "measurements_units")]
         assert_eq!(60.0, fan.read_input().unwrap().as_hertz() * 60.0);

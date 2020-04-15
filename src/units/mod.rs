@@ -1,6 +1,10 @@
 //! Units used in this library.
 
+mod accuracy;
+mod fan_divisor;
 mod humidity;
+mod pwm;
+mod temp_type;
 
 #[cfg(not(feature = "measurements_units"))]
 mod native;
@@ -8,7 +12,11 @@ mod native;
 #[cfg(feature = "measurements_units")]
 mod measurements;
 
+pub use accuracy::Accuracy;
+pub use fan_divisor::FanDivisor;
 pub use humidity::Humidity;
+pub use pwm::*;
+pub use temp_type::TempType;
 
 #[cfg(not(feature = "measurements_units"))]
 pub use native::*;

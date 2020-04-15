@@ -14,6 +14,6 @@ impl Raw for Energy {
     }
 
     fn to_raw(&self) -> String {
-        ((self.as_joules() * 1_000_000.0).round() as i32).to_string()
+        (self.as_joules() * 1_000_000.0).round().to_string()
     }
 }

@@ -1,5 +1,6 @@
 use libmedium::{
-    sensors::{Pwm, PwmEnable, PwmSensor},
+    sensors::PwmSensor,
+    units::{Pwm, PwmEnable},
     Hwmon, Hwmons,
 };
 

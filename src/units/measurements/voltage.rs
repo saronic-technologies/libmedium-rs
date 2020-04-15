@@ -14,6 +14,6 @@ impl Raw for Voltage {
     }
 
     fn to_raw(&self) -> String {
-        (self.as_millivolts().round() as i32).to_string()
+        self.as_millivolts().round().to_string()
     }
 }

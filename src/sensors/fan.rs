@@ -21,46 +21,21 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::units::{Frequency, Raw, RawError, RawSensorResult};
+use crate::units::{AngularVelocity, FanDivisor, Raw};
 use crate::{Parseable, ParsingResult};
 
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
-/// A struct representing a fan divisor. Fan divisors can only be powers of two.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
-pub struct FanDivisor(u32);
-
-impl FanDivisor {
-    /// Returns a FanDivisor created from a given value. If the value given is not a power of two
-    /// the next higher power of two is chosen instead.
-    pub fn from_value(value: u32) -> FanDivisor {
-        FanDivisor(value.next_power_of_two())
-    }
-}
-
-impl Raw for FanDivisor {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
-        raw.trim()
-            .parse::<u32>()
-            .map(FanDivisor)
-            .map_err(|_| RawError::from(raw))
-    }
-
-    fn to_raw(&self) -> String {
-        self.0.to_string()
-    }
-}
-
 /// Trait implemented by all fan sensors.
 pub trait FanSensor: SensorBase {
-    /// Reads the target_Revs subfunction of this fan sensor.
+    /// Reads the target_revs subfunction of this fan sensor.
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_target(&self) -> SensorResult<Frequency> {
+    fn read_target(&self) -> SensorResult<AngularVelocity> {
         let raw = self.read_raw(SensorSubFunctionType::Target)?;
-        Frequency::from_raw(&raw).map_err(SensorError::from)
+        AngularVelocity::from_raw(&raw).map_err(SensorError::from)
     }
 
     /// Reads the div subfunction of this fan sensor.
@@ -75,7 +50,7 @@ pub trait FanSensor: SensorBase {
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_target(&self, target: Frequency) -> SensorResult<()>
+    fn write_target(&self, target: AngularVelocity) -> SensorResult<()>
     where
         Self: WritableSensorBase,
     {
@@ -93,21 +68,21 @@ pub trait FanSensor: SensorBase {
     }
 }
 
-impl<S: FanSensor + Faulty> Sensor<Frequency> for S {
+impl<S: FanSensor + Faulty> Sensor<AngularVelocity> for S {
     /// Reads the input subfunction of this fan sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_input(&self) -> SensorResult<Frequency> {
+    fn read_input(&self) -> SensorResult<AngularVelocity> {
         if self.read_faulty().unwrap_or(false) {
             return Err(SensorError::FaultySensor);
         }
 
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        Frequency::from_raw(&raw).map_err(SensorError::from)
+        AngularVelocity::from_raw(&raw).map_err(SensorError::from)
     }
 }
 
-impl<S: FanSensor> Min<Frequency> for S {}
-impl<S: FanSensor> Max<Frequency> for S {}
+impl<S: FanSensor> Min<AngularVelocity> for S {}
+impl<S: FanSensor> Max<AngularVelocity> for S {}
 
 /// Struct that represents a read only fan sensor.
 #[derive(Debug, Clone)]

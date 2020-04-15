@@ -1,4 +1,7 @@
-use libmedium::{Hwmon, Hwmons, Sensor, SensorBase};
+use libmedium::{
+    sensors::{Sensor, SensorBase},
+    Hwmon, Hwmons,
+};
 
 fn main() {
     let hwmons = Hwmons::parse_read_only().unwrap();

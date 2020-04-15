@@ -14,6 +14,6 @@ impl Raw for Temperature {
     }
 
     fn to_raw(&self) -> String {
-        ((self.as_celsius() * 1000.0).round() as i32).to_string()
+        (self.as_celsius() * 1000.0).round().to_string()
     }
 }

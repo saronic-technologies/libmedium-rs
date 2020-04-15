@@ -1,21 +1,20 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
 
 /// Struct that represents a frequency.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash, Ord, Eq)]
 pub struct Frequency(u32);
 
 impl Frequency {
-    /// Create a Frequency struct from a value measuring times per minute.
-    pub fn from_times_per_minute(rpm: u32) -> Frequency {
-        Frequency(rpm)
+    /// Create a Frequency struct from a value measuring times per second.
+    pub fn from_hertz(hz: u32) -> Self {
+        Frequency(hz)
     }
 
-    /// Return this Frequency's value in times per minute.
-    pub fn as_times_per_minute(self) -> u32 {
+    /// Return this Frequency's value in times per second.
+    pub fn as_hertz(self) -> u32 {
         self.0
     }
 }
@@ -24,26 +23,18 @@ impl Raw for Frequency {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.trim()
             .parse::<u32>()
-            .map(Frequency::from_times_per_minute)
+            .map(Frequency::from_hertz)
             .map_err(|_| RawError::from(raw))
     }
 
     fn to_raw(&self) -> String {
-        self.as_times_per_minute().to_string()
+        self.as_hertz().to_string()
     }
 }
 
 impl fmt::Display for Frequency {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}rpm", self.as_times_per_minute())
-    }
-}
-
-impl Eq for Frequency {}
-
-impl Ord for Frequency {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
+        write!(f, "{}hz", self.as_hertz())
     }
 }
 

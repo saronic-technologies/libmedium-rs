@@ -1,11 +1,10 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
 
 /// Struct that represents humidity.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
 pub struct Humidity(u32);
 
 impl Humidity {
@@ -41,14 +40,6 @@ impl Raw for Humidity {
 impl fmt::Display for Humidity {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}%", self.as_percent())
-    }
-}
-
-impl Eq for Humidity {}
-
-impl Ord for Humidity {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
     }
 }
 

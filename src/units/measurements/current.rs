@@ -14,6 +14,6 @@ impl Raw for Current {
     }
 
     fn to_raw(&self) -> String {
-        (self.as_milliamperes().round() as i32).to_string()
+        self.as_milliamperes().round().to_string()
     }
 }
