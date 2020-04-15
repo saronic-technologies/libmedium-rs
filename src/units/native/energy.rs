@@ -1,11 +1,11 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents used energy.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct Energy(u32);
 
 impl Energy {
@@ -38,22 +38,14 @@ impl Raw for Energy {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_micro_joules().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_micro_joules().to_string())
     }
 }
 
 impl fmt::Display for Energy {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}J", self.as_joules())
-    }
-}
-
-impl Eq for Energy {}
-
-impl Ord for Energy {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
     }
 }
 

@@ -1,11 +1,11 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents a temperature.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct Temperature(i32);
 
 impl Temperature {
@@ -48,22 +48,14 @@ impl Raw for Temperature {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_millidegrees_celsius().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_millidegrees_celsius().to_string())
     }
 }
 
 impl fmt::Display for Temperature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}°C", self.as_degrees_celsius())
-    }
-}
-
-impl Eq for Temperature {}
-
-impl Ord for Temperature {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
     }
 }
 

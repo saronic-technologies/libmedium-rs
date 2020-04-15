@@ -1,5 +1,7 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
+use std::borrow::Cow;
+
 /// Enum that represents the different temp sensor types.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -25,14 +27,14 @@ impl Raw for TempType {
         }
     }
 
-    fn to_raw(&self) -> String {
+    fn to_raw(&self) -> Cow<str> {
         match self {
-            TempType::CpuEmbeddedDiode => String::from("1"),
-            TempType::Transistor => String::from("2"),
-            TempType::ThermalDiode => String::from("3"),
-            TempType::Thermistor => String::from("4"),
-            TempType::AmdAmdsi => String::from("5"),
-            TempType::IntelPeci => String::from("6"),
+            TempType::CpuEmbeddedDiode => Cow::from("1"),
+            TempType::Transistor => Cow::from("2"),
+            TempType::ThermalDiode => Cow::from("3"),
+            TempType::Thermistor => Cow::from("4"),
+            TempType::AmdAmdsi => Cow::from("5"),
+            TempType::IntelPeci => Cow::from("6"),
         }
     }
 }

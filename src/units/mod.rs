@@ -27,6 +27,7 @@ pub use self::measurements::*;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::time::Duration;
+use std::borrow::Cow;
 
 pub(crate) type RawSensorResult<T> = std::result::Result<T, RawError>;
 
@@ -57,7 +58,7 @@ pub trait Raw: Sized {
     fn from_raw(raw: &str) -> RawSensorResult<Self>;
 
     /// Converts self into a writable raw sensor string.
-    fn to_raw(&self) -> String;
+    fn to_raw(&self) -> Cow<str>;
 }
 
 impl Raw for bool {
@@ -69,10 +70,10 @@ impl Raw for bool {
         }
     }
 
-    fn to_raw(&self) -> String {
+    fn to_raw(&self) -> Cow<str> {
         match self {
-            true => String::from("1"),
-            false => String::from("0"),
+            true => Cow::Borrowed("1"),
+            false => Cow::Borrowed("0"),
         }
     }
 }
@@ -82,8 +83,8 @@ impl Raw for String {
         Ok(raw.trim().to_string())
     }
 
-    fn to_raw(&self) -> String {
-        self.clone()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Borrowed(self.as_str())
     }
 }
 
@@ -95,7 +96,7 @@ impl Raw for Duration {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_millis().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_millis().to_string())
     }
 }

@@ -5,6 +5,8 @@ use ::measurements;
 /// Struct that represents a frequency.
 pub use measurements::Frequency;
 
+use std::borrow::Cow;
+
 impl Raw for Frequency {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.trim()
@@ -13,8 +15,8 @@ impl Raw for Frequency {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_hertz().round().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_hertz().round().to_string())
     }
 }
 

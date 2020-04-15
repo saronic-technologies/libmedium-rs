@@ -1,6 +1,7 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 use std::cmp::Ordering;
 use std::fmt;
+use std::borrow::Cow;
 
 /// Struct that represents the accuracy of a power sensor.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
@@ -26,8 +27,8 @@ impl Raw for Accuracy {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_percent().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_percent().to_string())
     }
 }
 

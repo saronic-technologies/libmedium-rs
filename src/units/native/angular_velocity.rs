@@ -2,6 +2,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents a frequency.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
@@ -27,8 +28,8 @@ impl Raw for AngularVelocity {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_rpm().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_rpm().to_string())
     }
 }
 

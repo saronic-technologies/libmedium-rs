@@ -1,4 +1,5 @@
 use crate::units::{Raw, RawError, RawSensorResult};
+use std::borrow::Cow;
 
 /// A struct representing a fan divisor. Fan divisors can only be powers of two.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
@@ -25,7 +26,7 @@ impl Raw for FanDivisor {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.0.to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.0.to_string())
     }
 }

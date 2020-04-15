@@ -1,5 +1,6 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 use std::fmt;
+use std::borrow::Cow;
 
 /// Struct that represents a pwm value between 0 and 255.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
@@ -34,8 +35,8 @@ impl Raw for Pwm {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.0.to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.0.to_string())
     }
 }
 
@@ -64,11 +65,11 @@ impl Raw for PwmEnable {
         }
     }
 
-    fn to_raw(&self) -> String {
+    fn to_raw(&self) -> Cow<str> {
         match self {
-            PwmEnable::FullSpeed => String::from("0"),
-            PwmEnable::ManualControl => String::from("1"),
-            PwmEnable::BiosControl => String::from("2"),
+            PwmEnable::FullSpeed => Cow::from("0"),
+            PwmEnable::ManualControl => Cow::from("1"),
+            PwmEnable::BiosControl => Cow::from("2"),
         }
     }
 }
@@ -98,11 +99,11 @@ impl Raw for PwmMode {
         }
     }
 
-    fn to_raw(&self) -> String {
+    fn to_raw(&self) -> Cow<str> {
         match self {
-            PwmMode::DC => String::from("0"),
-            PwmMode::PWM => String::from("1"),
-            PwmMode::Automatic => String::from("2"),
+            PwmMode::DC => Cow::from("0"),
+            PwmMode::PWM => Cow::from("1"),
+            PwmMode::Automatic => Cow::from("2"),
         }
     }
 }

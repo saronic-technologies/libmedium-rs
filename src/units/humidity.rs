@@ -2,6 +2,7 @@ use crate::units::{Raw, RawError, RawSensorResult};
 
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents humidity.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
@@ -32,8 +33,8 @@ impl Raw for Humidity {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_milli_percent().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_milli_percent().to_string())
     }
 }
 

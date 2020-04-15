@@ -1,11 +1,11 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents an electrical current.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct Current(i32);
 
 impl Current {
@@ -38,22 +38,14 @@ impl Raw for Current {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.0.to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.0.to_string())
     }
 }
 
 impl fmt::Display for Current {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}A", self.as_amperes())
-    }
-}
-
-impl Eq for Current {}
-
-impl Ord for Current {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
     }
 }
 

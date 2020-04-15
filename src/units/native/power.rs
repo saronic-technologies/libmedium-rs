@@ -1,11 +1,11 @@
 use crate::units::{Raw, RawError, RawSensorResult};
 
-use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
+use std::borrow::Cow;
 
 /// Struct that represents electrical power.
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct Power(u32);
 
 impl Power {
@@ -38,22 +38,14 @@ impl Raw for Power {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_microwatts().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_microwatts().to_string())
     }
 }
 
 impl fmt::Display for Power {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}W", self.as_watts())
-    }
-}
-
-impl Eq for Power {}
-
-impl Ord for Power {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
     }
 }
 

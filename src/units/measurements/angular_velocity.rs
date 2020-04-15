@@ -5,6 +5,8 @@ use ::measurements;
 /// Struct that represents an electrical current.
 pub use measurements::AngularVelocity;
 
+use std::borrow::Cow;
+
 impl Raw for AngularVelocity {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.trim()
@@ -13,7 +15,7 @@ impl Raw for AngularVelocity {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        self.as_rpm().round().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned(self.as_rpm().round().to_string())
     }
 }

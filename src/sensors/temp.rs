@@ -92,7 +92,7 @@ pub trait TempSensor: SensorBase {
     where
         Self: WritableSensorBase,
     {
-        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw().to_raw())
+        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw())
     }
 
     /// Converts max_hyst and writes it to this temp's max_hyst subfunction.

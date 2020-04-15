@@ -5,6 +5,8 @@ use ::measurements;
 /// Struct that represents a temperature.
 pub use measurements::Temperature;
 
+use std::borrow::Cow;
+
 impl Raw for Temperature {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.trim()
@@ -13,7 +15,7 @@ impl Raw for Temperature {
             .map_err(|_| RawError::from(raw))
     }
 
-    fn to_raw(&self) -> String {
-        (self.as_celsius() * 1000.0).round().to_string()
+    fn to_raw(&self) -> Cow<str> {
+        Cow::Owned((self.as_celsius() * 1000.0).round().to_string())
     }
 }
