@@ -1,9 +1,9 @@
 //! Module containing sensor subfunctions.
 
-use std::fmt;
+use std::fmt::{Display, Formatter, Result};
 
 #[allow(missing_docs)]
-#[derive(Clone, Copy, Debug, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum SensorSubFunctionType {
     Input,
     Fault,
@@ -167,10 +167,8 @@ impl SensorSubFunctionType {
     }
 }
 
-impl Eq for SensorSubFunctionType {}
-
-impl fmt::Display for SensorSubFunctionType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for SensorSubFunctionType {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{:?}", self)
     }
 }
