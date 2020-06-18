@@ -5,6 +5,7 @@ use crate::hwmon::*;
 use crate::units::{Accuracy, Power, Raw};
 use crate::{Parseable, ParsingResult};
 
+#[cfg(feature = "writable")]
 use std::convert::TryFrom;
 
 /// Trait implemented by all power sensors.

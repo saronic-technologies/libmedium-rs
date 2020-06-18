@@ -5,6 +5,7 @@ use crate::hwmon::*;
 use crate::units::{Raw, TempType, Temperature};
 use crate::{Parseable, ParsingResult};
 
+#[cfg(feature = "writable")]
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 

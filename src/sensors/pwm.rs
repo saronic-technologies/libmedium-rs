@@ -4,6 +4,7 @@ use super::*;
 use crate::units::{Frequency, Pwm, PwmEnable, PwmMode, Raw};
 use crate::{Parseable, ParsingResult};
 
+#[cfg(feature = "writable")]
 use std::convert::TryFrom;
 use std::path::Path;
 

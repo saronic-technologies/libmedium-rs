@@ -27,10 +27,14 @@ use crate::units::Raw;
 use crate::{ParsingError, ParsingResult};
 use error::Result;
 
-use std::collections::HashMap;
-use std::fs::{read_to_string, write};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+#[cfg(feature = "writable")]
+use std::{collections::HashMap, fs::write};
+
+use std::{
+    fs::read_to_string,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 /// Base trait that all sensors must implement.
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.

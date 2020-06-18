@@ -5,6 +5,7 @@ use crate::hwmon::*;
 use crate::units::{AngularVelocity, FanDivisor, Raw};
 use crate::{Parseable, ParsingResult};
 
+#[cfg(feature = "writable")]
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
