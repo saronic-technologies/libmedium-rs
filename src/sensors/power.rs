@@ -11,92 +11,92 @@ use std::convert::TryFrom;
 pub trait PowerSensor: SensorBase {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_accuracy(&self) -> SensorResult<Accuracy> {
+    fn read_accuracy(&self) -> Result<Accuracy> {
         let raw = self.read_raw(SensorSubFunctionType::Accuracy)?;
-        Accuracy::from_raw(&raw).map_err(SensorError::from)
+        Accuracy::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_cap(&self) -> SensorResult<Power> {
+    fn read_cap(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::Cap)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the cap_max subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_cap_max(&self) -> SensorResult<Power> {
+    fn read_cap_max(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::CapMax)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the cap_min subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_cap_min(&self) -> SensorResult<Power> {
+    fn read_cap_min(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::CapMin)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the cap_hyst subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_cap_hyst(&self) -> SensorResult<Power> {
+    fn read_cap_hyst(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::CapHyst)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_interval subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_interval(&self) -> SensorResult<Duration> {
+    fn read_average_interval(&self) -> Result<Duration> {
         let raw = self.read_raw(SensorSubFunctionType::AverageInterval)?;
-        Duration::from_raw(&raw).map_err(SensorError::from)
+        Duration::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_interval_max subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_interval_max(&self) -> SensorResult<Duration> {
+    fn read_average_interval_max(&self) -> Result<Duration> {
         let raw = self.read_raw(SensorSubFunctionType::AverageIntervalMax)?;
-        Duration::from_raw(&raw).map_err(SensorError::from)
+        Duration::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_interval_min subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_interval_min(&self) -> SensorResult<Duration> {
+    fn read_average_interval_min(&self) -> Result<Duration> {
         let raw = self.read_raw(SensorSubFunctionType::AverageIntervalMin)?;
-        Duration::from_raw(&raw).map_err(SensorError::from)
+        Duration::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_highest subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_highest(&self) -> SensorResult<Power> {
+    fn read_average_highest(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::AverageHighest)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_lowest subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_lowest(&self) -> SensorResult<Power> {
+    fn read_average_lowest(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::AverageLowest)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_max subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_max(&self) -> SensorResult<Power> {
+    fn read_average_max(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::AverageMax)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_min subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_average_min(&self) -> SensorResult<Power> {
+    fn read_average_min(&self) -> Result<Power> {
         let raw = self.read_raw(SensorSubFunctionType::AverageMin)?;
-        Power::from_raw(&raw).map_err(SensorError::from)
+        Power::from_raw(&raw).map_err(Error::from)
     }
 
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_cap(&self, cap: Power) -> SensorResult<()>
+    fn write_cap(&self, cap: Power) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -106,7 +106,7 @@ pub trait PowerSensor: SensorBase {
     /// Converts cap_hyst and writes it to the cap_hyst subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_cap_hyst(&self, cap_hyst: Power) -> SensorResult<()>
+    fn write_cap_hyst(&self, cap_hyst: Power) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -116,7 +116,7 @@ pub trait PowerSensor: SensorBase {
     /// Converts interval and writes it to the average_interval subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_average_interval(&self, interval: Duration) -> SensorResult<()>
+    fn write_average_interval(&self, interval: Duration) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -221,16 +221,16 @@ impl WritableSensorBase for ReadWritePower {}
 
 #[cfg(feature = "writable")]
 impl TryFrom<ReadOnlyPower> for ReadWritePower {
-    type Error = SensorError;
+    type Error = Error;
 
-    fn try_from(value: ReadOnlyPower) -> Result<Self, Self::Error> {
+    fn try_from(value: ReadOnlyPower) -> std::result::Result<Self, Self::Error> {
         let read_write = ReadWritePower {
             hwmon_path: value.hwmon_path,
             index: value.index,
         };
 
         if read_write.supported_write_sub_functions().is_empty() {
-            return Err(SensorError::InsufficientRights {
+            return Err(Error::InsufficientRights {
                 path: read_write.hwmon_path.join(format!(
                     "{}{}",
                     read_write.base(),

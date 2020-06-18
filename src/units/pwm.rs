@@ -1,4 +1,4 @@
-use crate::units::{Raw, RawError, RawSensorResult};
+use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
 use std::borrow::Cow;
 use std::fmt;
 

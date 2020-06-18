@@ -11,36 +11,36 @@ use std::path::Path;
 pub trait PwmSensor: SensorBase {
     /// Reads the pwm subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_pwm(&self) -> SensorResult<Pwm> {
+    fn read_pwm(&self) -> Result<Pwm> {
         let raw = self.read_raw(SensorSubFunctionType::Pwm)?;
-        Pwm::from_raw(&raw).map_err(SensorError::from)
+        Pwm::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the enable subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_enable(&self) -> SensorResult<PwmEnable> {
+    fn read_enable(&self) -> Result<PwmEnable> {
         let raw = self.read_raw(SensorSubFunctionType::Enable)?;
-        PwmEnable::from_raw(&raw).map_err(SensorError::from)
+        PwmEnable::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the mode subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_mode(&self) -> SensorResult<PwmMode> {
+    fn read_mode(&self) -> Result<PwmMode> {
         let raw = self.read_raw(SensorSubFunctionType::Mode)?;
-        PwmMode::from_raw(&raw).map_err(SensorError::from)
+        PwmMode::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the freq subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_frequency(&self) -> SensorResult<Frequency> {
+    fn read_frequency(&self) -> Result<Frequency> {
         let raw = self.read_raw(SensorSubFunctionType::Freq)?;
-        Frequency::from_raw(&raw).map_err(SensorError::from)
+        Frequency::from_raw(&raw).map_err(Error::from)
     }
 
     /// Converts pwm and writes it to this pwm's pwm subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_pwm(&self, pwm: Pwm) -> SensorResult<()>
+    fn write_pwm(&self, pwm: Pwm) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -50,7 +50,7 @@ pub trait PwmSensor: SensorBase {
     /// Converts enable and writes it to this pwm's enable subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_enable(&self, enable: PwmEnable) -> SensorResult<()>
+    fn write_enable(&self, enable: PwmEnable) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -60,7 +60,7 @@ pub trait PwmSensor: SensorBase {
     /// Converts mode and writes it to this pwm's mode subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_mode(&self, mode: PwmMode) -> SensorResult<()>
+    fn write_mode(&self, mode: PwmMode) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -70,7 +70,7 @@ pub trait PwmSensor: SensorBase {
     /// Converts freq and writes it to this pwm's freq subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_frequency(&self, freq: Frequency) -> SensorResult<()>
+    fn write_frequency(&self, freq: Frequency) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -168,16 +168,16 @@ impl WritableSensorBase for ReadWritePwm {}
 
 #[cfg(feature = "writable")]
 impl TryFrom<ReadOnlyPwm> for ReadWritePwm {
-    type Error = SensorError;
+    type Error = Error;
 
-    fn try_from(value: ReadOnlyPwm) -> Result<Self, Self::Error> {
+    fn try_from(value: ReadOnlyPwm) -> std::result::Result<Self, Self::Error> {
         let read_write = ReadWritePwm {
             hwmon_path: value.hwmon_path,
             index: value.index,
         };
 
         if read_write.supported_write_sub_functions().is_empty() {
-            return Err(SensorError::InsufficientRights {
+            return Err(Error::InsufficientRights {
                 path: read_write.hwmon_path.join(format!(
                     "{}{}",
                     read_write.base(),

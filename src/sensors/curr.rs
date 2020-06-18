@@ -110,16 +110,16 @@ impl WritableSensorBase for ReadWriteCurr {}
 
 #[cfg(feature = "writable")]
 impl TryFrom<ReadOnlyCurr> for ReadWriteCurr {
-    type Error = SensorError;
+    type Error = Error;
 
-    fn try_from(value: ReadOnlyCurr) -> Result<Self, Self::Error> {
+    fn try_from(value: ReadOnlyCurr) -> std::result::Result<Self, Self::Error> {
         let read_write = ReadWriteCurr {
             hwmon_path: value.hwmon_path,
             index: value.index,
         };
 
         if read_write.supported_write_sub_functions().is_empty() {
-            return Err(SensorError::InsufficientRights {
+            return Err(Error::InsufficientRights {
                 path: read_write.hwmon_path.join(format!(
                     "{}{}",
                     read_write.base(),

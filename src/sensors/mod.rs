@@ -13,7 +13,7 @@ mod voltage;
 
 pub use curr::*;
 pub use energy::*;
-pub use error::Error as SensorError;
+pub use error::Error;
 pub use fan::*;
 pub use humidity::*;
 pub use power::*;
@@ -25,7 +25,7 @@ pub use voltage::*;
 use crate::hwmon::*;
 use crate::units::Raw;
 use crate::{ParsingError, ParsingResult};
-use error::Result as SensorResult;
+use error::Result;
 
 use std::collections::HashMap;
 use std::fs::{read_to_string, write};
@@ -62,17 +62,15 @@ pub trait SensorBase {
     /// You should usually prefer the specialized read functions like read_input, because they
     /// automatically convert the read value to the right type.
     /// Returns an error, if this sensor doesn't support the subtype.
-    fn read_raw(&self, sub_type: SensorSubFunctionType) -> SensorResult<String> {
+    fn read_raw(&self, sub_type: SensorSubFunctionType) -> Result<String> {
         let path = self.subfunction_path(sub_type);
 
         match read_to_string(&path) {
             Ok(s) => Ok(s.trim().to_string()),
             Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => Err(SensorError::SubtypeNotSupported { sub_type }),
-                std::io::ErrorKind::PermissionDenied => {
-                    Err(SensorError::InsufficientRights { path })
-                }
-                _ => Err(SensorError::Read { source: e, path }),
+                std::io::ErrorKind::NotFound => Err(Error::SubtypeNotSupported { sub_type }),
+                std::io::ErrorKind::PermissionDenied => Err(Error::InsufficientRights { path }),
+                _ => Err(Error::Read { source: e, path }),
             },
         }
     }
@@ -107,24 +105,24 @@ pub trait WritableSensorBase: SensorBase {
     /// You should usually prefer the specialized write functions like write_enable, because they
     /// ensure that no type mismatches occur.
     /// Returns an error, if this sensor doesn't support the subtype.
-    fn write_raw(&self, sub_type: SensorSubFunctionType, raw_value: &str) -> SensorResult<()> {
+    fn write_raw(&self, sub_type: SensorSubFunctionType, raw_value: &str) -> Result<()> {
         let path = self.subfunction_path(sub_type);
 
         write(&path, raw_value.as_bytes()).map_err(|e| match e.kind() {
-            std::io::ErrorKind::NotFound => SensorError::SubtypeNotSupported { sub_type },
-            std::io::ErrorKind::PermissionDenied => SensorError::InsufficientRights { path },
-            _ => SensorError::Read { source: e, path },
+            std::io::ErrorKind::NotFound => Error::SubtypeNotSupported { sub_type },
+            std::io::ErrorKind::PermissionDenied => Error::InsufficientRights { path },
+            _ => Error::Read { source: e, path },
         })
     }
 
     /// Resets this sensor's history.
     /// Returns an error if this functionality is not supported by the sensor.
-    fn reset_history(&self) -> SensorResult<()> {
+    fn reset_history(&self) -> Result<()> {
         self.write_raw(SensorSubFunctionType::ResetHistory, &true.to_raw())
     }
 
     /// Returns a SensorState struct that represents the state of all writable subfunctions of this sensor.
-    fn state(&self) -> SensorResult<SensorState> {
+    fn state(&self) -> Result<SensorState> {
         let mut states = HashMap::new();
         let supported_read_write_functions = self
             .supported_read_sub_functions()
@@ -141,13 +139,13 @@ pub trait WritableSensorBase: SensorBase {
 
     /// Writes the given state to this sensor.
     /// Returns an error and writes nothing if the given state contains one or more subfunctions that this sensor does not support.
-    fn write_state(&self, state: &SensorState) -> SensorResult<()> {
+    fn write_state(&self, state: &SensorState) -> Result<()> {
         if let Some(&sub_type) = state
             .states
             .keys()
             .find(|s| !self.supported_write_sub_functions().contains(s))
         {
-            return Err(SensorError::SubtypeNotSupported { sub_type });
+            return Err(Error::SubtypeNotSupported { sub_type });
         }
 
         self.write_state_lossy(state)
@@ -155,16 +153,16 @@ pub trait WritableSensorBase: SensorBase {
 
     /// Writes the given state to this sensor.
     /// All subfunction types contained in the given state that are not supported by this sensor will be ignored.
-    fn write_state_lossy(&self, state: &SensorState) -> SensorResult<()> {
+    fn write_state_lossy(&self, state: &SensorState) -> Result<()> {
         for (&sub_type, raw_value) in &state.states {
             let path = self.subfunction_path(sub_type);
             if let Err(e) = write(&path, raw_value.as_bytes()) {
                 match e.kind() {
                     std::io::ErrorKind::PermissionDenied => {
-                        return Err(SensorError::InsufficientRights { path })
+                        return Err(Error::InsufficientRights { path })
                     }
                     std::io::ErrorKind::NotFound => continue,
-                    _ => return Err(SensorError::Write { source: e, path }),
+                    _ => return Err(Error::Write { source: e, path }),
                 }
             }
         }
@@ -178,22 +176,22 @@ pub trait WritableSensorBase: SensorBase {
 pub trait Sensor<P: Raw>: SensorBase {
     /// Reads the input subfunction of this sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
-    fn read_input(&self) -> SensorResult<P> {
+    fn read_input(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads whether or not this sensor is enabled.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_enable(&self) -> SensorResult<bool> {
+    fn read_enable(&self) -> Result<bool> {
         let raw = self.read_raw(SensorSubFunctionType::Enable)?;
-        bool::from_raw(&raw).map_err(SensorError::from)
+        bool::from_raw(&raw).map_err(Error::from)
     }
 
     /// Enables or disables this sensor.
     /// Returns an error if this functionality is not supported by the sensor.
     #[cfg(feature = "writable")]
-    fn write_enable(&self, enable: bool) -> SensorResult<()>
+    fn write_enable(&self, enable: bool) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -205,9 +203,9 @@ pub trait Sensor<P: Raw>: SensorBase {
 pub trait Faulty: SensorBase {
     /// Reads whether this sensor is faulty or not.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_faulty(&self) -> SensorResult<bool> {
+    fn read_faulty(&self) -> Result<bool> {
         let raw = self.read_raw(SensorSubFunctionType::Fault)?;
-        bool::from_raw(&raw).map_err(SensorError::from)
+        bool::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -215,15 +213,15 @@ pub trait Faulty: SensorBase {
 pub trait Min<P: Raw>: SensorBase {
     /// Reads this sensor's min value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_min(&self) -> SensorResult<P> {
+    fn read_min(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Min)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 
     /// Writes this sensor's min value.
     /// Returns an error, if this sensor doesn't support the feature.
     #[cfg(feature = "writable")]
-    fn write_min(&self, min: P) -> SensorResult<()>
+    fn write_min(&self, min: P) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -235,15 +233,15 @@ pub trait Min<P: Raw>: SensorBase {
 pub trait Max<P: Raw>: SensorBase {
     /// Reads this sensor's max value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_max(&self) -> SensorResult<P> {
+    fn read_max(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Max)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 
     /// Writes this sensor's max value.
     /// Returns an error, if this sensor doesn't support the feature.
     #[cfg(feature = "writable")]
-    fn write_max(&self, max: P) -> SensorResult<()>
+    fn write_max(&self, max: P) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -255,9 +253,9 @@ pub trait Max<P: Raw>: SensorBase {
 pub trait Average<P: Raw>: SensorBase {
     /// Reads this sensor's average value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_average(&self) -> SensorResult<P> {
+    fn read_average(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Average)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -265,9 +263,9 @@ pub trait Average<P: Raw>: SensorBase {
 pub trait Lowest<P: Raw>: SensorBase {
     /// Reads this sensor's historically lowest input.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_lowest(&self) -> SensorResult<P> {
+    fn read_lowest(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Lowest)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -275,9 +273,9 @@ pub trait Lowest<P: Raw>: SensorBase {
 pub trait Highest<P: Raw>: SensorBase {
     /// Reads this sensor's historically highest input.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_highest(&self) -> SensorResult<P> {
+    fn read_highest(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Highest)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -285,15 +283,15 @@ pub trait Highest<P: Raw>: SensorBase {
 pub trait Crit<P: Raw>: SensorBase {
     /// Reads this sensor's crit value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_crit(&self) -> SensorResult<P> {
+    fn read_crit(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::Crit)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 
     /// Writes this sensor's crit value.
     /// Returns an error, if this sensor doesn't support the feature.
     #[cfg(feature = "writable")]
-    fn write_crit(&self, crit: P) -> SensorResult<()>
+    fn write_crit(&self, crit: P) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -305,15 +303,15 @@ pub trait Crit<P: Raw>: SensorBase {
 pub trait LowCrit<P: Raw>: SensorBase {
     /// Reads this sensor's lcrit value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_lcrit(&self) -> SensorResult<P> {
+    fn read_lcrit(&self) -> Result<P> {
         let raw = self.read_raw(SensorSubFunctionType::LowCrit)?;
-        P::from_raw(&raw).map_err(SensorError::from)
+        P::from_raw(&raw).map_err(Error::from)
     }
 
     /// Writes this sensor's lcrit value.
     /// Returns an error, if this sensor doesn't support the feature.
     #[cfg(feature = "writable")]
-    fn write_lcrit(&self, lcrit: P) -> SensorResult<()>
+    fn write_lcrit(&self, lcrit: P) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -332,7 +330,7 @@ pub struct SensorState {
 #[cfg(feature = "writable")]
 impl SensorState {
     /// Returns a SensorState struct created from the given sensor.
-    pub fn from_sensor(sensor: &impl WritableSensorBase) -> SensorResult<SensorState> {
+    pub fn from_sensor(sensor: &impl WritableSensorBase) -> Result<SensorState> {
         sensor.state()
     }
 

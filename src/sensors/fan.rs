@@ -14,16 +14,16 @@ pub trait FanSensor: SensorBase {
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_target(&self) -> SensorResult<AngularVelocity> {
+    fn read_target(&self) -> Result<AngularVelocity> {
         let raw = self.read_raw(SensorSubFunctionType::Target)?;
-        AngularVelocity::from_raw(&raw).map_err(SensorError::from)
+        AngularVelocity::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the div subfunction of this fan sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_div(&self) -> SensorResult<FanDivisor> {
+    fn read_div(&self) -> Result<FanDivisor> {
         let raw = self.read_raw(SensorSubFunctionType::Div)?;
-        FanDivisor::from_raw(&raw).map_err(SensorError::from)
+        FanDivisor::from_raw(&raw).map_err(Error::from)
     }
 
     /// Converts target and writes it to this fan's target subfunction.
@@ -31,7 +31,7 @@ pub trait FanSensor: SensorBase {
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_target(&self, target: AngularVelocity) -> SensorResult<()>
+    fn write_target(&self, target: AngularVelocity) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -41,7 +41,7 @@ pub trait FanSensor: SensorBase {
     /// Converts div and writes it to this fan's divisor subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     #[cfg(feature = "writable")]
-    fn write_div(&self, div: FanDivisor) -> SensorResult<()>
+    fn write_div(&self, div: FanDivisor) -> Result<()>
     where
         Self: WritableSensorBase,
     {
@@ -52,13 +52,13 @@ pub trait FanSensor: SensorBase {
 impl<S: FanSensor + Faulty> Sensor<AngularVelocity> for S {
     /// Reads the input subfunction of this fan sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_input(&self) -> SensorResult<AngularVelocity> {
+    fn read_input(&self) -> Result<AngularVelocity> {
         if self.read_faulty().unwrap_or(false) {
-            return Err(SensorError::FaultySensor);
+            return Err(Error::FaultySensor);
         }
 
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        AngularVelocity::from_raw(&raw).map_err(SensorError::from)
+        AngularVelocity::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -158,16 +158,16 @@ impl WritableSensorBase for ReadWriteFan {}
 
 #[cfg(feature = "writable")]
 impl TryFrom<ReadOnlyFan> for ReadWriteFan {
-    type Error = SensorError;
+    type Error = Error;
 
-    fn try_from(value: ReadOnlyFan) -> Result<Self, Self::Error> {
+    fn try_from(value: ReadOnlyFan) -> std::result::Result<Self, Self::Error> {
         let read_write = ReadWriteFan {
             hwmon_path: value.hwmon_path,
             index: value.index,
         };
 
         if read_write.supported_write_sub_functions().is_empty() {
-            return Err(SensorError::InsufficientRights {
+            return Err(Error::InsufficientRights {
                 path: read_write.hwmon_path.join(format!(
                     "{}{}",
                     read_write.base(),

@@ -1,4 +1,4 @@
-use crate::units::{Raw, RawError, RawSensorResult};
+use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
 use std::borrow::Cow;
 
 /// A struct representing a fan divisor. Fan divisors can only be powers of two.

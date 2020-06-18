@@ -4,7 +4,7 @@ pub use std::{
     path::PathBuf,
 };
 
-use crate::units::RawError;
+use crate::units::Error as RawError;
 
 use super::SensorSubFunctionType;
 

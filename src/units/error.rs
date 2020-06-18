@@ -8,7 +8,7 @@ pub(crate) type Result<T> = std::result::Result<T, Error>;
 /// Error which can be returned from reading a raw sensor value.
 #[derive(Debug)]
 pub struct Error {
-    /// The string that can not be converted.
+    /// The string that cannot be converted.
     raw: String,
 }
 
