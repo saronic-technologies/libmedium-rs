@@ -25,3 +25,9 @@ measurements_units = ["measurements"]
 # Feature that enables parsing of arbitrary paths for hwmons and sensors.
 # It should only be needed for debug and testing purposes.
 unrestricted_parsing = []
+
+[workspace]
+members = [
+    "examples/print_temps",
+    "examples/pwms_to_max",
+]

@@ -1,0 +1,11 @@
+[package]
+name = "print_temps"
+version = "0.1.0"
+authors = ["Malte Veerman <malte.veerman@gmail.com>"]
+license = "MIT"
+description = "Example how set all pwm capable fans in the system to full power."
+repository = "https://gitlab.com/Maldela/libmedium"
+edition = "2018"
+
+[dependencies]
+libmedium = { path = "../.." }
