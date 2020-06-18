@@ -54,62 +54,18 @@ pub mod hwmon;
 pub mod sensors;
 pub mod units;
 
+mod parsing;
+
 pub use hwmon::Hwmon;
+pub use parsing::Error as ParsingError;
 
 use hwmon::*;
+pub(crate) use parsing::{Parseable, Result as ParsingResult};
 
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::iter::FusedIterator;
 use std::path::{Path, PathBuf};
 
 const HWMON_PATH: &str = "/sys/class/hwmon/";
-
-type ParsingResult<T> = std::result::Result<T, ParsingError>;
-
-#[allow(missing_docs)]
-#[derive(Debug)]
-pub enum ParsingError {
-    /// You have insufficient rights. Try using the read only version of the parse_hwmons* functions.
-    InsufficientRights { path: PathBuf },
-
-    /// The path you are trying to parse is not valid.
-    InvalidPath { path: PathBuf },
-
-    /// The path you are trying to parse does not exist.
-    PathDoesNotExist { path: PathBuf },
-
-    /// Everything else
-    Other { source: std::io::Error },
-}
-
-impl Error for ParsingError {
-    fn cause(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            ParsingError::InsufficientRights { .. } => None,
-            ParsingError::InvalidPath { .. } => None,
-            ParsingError::PathDoesNotExist { .. } => None,
-            ParsingError::Other { source } => Some(source),
-        }
-    }
-}
-
-impl Display for ParsingError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ParsingError::InsufficientRights { path } => {
-                write!(f, "Insufficient rights for path {}", path.display())
-            }
-            ParsingError::InvalidPath { path } => {
-                write!(f, "Invalid path to parse: {}", path.display())
-            }
-            ParsingError::PathDoesNotExist { path } => {
-                write!(f, "Path does not exist: {}", path.display())
-            }
-            ParsingError::Other { .. } => write!(f, "I/O error"),
-        }
-    }
-}
 
 /// This crate's central struct.
 /// It stores all parsed hwmons which you can query either by name or by index.
@@ -244,12 +200,6 @@ impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
-}
-
-pub(crate) trait Parseable: Sized {
-    type Parent;
-
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self>;
 }
 
 #[cfg(test)]

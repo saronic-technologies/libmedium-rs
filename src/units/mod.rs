@@ -1,6 +1,7 @@
 //! Units used in this library.
 
 mod accuracy;
+mod error;
 mod fan_divisor;
 mod humidity;
 mod pwm;
@@ -13,6 +14,7 @@ mod native;
 mod measurements;
 
 pub use accuracy::Accuracy;
+pub use error::Error as RawError;
 pub use fan_divisor::FanDivisor;
 pub use humidity::Humidity;
 pub use pwm::*;
@@ -24,33 +26,10 @@ pub use native::*;
 #[cfg(feature = "measurements_units")]
 pub use self::measurements::*;
 
+pub(crate) use error::Result as RawSensorResult;
+
 use std::borrow::Cow;
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::time::Duration;
-
-pub(crate) type RawSensorResult<T> = std::result::Result<T, RawError>;
-
-/// Error which can be returned from reading a raw sensor value.
-#[derive(Debug)]
-pub struct RawError {
-    /// The string that can not be converted.
-    raw: String,
-}
-
-impl Error for RawError {}
-
-impl Display for RawError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalid raw string: {}", &self.raw)
-    }
-}
-
-impl<T: Into<String>> From<T> for RawError {
-    fn from(raw: T) -> Self {
-        RawError { raw: raw.into() }
-    }
-}
 
 /// Trait that needs to be implemented by all types that raw sensor strings should be converted into.
 pub trait Raw: Sized {

@@ -2,6 +2,7 @@
 
 mod curr;
 mod energy;
+mod error;
 mod fan;
 mod humidity;
 mod power;
@@ -12,6 +13,7 @@ mod voltage;
 
 pub use curr::*;
 pub use energy::*;
+pub use error::Error as SensorError;
 pub use fan::*;
 pub use humidity::*;
 pub use power::*;
@@ -21,93 +23,14 @@ pub use temp::*;
 pub use voltage::*;
 
 use crate::hwmon::*;
-use crate::units::{Raw, RawError};
+use crate::units::Raw;
 use crate::{ParsingError, ParsingResult};
+use error::Result as SensorResult;
 
 use std::collections::HashMap;
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fs::{read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-
-type SensorResult<T> = std::result::Result<T, SensorError>;
-
-/// Error which can be returned from interacting with sensors.
-#[allow(missing_docs)]
-#[derive(Debug)]
-pub enum SensorError {
-    /// Error reading from sensor.
-    Read {
-        source: std::io::Error,
-        path: PathBuf,
-    },
-
-    /// Error writing to sensor.
-    Write {
-        source: std::io::Error,
-        path: PathBuf,
-    },
-
-    /// A RawSensorError occurred.
-    RawSensorError { source: RawError },
-
-    /// You have insufficient rights. Try using the read only variant of whatever returned this error.
-    InsufficientRights { path: PathBuf },
-
-    /// The subfunction you requested ist not supported by this sensor.
-    SubtypeNotSupported { sub_type: SensorSubFunctionType },
-
-    /// The sensor you tried to read from is faulty.
-    FaultySensor,
-
-    /// The sensor you tried to read from or write to is disabled.
-    DisabledSensor,
-}
-
-impl Error for SensorError {
-    fn cause(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            SensorError::Read { source, .. } => Some(source),
-            SensorError::Write { source, .. } => Some(source),
-            SensorError::RawSensorError { source } => Some(source),
-            SensorError::InsufficientRights { .. } => None,
-            SensorError::SubtypeNotSupported { .. } => None,
-            SensorError::FaultySensor => None,
-            SensorError::DisabledSensor => None,
-        }
-    }
-}
-
-impl Display for SensorError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SensorError::Read { path, .. } => {
-                write!(f, "Reading from sensor at {} failed", path.display())
-            }
-            SensorError::Write { path, .. } => {
-                write!(f, "Writing to sensor at {} failed", path.display())
-            }
-            SensorError::RawSensorError { .. } => write!(f, "Raw sensor error"),
-            SensorError::InsufficientRights { path } => write!(
-                f,
-                "You have insufficient rights to read/write {}",
-                path.display()
-            ),
-            SensorError::SubtypeNotSupported { sub_type } => {
-                write!(f, "Sensor does not support the subtype {}", sub_type)
-            }
-            SensorError::FaultySensor => write!(f, "The sensor is faulty"),
-            SensorError::DisabledSensor => write!(f, "The sensor is disabled"),
-        }
-    }
-}
-
-impl From<RawError> for SensorError {
-    fn from(raw_error: RawError) -> SensorError {
-        SensorError::RawSensorError { source: raw_error }
-    }
-}
 
 /// Base trait that all sensors must implement.
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.
