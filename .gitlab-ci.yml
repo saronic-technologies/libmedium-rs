@@ -7,14 +7,14 @@ rust-latest:
   image: rust:latest
   script:
     - cargo build --verbose
-    - cargo build --verbose --features measurements
+    - cargo build --verbose --features measurements_units
 
 rust-nightly:
   stage: build
   image: rustlang/rust:nightly
   script:
     - cargo build --verbose
-    - cargo build --verbose --features measurements
+    - cargo build --verbose --features measurements_units
   allow_failure: true
   
 rust-latest:
@@ -22,12 +22,12 @@ rust-latest:
   image: rust:latest
   script:
     - cargo test --verbose
-    - cargo test --verbose --features measurements
+    - cargo test --verbose --features measurements_units
     
 rust-nightly:
   stage: test
   image: rustlang/rust:nightly
   script:
     - cargo test --verbose
-    - cargo test --verbose --features measurements
+    - cargo test --verbose --features measurements_units
   allow_failure: true
