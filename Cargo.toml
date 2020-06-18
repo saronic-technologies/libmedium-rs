@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
 license = "MIT"
 description = "Library to interface with lm_sensors"
-repository = "https://github.com/Maldela/libmedium"
+repository = "https://gitlab.com/Maldela/libmedium"
 edition = "2018"
 
 [dependencies]
