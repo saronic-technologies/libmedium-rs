@@ -7,6 +7,10 @@ description = "Library to interface with lm_sensors"
 repository = "https://gitlab.com/Maldela/libmedium"
 edition = "2018"
 
+[badges]
+gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master" }
+maintenance = { status = "actively-developed" }
+
 [dependencies]
 measurements = { version = "0.10", optional = true }
 
