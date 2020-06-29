@@ -8,6 +8,7 @@ description = "Library to interface with lm_sensors"
 repository = "https://gitlab.com/Maldela/libmedium"
 readme = "README.md"
 keywords = ["pwm", "fan", "hwmon", "sensor"]
+categories = ["api-bindings", "hardware-support"]
 
 [badges]
 gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master" }
