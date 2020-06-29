@@ -2,10 +2,12 @@
 name = "libmedium"
 version = "0.2.1"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
+edition = "2018"
 license = "MIT"
 description = "Library to interface with lm_sensors"
 repository = "https://gitlab.com/Maldela/libmedium"
-edition = "2018"
+readme = "README.md"
+keywords = ["pwm", "fan", "hwmon", "sensor"]
 
 [badges]
 gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master" }
