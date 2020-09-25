@@ -110,6 +110,13 @@ pub trait Hwmon {
     /// Returns the hwmon's path.
     fn path(&self) -> &Path;
 
+    /// Returns this hwmon's device path.
+    /// This path does not change between reboots.
+    fn device_path(&self) -> PathBuf {
+        // Every hwmon in sysfs has a device link so this should never panic.
+        self.path().join("device").canonicalize().unwrap()
+    }
+
     /// Returns all current sensors found in this `Hwmon`.
     fn currents(&self) -> &BTreeMap<u16, Self::Current>;
 

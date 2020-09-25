@@ -89,9 +89,17 @@ impl<H: Hwmon> Hwmons<H> {
     }
 
     /// Get a `Hwmon` by its index.
-    /// Returns None if there is no `Hwmon` with the given index.
+    /// Returns `None`, if there is no `Hwmon` with the given index.
     pub fn hwmon_by_index(&self, index: usize) -> Option<&H> {
         self.hwmons.get(index)
+    }
+
+    /// Get a `Hwmon` by its device path.
+    /// Returns `None`, if there is no `Hwmon` with the given device path.
+    pub fn hwmon_by_device_path(&self, device_path: impl AsRef<Path>) -> Option<&H> {
+        self.hwmons
+            .iter()
+            .find(move |&hwmon| hwmon.device_path() == device_path.as_ref())
     }
 
     /// Returns an iterator over all hwmons, their names and their indices.
