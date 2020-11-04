@@ -48,7 +48,7 @@ impl fmt::Display for Pwm {
 
 /// Enum that represents the control states a pwm can be in.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmEnable {
     FullSpeed,
     ManualControl,
@@ -82,7 +82,7 @@ impl Default for PwmEnable {
 
 /// Struct that represents the modes by which a fan's speed can be regulated.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmMode {
     DC,
     PWM,
