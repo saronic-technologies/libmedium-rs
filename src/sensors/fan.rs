@@ -73,6 +73,29 @@ pub struct ReadOnlyFan {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyFan {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWriteFan> {
+        let read_write = ReadWriteFan {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyFan {
     fn base(&self) -> &'static str {
         "fan"
@@ -106,10 +129,7 @@ impl Faulty for ReadOnlyFan {}
 #[cfg(feature = "writable")]
 impl From<ReadWriteFan> for ReadOnlyFan {
     fn from(write_fan: ReadWriteFan) -> ReadOnlyFan {
-        ReadOnlyFan {
-            hwmon_path: write_fan.hwmon_path,
-            index: write_fan.index,
-        }
+        write_fan.into_read_only()
     }
 }
 
@@ -119,6 +139,17 @@ impl From<ReadWriteFan> for ReadOnlyFan {
 pub struct ReadWriteFan {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWriteFan {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyFan {
+        ReadOnlyFan {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -161,22 +192,7 @@ impl WritableSensorBase for ReadWriteFan {}
 impl TryFrom<ReadOnlyFan> for ReadWriteFan {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyFan) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWriteFan {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyFan) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

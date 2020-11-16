@@ -139,6 +139,29 @@ pub struct ReadOnlyPower {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyPower {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWritePower> {
+        let read_write = ReadWritePower {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyPower {
     fn base(&self) -> &'static str {
         "power"
@@ -171,10 +194,7 @@ impl PowerSensor for ReadOnlyPower {}
 #[cfg(feature = "writable")]
 impl From<ReadWritePower> for ReadOnlyPower {
     fn from(write_power: ReadWritePower) -> ReadOnlyPower {
-        ReadOnlyPower {
-            hwmon_path: write_power.hwmon_path,
-            index: write_power.index,
-        }
+        write_power.into_read_only()
     }
 }
 
@@ -184,6 +204,17 @@ impl From<ReadWritePower> for ReadOnlyPower {
 pub struct ReadWritePower {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWritePower {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyPower {
+        ReadOnlyPower {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -224,22 +255,7 @@ impl WritableSensorBase for ReadWritePower {}
 impl TryFrom<ReadOnlyPower> for ReadWritePower {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyPower) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWritePower {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyPower) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

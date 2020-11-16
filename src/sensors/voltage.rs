@@ -28,6 +28,29 @@ pub struct ReadOnlyVolt {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyVolt {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWriteVolt> {
+        let read_write = ReadWriteVolt {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyVolt {
     fn base(&self) -> &'static str {
         "in"
@@ -60,10 +83,7 @@ impl VoltSensor for ReadOnlyVolt {}
 #[cfg(feature = "writable")]
 impl From<ReadWriteVolt> for ReadOnlyVolt {
     fn from(write_voltage: ReadWriteVolt) -> ReadOnlyVolt {
-        ReadOnlyVolt {
-            hwmon_path: write_voltage.hwmon_path,
-            index: write_voltage.index,
-        }
+        write_voltage.into_read_only()
     }
 }
 
@@ -73,6 +93,17 @@ impl From<ReadWriteVolt> for ReadOnlyVolt {
 pub struct ReadWriteVolt {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWriteVolt {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyVolt {
+        ReadOnlyVolt {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -113,22 +144,7 @@ impl WritableSensorBase for ReadWriteVolt {}
 impl TryFrom<ReadOnlyVolt> for ReadWriteVolt {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyVolt) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWriteVolt {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyVolt) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

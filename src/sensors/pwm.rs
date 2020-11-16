@@ -86,6 +86,29 @@ pub struct ReadOnlyPwm {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyPwm {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWritePwm> {
+        let read_write = ReadWritePwm {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyPwm {
     fn base(&self) -> &'static str {
         "pwm"
@@ -118,10 +141,7 @@ impl PwmSensor for ReadOnlyPwm {}
 #[cfg(feature = "writable")]
 impl From<ReadWritePwm> for ReadOnlyPwm {
     fn from(write_pwm: ReadWritePwm) -> ReadOnlyPwm {
-        ReadOnlyPwm {
-            hwmon_path: write_pwm.hwmon_path,
-            index: write_pwm.index,
-        }
+        write_pwm.into_read_only()
     }
 }
 
@@ -131,6 +151,17 @@ impl From<ReadWritePwm> for ReadOnlyPwm {
 pub struct ReadWritePwm {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWritePwm {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyPwm {
+        ReadOnlyPwm {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -171,22 +202,7 @@ impl WritableSensorBase for ReadWritePwm {}
 impl TryFrom<ReadOnlyPwm> for ReadWritePwm {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyPwm) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWritePwm {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyPwm) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

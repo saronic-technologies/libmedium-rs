@@ -166,6 +166,29 @@ pub struct ReadOnlyTemp {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyTemp {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWriteTemp> {
+        let read_write = ReadWriteTemp {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyTemp {
     fn base(&self) -> &'static str {
         "temp"
@@ -199,10 +222,7 @@ impl Faulty for ReadOnlyTemp {}
 #[cfg(feature = "writable")]
 impl From<ReadWriteTemp> for ReadOnlyTemp {
     fn from(write_temp: ReadWriteTemp) -> ReadOnlyTemp {
-        ReadOnlyTemp {
-            hwmon_path: write_temp.hwmon_path,
-            index: write_temp.index,
-        }
+        write_temp.into_read_only()
     }
 }
 
@@ -212,6 +232,17 @@ impl From<ReadWriteTemp> for ReadOnlyTemp {
 pub struct ReadWriteTemp {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWriteTemp {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyTemp {
+        ReadOnlyTemp {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -254,22 +285,7 @@ impl WritableSensorBase for ReadWriteTemp {}
 impl TryFrom<ReadOnlyTemp> for ReadWriteTemp {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyTemp) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWriteTemp {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyTemp) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

@@ -28,6 +28,29 @@ pub struct ReadOnlyCurr {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyCurr {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWriteCurr> {
+        let read_write = ReadWriteCurr {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyCurr {
     fn base(&self) -> &'static str {
         "curr"
@@ -60,10 +83,7 @@ impl CurrSensor for ReadOnlyCurr {}
 #[cfg(feature = "writable")]
 impl From<ReadWriteCurr> for ReadOnlyCurr {
     fn from(write_curr: ReadWriteCurr) -> ReadOnlyCurr {
-        ReadOnlyCurr {
-            hwmon_path: write_curr.hwmon_path,
-            index: write_curr.index,
-        }
+        write_curr.into_read_only()
     }
 }
 
@@ -91,6 +111,17 @@ impl SensorBase for ReadWriteCurr {
 }
 
 #[cfg(feature = "writable")]
+impl ReadWriteCurr {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyCurr {
+        ReadOnlyCurr {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
+}
+
+#[cfg(feature = "writable")]
 impl Parseable for ReadWriteCurr {
     type Parent = ReadWriteHwmon;
 
@@ -113,22 +144,7 @@ impl WritableSensorBase for ReadWriteCurr {}
 impl TryFrom<ReadOnlyCurr> for ReadWriteCurr {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyCurr) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWriteCurr {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyCurr) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }

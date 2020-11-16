@@ -21,6 +21,29 @@ pub struct ReadOnlyHumidity {
     index: u16,
 }
 
+#[cfg(feature = "writable")]
+impl ReadOnlyHumidity {
+    /// Try converting this sensor into a read-write version of itself.
+    pub fn try_into_read_write(self) -> Result<ReadWriteHumidity> {
+        let read_write = ReadWriteHumidity {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        };
+
+        if read_write.supported_write_sub_functions().is_empty() {
+            return Err(Error::InsufficientRights {
+                path: read_write.hwmon_path.join(format!(
+                    "{}{}",
+                    read_write.base(),
+                    read_write.index(),
+                )),
+            });
+        }
+
+        Ok(read_write)
+    }
+}
+
 impl SensorBase for ReadOnlyHumidity {
     fn base(&self) -> &'static str {
         "humidity"
@@ -53,10 +76,7 @@ impl HumiditySensor for ReadOnlyHumidity {}
 #[cfg(feature = "writable")]
 impl From<ReadWriteHumidity> for ReadOnlyHumidity {
     fn from(write_humidity: ReadWriteHumidity) -> ReadOnlyHumidity {
-        ReadOnlyHumidity {
-            hwmon_path: write_humidity.hwmon_path,
-            index: write_humidity.index,
-        }
+        write_humidity.into_read_only()
     }
 }
 
@@ -66,6 +86,17 @@ impl From<ReadWriteHumidity> for ReadOnlyHumidity {
 pub struct ReadWriteHumidity {
     hwmon_path: PathBuf,
     index: u16,
+}
+
+#[cfg(feature = "writable")]
+impl ReadWriteHumidity {
+    /// Converts this sensor into a read-only version of itself.
+    fn into_read_only(self) -> ReadOnlyHumidity {
+        ReadOnlyHumidity {
+            hwmon_path: self.hwmon_path,
+            index: self.index,
+        }
+    }
 }
 
 #[cfg(feature = "writable")]
@@ -106,22 +137,7 @@ impl WritableSensorBase for ReadWriteHumidity {}
 impl TryFrom<ReadOnlyHumidity> for ReadWriteHumidity {
     type Error = Error;
 
-    fn try_from(value: ReadOnlyHumidity) -> std::result::Result<Self, Self::Error> {
-        let read_write = ReadWriteHumidity {
-            hwmon_path: value.hwmon_path,
-            index: value.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
+    fn try_from(read_only: ReadOnlyHumidity) -> std::result::Result<Self, Self::Error> {
+        read_only.try_into_read_write()
     }
 }
