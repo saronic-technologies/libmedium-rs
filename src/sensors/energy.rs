@@ -91,7 +91,7 @@ pub struct ReadWriteEnergy {
 #[cfg(feature = "writable")]
 impl ReadWriteEnergy {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyEnergy {
+    pub fn into_read_only(self) -> ReadOnlyEnergy {
         ReadOnlyEnergy {
             hwmon_path: self.hwmon_path,
             index: self.index,

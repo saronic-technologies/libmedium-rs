@@ -113,7 +113,7 @@ impl SensorBase for ReadWriteCurr {
 #[cfg(feature = "writable")]
 impl ReadWriteCurr {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyCurr {
+    pub fn into_read_only(self) -> ReadOnlyCurr {
         ReadOnlyCurr {
             hwmon_path: self.hwmon_path,
             index: self.index,

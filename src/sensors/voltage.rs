@@ -98,7 +98,7 @@ pub struct ReadWriteVolt {
 #[cfg(feature = "writable")]
 impl ReadWriteVolt {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyVolt {
+    pub fn into_read_only(self) -> ReadOnlyVolt {
         ReadOnlyVolt {
             hwmon_path: self.hwmon_path,
             index: self.index,

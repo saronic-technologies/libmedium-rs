@@ -237,7 +237,7 @@ pub struct ReadWriteTemp {
 #[cfg(feature = "writable")]
 impl ReadWriteTemp {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyTemp {
+    pub fn into_read_only(self) -> ReadOnlyTemp {
         ReadOnlyTemp {
             hwmon_path: self.hwmon_path,
             index: self.index,

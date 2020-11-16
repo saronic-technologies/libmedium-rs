@@ -91,7 +91,7 @@ pub struct ReadWriteHumidity {
 #[cfg(feature = "writable")]
 impl ReadWriteHumidity {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyHumidity {
+    pub fn into_read_only(self) -> ReadOnlyHumidity {
         ReadOnlyHumidity {
             hwmon_path: self.hwmon_path,
             index: self.index,

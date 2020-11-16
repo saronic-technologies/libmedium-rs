@@ -144,7 +144,7 @@ pub struct ReadWriteFan {
 #[cfg(feature = "writable")]
 impl ReadWriteFan {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyFan {
+    pub fn into_read_only(self) -> ReadOnlyFan {
         ReadOnlyFan {
             hwmon_path: self.hwmon_path,
             index: self.index,

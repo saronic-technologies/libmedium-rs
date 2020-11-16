@@ -156,7 +156,7 @@ pub struct ReadWritePwm {
 #[cfg(feature = "writable")]
 impl ReadWritePwm {
     /// Converts this sensor into a read-only version of itself.
-    fn into_read_only(self) -> ReadOnlyPwm {
+    pub fn into_read_only(self) -> ReadOnlyPwm {
         ReadOnlyPwm {
             hwmon_path: self.hwmon_path,
             index: self.index,
