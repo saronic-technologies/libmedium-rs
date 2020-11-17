@@ -59,13 +59,19 @@ impl StdError for Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::Read { path, .. } => {
-                write!(f, "Reading from sensor at {} failed", path.display())
-            }
-            Error::Write { path, .. } => {
-                write!(f, "Writing to sensor at {} failed", path.display())
-            }
-            Error::RawError { .. } => write!(f, "Raw sensor error"),
+            Error::Read { path, source } => write!(
+                f,
+                "Reading from sensor at {} failed: {}",
+                path.display(),
+                source
+            ),
+            Error::Write { path, source } => write!(
+                f,
+                "Writing to sensor at {} failed: {}",
+                path.display(),
+                source
+            ),
+            Error::RawError { source } => write!(f, "Raw sensor error: {}", source),
             Error::InsufficientRights { path } => write!(
                 f,
                 "You have insufficient rights to read/write {}",
