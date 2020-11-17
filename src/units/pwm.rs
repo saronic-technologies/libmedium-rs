@@ -60,8 +60,7 @@ impl Raw for PwmEnable {
         match raw {
             "0" => Ok(PwmEnable::FullSpeed),
             "1" => Ok(PwmEnable::ManualControl),
-            "2" => Ok(PwmEnable::BiosControl),
-            raw => Err(raw.into()),
+            _ => Ok(PwmEnable::BiosControl),
         }
     }
 
