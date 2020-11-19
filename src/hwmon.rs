@@ -190,7 +190,7 @@ pub trait Hwmon {
     }
 }
 
-/// The read only variant of Hwmon. It contains all sensors found whithin its directory path.
+/// The read only variant of Hwmon. It contains all sensors found in its directory path.
 #[derive(Debug, Clone)]
 pub struct ReadOnlyHwmon {
     name: String,
@@ -340,7 +340,7 @@ impl From<ReadWriteHwmon> for ReadOnlyHwmon {
     }
 }
 
-/// The read/write variant of Hwmon. It contains all sensors found whithin its directory path.
+/// The read/write variant of Hwmon. It contains all sensors found in its directory path.
 #[cfg(feature = "writable")]
 #[derive(Debug, Clone)]
 pub struct ReadWriteHwmon {
