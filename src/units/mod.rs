@@ -7,11 +7,11 @@ mod humidity;
 mod pwm;
 mod temp_type;
 
-#[cfg(not(feature = "measurements_units"))]
+#[cfg(not(feature = "uom_units"))]
 mod native;
 
-#[cfg(feature = "measurements_units")]
-mod measurements;
+#[cfg(feature = "uom_units")]
+mod uom;
 
 pub use accuracy::Accuracy;
 pub use error::Error;
@@ -20,11 +20,11 @@ pub use humidity::Humidity;
 pub use pwm::*;
 pub use temp_type::TempType;
 
-#[cfg(not(feature = "measurements_units"))]
+#[cfg(not(feature = "uom_units"))]
 pub use native::*;
 
-#[cfg(feature = "measurements_units")]
-pub use self::measurements::*;
+#[cfg(feature = "uom_units")]
+pub use self::uom::*;
 
 pub(crate) use error::Result;
 

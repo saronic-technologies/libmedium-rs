@@ -15,7 +15,7 @@ gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-measurements = { version = "0.10", optional = true }
+uom = { version = "0.30", optional = true }
 
 [lib]
 doctest = false
@@ -26,8 +26,8 @@ default = ["writable"]
 # Feature that enables the writable versions of all structs and functions to interact with the system's sensors.
 writable = []
 
-# Feature that replaces units with those found in `measurements`.
-measurements_units = ["measurements"]
+# Feature that replaces units with those found in `uom`.
+uom_units = ["uom"]
 
 # Feature that enables parsing of arbitrary paths for hwmons and sensors.
 # It should only be needed for debug and testing purposes.
