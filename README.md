@@ -10,7 +10,7 @@ Just add this to your `Cargo.toml` file:
 
 ```
 [dependencies]
-libmedium = "0.2"
+libmedium = "0.3"
 ```
 
 ## Cargo-Features
@@ -21,7 +21,7 @@ libmedium = "0.2"
 
 ### Non standard features
 
-* `measurements_units`: Sensor values are returned in types from the [`measurements`](https://crates.io/crates/measurements) crate.
+* `uom_units`: Sensor values are returned as types from the [`uom`](https://crates.io/crates/uom) crate.
 * `unrestricted_parsing`: This feature allows parsing of paths other than '/sys/class/hwmon'. This should only be useful for testing and debugging.
 
 ## Examples
@@ -64,4 +64,4 @@ for (_, _, hwmon) in &hwmons {
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
