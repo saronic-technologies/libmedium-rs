@@ -16,6 +16,7 @@ pub use ratio::Ratio;
 pub use temperature::Temperature;
 pub use voltage::Voltage;
 
+/// Reexport of `uom`
 pub mod uom {
     pub use uom::*;
 }
