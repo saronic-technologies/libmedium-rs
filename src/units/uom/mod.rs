@@ -16,4 +16,6 @@ pub use ratio::Ratio;
 pub use temperature::Temperature;
 pub use voltage::Voltage;
 
-pub use uom::*;
+pub mod uom {
+    pub use uom::*;
+}

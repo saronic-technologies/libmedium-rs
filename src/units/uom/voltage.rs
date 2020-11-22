@@ -16,6 +16,30 @@ impl Raw for Voltage {
     }
 
     fn to_raw(&self) -> Cow<str> {
-        Cow::Owned(self.get::<MilliVolt>().to_string())
+        Cow::Owned(format!("{:.0}", self.get::<MilliVolt>().round()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MilliVolt;
+    use crate::units::{Raw, Voltage};
+
+    #[test]
+    fn test_from_raw() {
+        let av = Voltage::from_raw("200").unwrap();
+        assert_eq!(av.get::<MilliVolt>(), 200.0);
+    }
+
+    #[test]
+    fn test_to_raw() {
+        let av = Voltage::new::<MilliVolt>(200.0);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Voltage::new::<MilliVolt>(200.2);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Voltage::new::<MilliVolt>(199.7);
+        assert_eq!(av.to_raw().as_ref(), "200");
     }
 }

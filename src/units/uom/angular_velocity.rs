@@ -16,6 +16,30 @@ impl Raw for AngularVelocity {
     }
 
     fn to_raw(&self) -> Cow<str> {
-        Cow::Owned(self.get::<RPM>().to_string())
+        Cow::Owned(format!("{:.0}", self.get::<RPM>().round()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RPM;
+    use crate::units::{AngularVelocity, Raw};
+
+    #[test]
+    fn test_from_raw() {
+        let av = AngularVelocity::from_raw("200").unwrap();
+        assert_eq!(av.get::<RPM>(), 200.0);
+    }
+
+    #[test]
+    fn test_to_raw() {
+        let av = AngularVelocity::new::<RPM>(200.0);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = AngularVelocity::new::<RPM>(200.2);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = AngularVelocity::new::<RPM>(199.7);
+        assert_eq!(av.to_raw().as_ref(), "200");
     }
 }

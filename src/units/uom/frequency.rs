@@ -16,6 +16,30 @@ impl Raw for Frequency {
     }
 
     fn to_raw(&self) -> Cow<str> {
-        Cow::Owned(self.get::<Hertz>().to_string())
+        Cow::Owned(format!("{:.0}", self.get::<Hertz>().round()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Hertz;
+    use crate::units::{Frequency, Raw};
+
+    #[test]
+    fn test_from_raw() {
+        let av = Frequency::from_raw("200").unwrap();
+        assert_eq!(av.get::<Hertz>(), 200.0);
+    }
+
+    #[test]
+    fn test_to_raw() {
+        let av = Frequency::new::<Hertz>(200.0);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Frequency::new::<Hertz>(200.2);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Frequency::new::<Hertz>(199.7);
+        assert_eq!(av.to_raw().as_ref(), "200");
     }
 }

@@ -16,6 +16,30 @@ impl Raw for Power {
     }
 
     fn to_raw(&self) -> Cow<str> {
-        Cow::Owned(self.get::<MicroWatt>().to_string())
+        Cow::Owned(format!("{:.0}", self.get::<MicroWatt>().round()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MicroWatt;
+    use crate::units::{Power, Raw};
+
+    #[test]
+    fn test_from_raw() {
+        let av = Power::from_raw("200").unwrap();
+        assert_eq!(av.get::<MicroWatt>(), 200.0);
+    }
+
+    #[test]
+    fn test_to_raw() {
+        let av = Power::new::<MicroWatt>(200.0);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Power::new::<MicroWatt>(200.2);
+        assert_eq!(av.to_raw().as_ref(), "200");
+
+        let av = Power::new::<MicroWatt>(199.7);
+        assert_eq!(av.to_raw().as_ref(), "200");
     }
 }
