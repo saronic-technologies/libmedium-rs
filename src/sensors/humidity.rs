@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::units::Humidity;
+use crate::units::Ratio;
 use crate::{Parseable, ParsingResult};
 
 #[cfg(feature = "writable")]
@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 /// Trait implemented by all humidity sensors.
 pub trait HumiditySensor: SensorBase {}
 
-impl<S: HumiditySensor> Sensor<Humidity> for S {}
+impl<S: HumiditySensor> Sensor<Ratio> for S {}
 
 /// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]

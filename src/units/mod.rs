@@ -1,9 +1,7 @@
 //! Units used in this library.
 
-mod accuracy;
 mod error;
 mod fan_divisor;
-mod humidity;
 mod pwm;
 mod temp_type;
 
@@ -13,10 +11,8 @@ mod native;
 #[cfg(feature = "uom_units")]
 mod uom;
 
-pub use accuracy::Accuracy;
 pub use error::Error;
 pub use fan_divisor::FanDivisor;
-pub use humidity::Humidity;
 pub use pwm::*;
 pub use temp_type::TempType;
 

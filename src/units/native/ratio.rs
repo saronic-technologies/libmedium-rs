@@ -6,10 +6,10 @@ use std::ops::{Add, Div, Mul};
 
 /// Struct that represents humidity.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
-pub struct Humidity(u32);
+pub struct Ratio(u32);
 
-impl Humidity {
-    /// Create a Humidity struct from a value measuring millipercent.
+impl Ratio {
+    /// Create a Ratio struct from a value measuring millipercent.
     pub fn from_milli_percent(millis: u32) -> Self {
         Self(millis)
     }
@@ -25,11 +25,11 @@ impl Humidity {
     }
 }
 
-impl Raw for Humidity {
+impl Raw for Ratio {
     fn from_raw(raw: &str) -> RawSensorResult<Self> {
         raw.trim()
             .parse::<u32>()
-            .map(Humidity::from_milli_percent)
+            .map(Ratio::from_milli_percent)
             .map_err(|_| RawError::from(raw))
     }
 
@@ -38,32 +38,32 @@ impl Raw for Humidity {
     }
 }
 
-impl fmt::Display for Humidity {
+impl fmt::Display for Ratio {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}%", self.as_percent())
     }
 }
 
-impl Add for Humidity {
+impl Add for Ratio {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Humidity(self.0 + other.0)
+        Ratio(self.0 + other.0)
     }
 }
 
-impl<T: Into<u32>> Mul<T> for Humidity {
+impl<T: Into<u32>> Mul<T> for Ratio {
     type Output = Self;
 
-    fn mul(self, other: T) -> Humidity {
-        Humidity(self.0 * other.into())
+    fn mul(self, other: T) -> Ratio {
+        Ratio(self.0 * other.into())
     }
 }
 
-impl<T: Into<u32>> Div<T> for Humidity {
+impl<T: Into<u32>> Div<T> for Ratio {
     type Output = Self;
 
-    fn div(self, other: T) -> Humidity {
-        Humidity(self.0 / other.into())
+    fn div(self, other: T) -> Ratio {
+        Ratio(self.0 / other.into())
     }
 }

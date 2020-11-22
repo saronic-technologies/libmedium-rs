@@ -375,7 +375,6 @@ mod tests {
     use super::*;
     use crate::sensors::{ReadOnlyFan, ReadOnlyTemp};
     use crate::tests::*;
-    use crate::units::Temperature;
     use crate::{Hwmons, Parseable};
 
     use std::fs::remove_dir_all;
@@ -394,20 +393,29 @@ mod tests {
         let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
         let fan = ReadOnlyFan::parse(hwmon, 1).unwrap();
 
-        #[cfg(not(feature = "measurements_units"))]
+        #[cfg(not(feature = "uom_units"))]
+        assert_eq!(40.0, temp.read_input().unwrap().as_degrees_celsius());
+
+        #[cfg(feature = "uom_units")]
         assert_eq!(
-            Temperature::from_degrees_celsius(40.0),
-            temp.read_input().unwrap()
+            40.0,
+            temp.read_input()
+                .unwrap()
+                .round::<uom::si::thermodynamic_temperature::degree_celsius>()
+                .get::<uom::si::thermodynamic_temperature::degree_celsius>()
         );
 
-        #[cfg(feature = "measurements_units")]
-        assert_eq!(Temperature::from_celsius(40.0), temp.read_input().unwrap());
-
-        #[cfg(not(feature = "measurements_units"))]
+        #[cfg(not(feature = "uom_units"))]
         assert_eq!(60, fan.read_input().unwrap().as_rpm());
 
-        #[cfg(feature = "measurements_units")]
-        assert_eq!(60.0, fan.read_input().unwrap().as_hertz() * 60.0);
+        #[cfg(feature = "uom_units")]
+        assert_eq!(
+            60.0,
+            fan.read_input()
+                .unwrap()
+                .round::<uom::si::angular_velocity::revolution_per_minute>()
+                .get::<uom::si::angular_velocity::revolution_per_minute>()
+        );
 
         remove_dir_all(test_path).unwrap();
     }

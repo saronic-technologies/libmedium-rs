@@ -15,3 +15,5 @@ pub use power::Power;
 pub use ratio::Ratio;
 pub use temperature::Temperature;
 pub use voltage::Voltage;
+
+pub use uom::*;

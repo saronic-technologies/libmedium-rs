@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::hwmon::*;
-use crate::units::{Accuracy, Power, Raw};
+use crate::units::{Power, Ratio, Raw};
 use crate::{Parseable, ParsingResult};
 
 #[cfg(feature = "writable")]
@@ -12,9 +12,9 @@ use std::convert::TryFrom;
 pub trait PowerSensor: SensorBase {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_accuracy(&self) -> Result<Accuracy> {
+    fn read_accuracy(&self) -> Result<Ratio> {
         let raw = self.read_raw(SensorSubFunctionType::Accuracy)?;
-        Accuracy::from_raw(&raw).map_err(Error::from)
+        Ratio::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the cap subfunction of this power sensor.
