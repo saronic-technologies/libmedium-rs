@@ -3,7 +3,7 @@ name = "print_temps"
 version = "0.1.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
 license = "MIT"
-description = "Example how set all pwm capable fans in the system to full power."
+description = "Example how to print all temp sensors and their values to terminal."
 repository = "https://gitlab.com/Maldela/libmedium"
 edition = "2018"
 
