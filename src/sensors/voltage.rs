@@ -11,14 +11,14 @@ use std::path::{Path, PathBuf};
 pub trait VoltageSensor:
     SensorBase
     + Enable
-    + Sensor<Voltage>
-    + Min<Voltage>
-    + Max<Voltage>
-    + LowCrit<Voltage>
-    + Crit<Voltage>
-    + Average<Voltage>
-    + Lowest<Voltage>
-    + Highest<Voltage>
+    + Sensor
+    + Min
+    + Max
+    + LowCrit
+    + Crit
+    + Average
+    + Lowest
+    + Highest
     + std::fmt::Debug
 {
 }
@@ -31,6 +31,8 @@ pub(crate) struct VoltageSensorStruct {
 }
 
 impl SensorBase for VoltageSensorStruct {
+    type Value = Voltage;
+
     fn base(&self) -> &'static str {
         "in"
     }
@@ -58,14 +60,14 @@ impl Parseable for VoltageSensorStruct {
 }
 
 impl Enable for VoltageSensorStruct {}
-impl Sensor<Voltage> for VoltageSensorStruct {}
-impl Min<Voltage> for VoltageSensorStruct {}
-impl Max<Voltage> for VoltageSensorStruct {}
-impl LowCrit<Voltage> for VoltageSensorStruct {}
-impl Crit<Voltage> for VoltageSensorStruct {}
-impl Average<Voltage> for VoltageSensorStruct {}
-impl Lowest<Voltage> for VoltageSensorStruct {}
-impl Highest<Voltage> for VoltageSensorStruct {}
+impl Sensor for VoltageSensorStruct {}
+impl Min for VoltageSensorStruct {}
+impl Max for VoltageSensorStruct {}
+impl LowCrit for VoltageSensorStruct {}
+impl Crit for VoltageSensorStruct {}
+impl Average for VoltageSensorStruct {}
+impl Lowest for VoltageSensorStruct {}
+impl Highest for VoltageSensorStruct {}
 impl VoltageSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -77,10 +79,10 @@ pub trait WriteableVoltageSensor:
     VoltageSensor
     + WriteableSensorBase
     + WriteableEnable
-    + WriteableMin<Voltage>
-    + WriteableMax<Voltage>
-    + WriteableCrit<Voltage>
-    + WriteableLowCrit<Voltage>
+    + WriteableMin
+    + WriteableMax
+    + WriteableCrit
+    + WriteableLowCrit
 {
 }
 

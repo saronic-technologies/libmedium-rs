@@ -8,14 +8,7 @@ use crate::{Parseable, ParsingResult};
 use std::path::{Path, PathBuf};
 
 /// Trait that sums up all the functionality of a read-only fan sensor.
-pub trait FanSensor:
-    Enable
-    + Sensor<AngularVelocity>
-    + Min<AngularVelocity>
-    + Max<AngularVelocity>
-    + Faulty
-    + std::fmt::Debug
-{
+pub trait FanSensor: Enable + Sensor + Min + Max + Faulty + std::fmt::Debug {
     /// Reads the target_revs subfunction of this fan sensor.
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
@@ -41,6 +34,8 @@ pub(crate) struct FanSensorStruct {
 }
 
 impl SensorBase for FanSensorStruct {
+    type Value = AngularVelocity;
+
     fn base(&self) -> &'static str {
         "fan"
     }
@@ -54,7 +49,7 @@ impl SensorBase for FanSensorStruct {
     }
 }
 
-impl Sensor<AngularVelocity> for FanSensorStruct {
+impl Sensor for FanSensorStruct {
     /// Reads the input subfunction of this fan sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_input(&self) -> Result<AngularVelocity> {
@@ -81,8 +76,8 @@ impl Parseable for FanSensorStruct {
 }
 
 impl Enable for FanSensorStruct {}
-impl Min<AngularVelocity> for FanSensorStruct {}
-impl Max<AngularVelocity> for FanSensorStruct {}
+impl Min for FanSensorStruct {}
+impl Max for FanSensorStruct {}
 impl Faulty for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
@@ -92,11 +87,7 @@ impl WriteableSensorBase for FanSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all the functionality of a read-write fan sensor.
 pub trait WriteableFanSensor:
-    FanSensor
-    + WriteableSensorBase
-    + WriteableEnable
-    + WriteableMin<AngularVelocity>
-    + WriteableMax<AngularVelocity>
+    FanSensor + WriteableSensorBase + WriteableEnable + WriteableMin + WriteableMax
 {
     /// Converts target and writes it to this fan's target subfunction.
     ///

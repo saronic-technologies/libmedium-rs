@@ -8,7 +8,7 @@ use crate::{Parseable, ParsingResult};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all the functionality of a read-only energy sensor.
-pub trait EnergySensor: SensorBase + Enable + Sensor<Energy> + std::fmt::Debug {}
+pub trait EnergySensor: SensorBase + Enable + Sensor + std::fmt::Debug {}
 
 #[derive(Debug, Clone)]
 pub(crate) struct EnergySensorStruct {
@@ -17,6 +17,8 @@ pub(crate) struct EnergySensorStruct {
 }
 
 impl SensorBase for EnergySensorStruct {
+    type Value = Energy;
+
     fn base(&self) -> &'static str {
         "energy"
     }
@@ -44,7 +46,7 @@ impl Parseable for EnergySensorStruct {
 }
 
 impl Enable for EnergySensorStruct {}
-impl Sensor<Energy> for EnergySensorStruct {}
+impl Sensor for EnergySensorStruct {}
 impl EnergySensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]

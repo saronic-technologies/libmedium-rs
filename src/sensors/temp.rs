@@ -9,14 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all the functionality of a read-only temp sensor.
 pub trait TempSensor:
-    Enable
-    + Sensor<Temperature>
-    + Min<Temperature>
-    + Max<Temperature>
-    + Crit<Temperature>
-    + LowCrit<Temperature>
-    + Faulty
-    + std::fmt::Debug
+    Enable + Sensor + Min + Max + Crit + LowCrit + Faulty + std::fmt::Debug
 {
     /// Reads the type subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
@@ -83,6 +76,8 @@ pub(crate) struct TempSensorStruct {
 }
 
 impl SensorBase for TempSensorStruct {
+    type Value = Temperature;
+
     fn base(&self) -> &'static str {
         "temp"
     }
@@ -109,7 +104,7 @@ impl Parseable for TempSensorStruct {
     }
 }
 
-impl Sensor<Temperature> for TempSensorStruct {
+impl Sensor for TempSensorStruct {
     /// Reads the input subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
     fn read_input(&self) -> Result<Temperature> {
@@ -123,10 +118,10 @@ impl Sensor<Temperature> for TempSensorStruct {
 }
 
 impl Enable for TempSensorStruct {}
-impl Min<Temperature> for TempSensorStruct {}
-impl Max<Temperature> for TempSensorStruct {}
-impl Crit<Temperature> for TempSensorStruct {}
-impl LowCrit<Temperature> for TempSensorStruct {}
+impl Min for TempSensorStruct {}
+impl Max for TempSensorStruct {}
+impl Crit for TempSensorStruct {}
+impl LowCrit for TempSensorStruct {}
 impl TempSensor for TempSensorStruct {}
 impl Faulty for TempSensorStruct {}
 
@@ -139,10 +134,10 @@ pub trait WriteableTempSensor:
     TempSensor
     + WriteableSensorBase
     + WriteableEnable
-    + WriteableMin<Temperature>
-    + WriteableMax<Temperature>
-    + WriteableCrit<Temperature>
-    + WriteableLowCrit<Temperature>
+    + WriteableMin
+    + WriteableMax
+    + WriteableCrit
+    + WriteableLowCrit
 {
     /// Converts offset and writes it to this temp's offset subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.

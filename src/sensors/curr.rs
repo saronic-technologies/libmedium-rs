@@ -12,14 +12,14 @@ use std::path::{Path, PathBuf};
 pub trait CurrentSensor:
     SensorBase
     + Enable
-    + Sensor<Current>
-    + Min<Current>
-    + Max<Current>
-    + LowCrit<Current>
-    + Crit<Current>
-    + Average<Current>
-    + Lowest<Current>
-    + Highest<Current>
+    + Sensor
+    + Min
+    + Max
+    + LowCrit
+    + Crit
+    + Average
+    + Lowest
+    + Highest
     + std::fmt::Debug
 {
 }
@@ -31,6 +31,8 @@ pub(crate) struct CurrentSensorStruct {
 }
 
 impl SensorBase for CurrentSensorStruct {
+    type Value = Current;
+
     fn base(&self) -> &'static str {
         "curr"
     }
@@ -58,14 +60,14 @@ impl Parseable for CurrentSensorStruct {
 }
 
 impl Enable for CurrentSensorStruct {}
-impl Sensor<Current> for CurrentSensorStruct {}
-impl Min<Current> for CurrentSensorStruct {}
-impl Max<Current> for CurrentSensorStruct {}
-impl Crit<Current> for CurrentSensorStruct {}
-impl LowCrit<Current> for CurrentSensorStruct {}
-impl Average<Current> for CurrentSensorStruct {}
-impl Lowest<Current> for CurrentSensorStruct {}
-impl Highest<Current> for CurrentSensorStruct {}
+impl Sensor for CurrentSensorStruct {}
+impl Min for CurrentSensorStruct {}
+impl Max for CurrentSensorStruct {}
+impl Crit for CurrentSensorStruct {}
+impl LowCrit for CurrentSensorStruct {}
+impl Average for CurrentSensorStruct {}
+impl Lowest for CurrentSensorStruct {}
+impl Highest for CurrentSensorStruct {}
 impl CurrentSensor for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -77,10 +79,10 @@ pub trait WriteableCurrentSensor:
     CurrentSensor
     + WriteableSensorBase
     + WriteableEnable
-    + WriteableMin<Current>
-    + WriteableMax<Current>
-    + WriteableCrit<Current>
-    + WriteableLowCrit<Current>
+    + WriteableMin
+    + WriteableMax
+    + WriteableCrit
+    + WriteableLowCrit
 {
 }
 

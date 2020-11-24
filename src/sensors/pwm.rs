@@ -45,6 +45,8 @@ pub(crate) struct PwmSensorStruct {
 }
 
 impl SensorBase for PwmSensorStruct {
+    type Value = Pwm;
+
     fn base(&self) -> &'static str {
         "pwm"
     }

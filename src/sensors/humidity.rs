@@ -8,7 +8,7 @@ use crate::{Parseable, ParsingResult};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all the functionality of a read-only fan sensor.
-pub trait HumiditySensor: SensorBase + Enable + Sensor<Ratio> + std::fmt::Debug {}
+pub trait HumiditySensor: SensorBase + Enable + Sensor + std::fmt::Debug {}
 
 /// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]
@@ -18,6 +18,8 @@ pub(crate) struct HumiditySensorStruct {
 }
 
 impl SensorBase for HumiditySensorStruct {
+    type Value = Ratio;
+
     fn base(&self) -> &'static str {
         "humidity"
     }
@@ -45,7 +47,7 @@ impl Parseable for HumiditySensorStruct {
 }
 
 impl Enable for HumiditySensorStruct {}
-impl Sensor<Ratio> for HumiditySensorStruct {}
+impl Sensor for HumiditySensorStruct {}
 impl HumiditySensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]

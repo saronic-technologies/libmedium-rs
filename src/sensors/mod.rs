@@ -31,6 +31,7 @@ use error::Result;
 use std::{collections::HashMap, fs::write};
 
 use std::{
+    fmt::Display,
     fs::read_to_string,
     path::{Path, PathBuf},
     time::Duration,
@@ -39,6 +40,9 @@ use std::{
 /// Base trait that all sensors must implement.
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.
 pub trait SensorBase {
+    /// Type used by the sensor for measurements.
+    type Value: Raw + Display;
+
     /// Returns this sensor's base like "temp" or "fan".
     fn base(&self) -> &'static str;
 
@@ -177,12 +181,12 @@ pub trait WriteableSensorBase: SensorBase {
 
 /// Trait implemented by all sensors except for pwm.
 /// It contains the functionality to read the input subfunctions.
-pub trait Sensor<P: Raw>: SensorBase {
+pub trait Sensor: SensorBase {
     /// Reads the input subfunction of this sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
-    fn read_input(&self) -> Result<P> {
+    fn read_input(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -221,126 +225,126 @@ pub trait Faulty: SensorBase {
 }
 
 /// Trait implemented by all sensors that can have a min subfunction.
-pub trait Min<P: Raw>: SensorBase {
+pub trait Min: SensorBase {
     /// Reads this sensor's min value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_min(&self) -> Result<P> {
+    fn read_min(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Min)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all writeable sensors that can have a min subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableMin<P: Raw>: WriteableSensorBase {
+pub trait WriteableMin: WriteableSensorBase {
     /// Writes this sensor's min value.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn write_min(&self, min: P) -> Result<()> {
+    fn write_min(&self, min: Self::Value) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
     }
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Min<P>, P: Raw> WriteableMin<P> for S {}
+impl<S: WriteableSensorBase + Min> WriteableMin for S {}
 
 /// Trait implemented by all sensors that can have a max subfunction.
-pub trait Max<P: Raw>: SensorBase {
+pub trait Max: SensorBase {
     /// Reads this sensor's max value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_max(&self) -> Result<P> {
+    fn read_max(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Max)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all writeable sensors that can have a max subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableMax<P: Raw>: WriteableSensorBase {
+pub trait WriteableMax: WriteableSensorBase {
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn write_max(&self, max: P) -> Result<()> {
+    fn write_max(&self, max: Self::Value) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
     }
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Max<P>, P: Raw> WriteableMax<P> for S {}
+impl<S: WriteableSensorBase + Max> WriteableMax for S {}
 
 /// Trait implemented by all sensors that can have an average subfunction.
-pub trait Average<P: Raw>: SensorBase {
+pub trait Average: SensorBase {
     /// Reads this sensor's average value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_average(&self) -> Result<P> {
+    fn read_average(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Average)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all sensors that can have a lowest subfunction.
-pub trait Lowest<P: Raw>: SensorBase {
+pub trait Lowest: SensorBase {
     /// Reads this sensor's historically lowest input.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_lowest(&self) -> Result<P> {
+    fn read_lowest(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Lowest)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all sensors that can have a highest subfunction.
-pub trait Highest<P: Raw>: SensorBase {
+pub trait Highest: SensorBase {
     /// Reads this sensor's historically highest input.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_highest(&self) -> Result<P> {
+    fn read_highest(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Highest)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all sensors that can have a crit subfunction.
-pub trait Crit<P: Raw>: SensorBase {
+pub trait Crit: SensorBase {
     /// Reads this sensor's crit value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_crit(&self) -> Result<P> {
+    fn read_crit(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::Crit)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all writeable sensors that can have a crit subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableCrit<P: Raw>: WriteableSensorBase {
+pub trait WriteableCrit: WriteableSensorBase {
     /// Writes this sensor's crit value.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn write_crit(&self, crit: P) -> Result<()> {
+    fn write_crit(&self, crit: Self::Value) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
     }
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Crit<P>, P: Raw> WriteableCrit<P> for S {}
+impl<S: WriteableSensorBase + Crit> WriteableCrit for S {}
 
 /// Trait implemented by all sensors that can have a lcrit subfunction.
-pub trait LowCrit<P: Raw>: SensorBase {
+pub trait LowCrit: SensorBase {
     /// Reads this sensor's lcrit value.
     /// Returns an error, if this sensor doesn't support the feature.
-    fn read_lcrit(&self) -> Result<P> {
+    fn read_lcrit(&self) -> Result<Self::Value> {
         let raw = self.read_raw(SensorSubFunctionType::LowCrit)?;
-        P::from_raw(&raw).map_err(Error::from)
+        Self::Value::from_raw(&raw).map_err(Error::from)
     }
 }
 
 /// Trait implemented by all writeable sensors that can have a lcrit subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableLowCrit<P: Raw>: WriteableSensorBase {
+pub trait WriteableLowCrit: WriteableSensorBase {
     /// Writes this sensor's lcrit value.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn write_lcrit(&self, lcrit: P) -> Result<()> {
+    fn write_lcrit(&self, lcrit: Self::Value) -> Result<()> {
         self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw())
     }
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + LowCrit<P>, P: Raw> WriteableLowCrit<P> for S {}
+impl<S: WriteableSensorBase + LowCrit> WriteableLowCrit for S {}
 
 /// A struct that represents the state of all writeable subfunctions of a sensor.
 /// It can be used to reset a sensor to a previous state or copy its settings to another sensor.

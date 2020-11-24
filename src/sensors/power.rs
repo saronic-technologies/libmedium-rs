@@ -7,14 +7,7 @@ use crate::{Parseable, ParsingResult};
 
 /// Helper trait that sums up all the functionality of a read-only power sensor.
 pub trait PowerSensor:
-    Enable
-    + Sensor<Power>
-    + Max<Power>
-    + Crit<Power>
-    + Average<Power>
-    + Highest<Power>
-    + Lowest<Power>
-    + std::fmt::Debug
+    Enable + Sensor + Max + Crit + Average + Highest + Lowest + std::fmt::Debug
 {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
@@ -109,6 +102,8 @@ pub(crate) struct PowerSensorStruct {
 }
 
 impl SensorBase for PowerSensorStruct {
+    type Value = Power;
+
     fn base(&self) -> &'static str {
         "power"
     }
@@ -136,12 +131,12 @@ impl Parseable for PowerSensorStruct {
 }
 
 impl Enable for PowerSensorStruct {}
-impl Sensor<Power> for PowerSensorStruct {}
-impl Max<Power> for PowerSensorStruct {}
-impl Crit<Power> for PowerSensorStruct {}
-impl Average<Power> for PowerSensorStruct {}
-impl Highest<Power> for PowerSensorStruct {}
-impl Lowest<Power> for PowerSensorStruct {}
+impl Sensor for PowerSensorStruct {}
+impl Max for PowerSensorStruct {}
+impl Crit for PowerSensorStruct {}
+impl Average for PowerSensorStruct {}
+impl Highest for PowerSensorStruct {}
+impl Lowest for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -150,7 +145,7 @@ impl WriteableSensorBase for PowerSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all the functionality of a read-write power sensor.
 pub trait WriteablePowerSensor:
-    PowerSensor + WriteableSensorBase + WriteableEnable + WriteableMax<Power> + WriteableCrit<Power>
+    PowerSensor + WriteableSensorBase + WriteableEnable + WriteableMax + WriteableCrit
 {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
