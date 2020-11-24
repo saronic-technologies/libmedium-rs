@@ -4,17 +4,17 @@ use std::borrow::Cow;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
 
-/// Struct that represents a frequency.
+/// Struct that represents an angular velocity.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct AngularVelocity(u32);
 
 impl AngularVelocity {
-    /// Create a AngularVelocity struct from a value measuring times per minute.
+    /// Create an AngularVelocity struct from a value measuring revolutions per minute.
     pub fn from_rpm(rpm: u32) -> Self {
         AngularVelocity(rpm)
     }
 
-    /// Return this AngularVelocity's value in times per minute.
+    /// Return this AngularVelocity's value in revolutions per minute.
     pub fn as_rpm(self) -> u32 {
         self.0
     }

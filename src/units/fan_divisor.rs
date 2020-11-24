@@ -1,7 +1,7 @@
 use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
 use std::borrow::Cow;
 
-/// A struct representing a fan divisor. Fan divisors can only be powers of two.
+/// Struct representing a fan divisor. Fan divisors can only be powers of two.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
 pub struct FanDivisor(u32);
 

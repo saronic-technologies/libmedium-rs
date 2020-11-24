@@ -79,7 +79,7 @@ impl Default for PwmEnable {
     }
 }
 
-/// Struct that represents the modes by which a fan's speed can be regulated.
+/// Enum that represents the modes by which a fan's speed can be regulated.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmMode {

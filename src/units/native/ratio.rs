@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use std::fmt;
 use std::ops::{Add, Div, Mul};
 
-/// Struct that represents humidity.
+/// Struct that represents a ratio. It is used for humidity and accuracy measurements.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Hash, Ord)]
 pub struct Ratio(u32);
 
