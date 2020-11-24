@@ -8,4 +8,4 @@ repository = "https://gitlab.com/Maldela/libmedium"
 edition = "2018"
 
 [dependencies]
-libmedium = { path = "../..", features = ["writable"] }
+libmedium = { path = "../..", features = ["writeable"] }

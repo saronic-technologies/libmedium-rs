@@ -32,7 +32,7 @@ pub trait Raw: Sized {
     /// Converts a raw sensor string into a usable type.
     fn from_raw(raw: &str) -> Result<Self>;
 
-    /// Converts self into a writable raw sensor string.
+    /// Converts self into a writeable raw sensor string.
     fn to_raw(&self) -> Cow<str>;
 }
 

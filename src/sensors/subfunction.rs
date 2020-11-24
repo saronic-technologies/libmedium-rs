@@ -101,7 +101,7 @@ impl SensorSubFunctionType {
         &ARRAY
     }
 
-    #[cfg(feature = "writable")]
+    #[cfg(feature = "writeable")]
     pub(crate) fn write_only_list() -> &'static [SensorSubFunctionType] {
         const ARRAY: [SensorSubFunctionType; 1] = [SensorSubFunctionType::ResetHistory];
         &ARRAY
@@ -114,7 +114,7 @@ impl SensorSubFunctionType {
             .copied()
     }
 
-    #[cfg(feature = "writable")]
+    #[cfg(feature = "writeable")]
     pub(crate) fn write_list() -> impl Iterator<Item = Self> {
         Self::write_only_list()
             .iter()

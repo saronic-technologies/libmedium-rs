@@ -8,11 +8,11 @@
 //!
 //! ```
 //! use libmedium::{
-//!     Hwmon, Hwmons,
+//!     Hwmons,
 //!     sensors::{Sensor, SensorBase},
 //! };
 //!
-//! let hwmons = Hwmons::parse_read_only().unwrap();
+//! let hwmons = Hwmons::parse().unwrap();
 //! for (hwmon_index, hwmon_name, hwmon) in &hwmons {
 //!     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
 //!     for (_, temp_sensor) in hwmon.temps() {
@@ -26,14 +26,14 @@
 //!
 //! ```
 //! use libmedium::{
-//!     Hwmon, Hwmons,
-//!     sensors::PwmSensor,
+//!     Hwmons,
+//!     sensors::WriteablePwmSensor,
 //!     units::{Pwm, PwmEnable},
 //! };
 //!
-//! let hwmons = Hwmons::parse_read_write().unwrap();
+//! let hwmons = Hwmons::parse().unwrap();
 //! for (_, _, hwmon) in &hwmons {
-//!     for (_, pwm) in hwmon.pwms() {
+//!     for (_, pwm) in hwmon.writeable_pwms() {
 //!         pwm.write_enable(PwmEnable::ManualControl).unwrap();
 //!         pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
 //!     }
@@ -58,7 +58,6 @@ mod parsing;
 pub use hwmon::Hwmon;
 pub use parsing::Error as ParsingError;
 
-use hwmon::*;
 pub(crate) use parsing::{Parseable, Result as ParsingResult};
 
 use std::iter::FusedIterator;
@@ -69,12 +68,12 @@ const HWMON_PATH: &str = "/sys/class/hwmon/";
 /// This crate's central struct.
 /// It stores all parsed hwmons which you can query either by name or by index.
 #[derive(Debug, Clone)]
-pub struct Hwmons<H: Hwmon> {
+pub struct Hwmons {
     path: PathBuf,
-    hwmons: Vec<H>,
+    hwmons: Vec<Hwmon>,
 }
 
-impl<H: Hwmon> Hwmons<H> {
+impl Hwmons {
     /// The path that was parsed to generate this object.
     pub fn path(&self) -> &Path {
         &self.path
@@ -82,7 +81,7 @@ impl<H: Hwmon> Hwmons<H> {
 
     /// Get `Hwmon`s by their name.
     /// Returns an empty iterator, if there is no `Hwmon` with the given name.
-    pub fn hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &H> {
+    pub fn hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &Hwmon> {
         self.hwmons
             .iter()
             .filter(move |hwmon| hwmon.name() == name.as_ref())
@@ -90,30 +89,38 @@ impl<H: Hwmon> Hwmons<H> {
 
     /// Get a `Hwmon` by its index.
     /// Returns `None`, if there is no `Hwmon` with the given index.
-    pub fn hwmon_by_index(&self, index: usize) -> Option<&H> {
+    pub fn hwmon_by_index(&self, index: usize) -> Option<&Hwmon> {
         self.hwmons.get(index)
     }
 
     /// Get a `Hwmon` by its device path.
     /// Returns `None`, if there is no `Hwmon` with the given device path.
-    pub fn hwmon_by_device_path(&self, device_path: impl AsRef<Path>) -> Option<&H> {
+    pub fn hwmon_by_device_path(&self, device_path: impl AsRef<Path>) -> Option<&Hwmon> {
         self.hwmons
             .iter()
             .find(move |&hwmon| hwmon.device_path() == device_path.as_ref())
     }
 
     /// Returns an iterator over all hwmons, their names and their indices.
-    pub fn iter(&self) -> Iter<'_, H> {
+    pub fn iter(&self) -> Iter<'_> {
         Iter {
             index: 0,
             hwmons: &self.hwmons,
         }
     }
 
-    fn parse(path: impl AsRef<Path>) -> ParsingResult<Self>
-    where
-        H: Parseable<Parent = Self>,
-    {
+    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
+    pub fn parse() -> ParsingResult<Self> {
+        Self::parse_path(HWMON_PATH)
+    }
+
+    /// Parses the provided path and returns the found hwmons as a Hwmons object.
+    #[cfg(feature = "unrestricted_parsing")]
+    pub fn parse_unrestricted(path: impl AsRef<Path>) -> ParsingResult<Self> {
+        Self::parse_path(path)
+    }
+
+    fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Self> {
         let path = path.as_ref();
 
         if !path.exists() {
@@ -134,7 +141,7 @@ impl<H: Hwmon> Hwmons<H> {
         };
 
         for index in 0.. {
-            match H::parse(&hwmons, index) {
+            match Hwmon::parse(&hwmons, index) {
                 Ok(hwmon) => {
                     hwmons.hwmons.push(hwmon);
                 }
@@ -149,39 +156,15 @@ impl<H: Hwmon> Hwmons<H> {
     }
 }
 
-impl Hwmons<ReadOnlyHwmon> {
-    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
-    pub fn parse_read_only() -> ParsingResult<Self> {
-        Self::parse(HWMON_PATH)
-    }
-}
-
-#[cfg(feature = "writable")]
-impl Hwmons<ReadWriteHwmon> {
-    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
-    /// Be sure you have sufficient rights to write to your sensors. Usually only root has those rights.
-    pub fn parse_read_write() -> ParsingResult<Self> {
-        Self::parse(HWMON_PATH)
-    }
-
-    /// Parses the given path and returns the found hwmons as a `Hwmons` object.
-    /// This function should only be used for debug and test purposes. Usually you should use
-    /// parse_read_write() or parse_read_only().
-    #[cfg(feature = "unrestricted_parsing")]
-    pub fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Self> {
-        Self::parse(path)
-    }
-}
-
 /// An iterator over all parsed hwmons.
 #[derive(Debug, Copy, Clone)]
-pub struct Iter<'a, H: Hwmon> {
-    hwmons: &'a [H],
+pub struct Iter<'a> {
+    hwmons: &'a [Hwmon],
     index: usize,
 }
 
-impl<'a, H: Hwmon> Iterator for Iter<'a, H> {
-    type Item = (usize, &'a str, &'a H);
+impl<'a> Iterator for Iter<'a> {
+    type Item = (usize, &'a str, &'a Hwmon);
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(hwmon) = self.hwmons.get(self.index) {
@@ -192,17 +175,17 @@ impl<'a, H: Hwmon> Iterator for Iter<'a, H> {
     }
 }
 
-impl<'a, H: Hwmon> FusedIterator for Iter<'a, H> {}
+impl<'a> FusedIterator for Iter<'a> {}
 
-impl<'a, H: Hwmon> ExactSizeIterator for Iter<'a, H> {
+impl<'a> ExactSizeIterator for Iter<'a> {
     fn len(&self) -> usize {
         self.hwmons.len() - self.index
     }
 }
 
-impl<'a, H: Hwmon> IntoIterator for &'a Hwmons<H> {
-    type Item = (usize, &'a str, &'a H);
-    type IntoIter = Iter<'a, H>;
+impl<'a> IntoIterator for &'a Hwmons {
+    type Item = (usize, &'a str, &'a Hwmon);
+    type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
@@ -367,7 +350,7 @@ mod tests {
             .add_temp(1, 40000, "temp1")
             .add_fan(2, 1000);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
         let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
 

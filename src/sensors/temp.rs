@@ -5,12 +5,19 @@ use crate::hwmon::*;
 use crate::units::{Raw, TempType, Temperature};
 use crate::{Parseable, ParsingResult};
 
-#[cfg(feature = "writable")]
-use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
-/// Trait implemented by all temp sensors.
-pub trait TempSensor: SensorBase {
+/// Helper trait that sums up all the functionality of a read-only temp sensor.
+pub trait TempSensor:
+    Enable
+    + Sensor<Temperature>
+    + Min<Temperature>
+    + Max<Temperature>
+    + Crit<Temperature>
+    + LowCrit<Temperature>
+    + Faulty
+    + std::fmt::Debug
+{
     /// Reads the type subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_type(&self) -> Result<TempType> {
@@ -66,82 +73,43 @@ pub trait TempSensor: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::LowCritHyst)?;
         Temperature::from_raw(&raw).map_err(Error::from)
     }
+}
 
-    /// Converts offset and writes it to this temp's offset subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_offset(&self, offset: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw())
+/// Struct that represents a read only temp sensor.
+#[derive(Debug, Clone)]
+pub(crate) struct TempSensorStruct {
+    hwmon_path: PathBuf,
+    index: u16,
+}
+
+impl SensorBase for TempSensorStruct {
+    fn base(&self) -> &'static str {
+        "temp"
     }
 
-    /// Converts max_hyst and writes it to this temp's max_hyst subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_max_hyst(&self, max_hyst: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::MaxHyst, &max_hyst.to_raw())
+    fn index(&self) -> u16 {
+        self.index
     }
 
-    /// Converts min_hyst and writes it to this temp's min_hyst subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_min_hyst(&self, min_hyst: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::MinHyst, &min_hyst.to_raw())
-    }
-
-    /// Converts crit_hyst and writes it to this temp's crit_hyst subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_crit_hyst(&self, crit_hyst: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::CritHyst, &crit_hyst.to_raw())
-    }
-
-    /// Converts emergency and writes it to this temp's emergency subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_emergency(&self, emergency: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::Emergency, &emergency.to_raw())
-    }
-
-    /// Converts emergency_hyst and writes it to this temp's emergency_hyst subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_emergency_hyst(&self, emergency_hyst: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(
-            SensorSubFunctionType::EmergencyHyst,
-            &emergency_hyst.to_raw(),
-        )
-    }
-
-    /// Converts lcrit_hyst and writes it to this temp's lcrit_hyst subfunction.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    #[cfg(feature = "writable")]
-    fn write_lcrit_hyst(&self, lcrit_hyst: Temperature) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
-        self.write_raw(SensorSubFunctionType::LowCritHyst, &lcrit_hyst.to_raw())
+    fn hwmon_path(&self) -> &Path {
+        self.hwmon_path.as_path()
     }
 }
 
-impl<S: TempSensor + Faulty> Sensor<Temperature> for S {
+impl Parseable for TempSensorStruct {
+    type Parent = Hwmon;
+
+    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
+        let temp = Self {
+            hwmon_path: parent.path().to_path_buf(),
+            index,
+        };
+
+        inspect_sensor(temp)
+    }
+}
+
+impl Sensor<Temperature> for TempSensorStruct {
     /// Reads the input subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
     fn read_input(&self) -> Result<Temperature> {
@@ -154,138 +122,73 @@ impl<S: TempSensor + Faulty> Sensor<Temperature> for S {
     }
 }
 
-impl<S: TempSensor> Min<Temperature> for S {}
-impl<S: TempSensor> Max<Temperature> for S {}
-impl<S: TempSensor> Crit<Temperature> for S {}
-impl<S: TempSensor> LowCrit<Temperature> for S {}
+impl Enable for TempSensorStruct {}
+impl Min<Temperature> for TempSensorStruct {}
+impl Max<Temperature> for TempSensorStruct {}
+impl Crit<Temperature> for TempSensorStruct {}
+impl LowCrit<Temperature> for TempSensorStruct {}
+impl TempSensor for TempSensorStruct {}
+impl Faulty for TempSensorStruct {}
 
-/// Struct that represents a read only temp sensor.
-#[derive(Debug, Clone)]
-pub struct ReadOnlyTemp {
-    hwmon_path: PathBuf,
-    index: u16,
-}
+#[cfg(feature = "writeable")]
+impl WriteableSensorBase for TempSensorStruct {}
 
-#[cfg(feature = "writable")]
-impl ReadOnlyTemp {
-    /// Try converting this sensor into a read-write version of itself.
-    pub fn try_into_read_write(self) -> Result<ReadWriteTemp> {
-        let read_write = ReadWriteTemp {
-            hwmon_path: self.hwmon_path,
-            index: self.index,
-        };
+#[cfg(feature = "writeable")]
+/// Helper trait that sums up all the functionality of a read-write temp sensor.
+pub trait WriteableTempSensor:
+    TempSensor
+    + WriteableSensorBase
+    + WriteableEnable
+    + WriteableMin<Temperature>
+    + WriteableMax<Temperature>
+    + WriteableCrit<Temperature>
+    + WriteableLowCrit<Temperature>
+{
+    /// Converts offset and writes it to this temp's offset subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_offset(&self, offset: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw())
+    }
 
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
+    /// Converts max_hyst and writes it to this temp's max_hyst subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_max_hyst(&self, max_hyst: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::MaxHyst, &max_hyst.to_raw())
+    }
 
-        Ok(read_write)
+    /// Converts min_hyst and writes it to this temp's min_hyst subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_min_hyst(&self, min_hyst: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::MinHyst, &min_hyst.to_raw())
+    }
+
+    /// Converts crit_hyst and writes it to this temp's crit_hyst subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_crit_hyst(&self, crit_hyst: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::CritHyst, &crit_hyst.to_raw())
+    }
+
+    /// Converts emergency and writes it to this temp's emergency subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_emergency(&self, emergency: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Emergency, &emergency.to_raw())
+    }
+
+    /// Converts emergency_hyst and writes it to this temp's emergency_hyst subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_emergency_hyst(&self, emergency_hyst: Temperature) -> Result<()> {
+        self.write_raw(
+            SensorSubFunctionType::EmergencyHyst,
+            &emergency_hyst.to_raw(),
+        )
+    }
+
+    /// Converts lcrit_hyst and writes it to this temp's lcrit_hyst subfunction.
+    /// Returns an error, if this sensor doesn't support the subfunction.
+    fn write_lcrit_hyst(&self, lcrit_hyst: Temperature) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::LowCritHyst, &lcrit_hyst.to_raw())
     }
 }
 
-impl SensorBase for ReadOnlyTemp {
-    fn base(&self) -> &'static str {
-        "temp"
-    }
-
-    fn index(&self) -> u16 {
-        self.index
-    }
-
-    fn hwmon_path(&self) -> &Path {
-        self.hwmon_path.as_path()
-    }
-}
-
-impl Parseable for ReadOnlyTemp {
-    type Parent = ReadOnlyHwmon;
-
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let temp = Self {
-            hwmon_path: parent.path().to_path_buf(),
-            index,
-        };
-
-        inspect_sensor(temp)
-    }
-}
-
-impl TempSensor for ReadOnlyTemp {}
-impl Faulty for ReadOnlyTemp {}
-
-#[cfg(feature = "writable")]
-impl From<ReadWriteTemp> for ReadOnlyTemp {
-    fn from(write_temp: ReadWriteTemp) -> ReadOnlyTemp {
-        write_temp.into_read_only()
-    }
-}
-
-/// Struct that represents a read/write temp sensor.
-#[cfg(feature = "writable")]
-#[derive(Debug, Clone)]
-pub struct ReadWriteTemp {
-    hwmon_path: PathBuf,
-    index: u16,
-}
-
-#[cfg(feature = "writable")]
-impl ReadWriteTemp {
-    /// Converts this sensor into a read-only version of itself.
-    pub fn into_read_only(self) -> ReadOnlyTemp {
-        ReadOnlyTemp {
-            hwmon_path: self.hwmon_path,
-            index: self.index,
-        }
-    }
-}
-
-#[cfg(feature = "writable")]
-impl SensorBase for ReadWriteTemp {
-    fn base(&self) -> &'static str {
-        "temp"
-    }
-
-    fn index(&self) -> u16 {
-        self.index
-    }
-
-    fn hwmon_path(&self) -> &Path {
-        self.hwmon_path.as_path()
-    }
-}
-
-#[cfg(feature = "writable")]
-impl Parseable for ReadWriteTemp {
-    type Parent = ReadWriteHwmon;
-
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let temp = Self {
-            hwmon_path: parent.path().to_path_buf(),
-            index,
-        };
-
-        inspect_sensor(temp)
-    }
-}
-
-#[cfg(feature = "writable")]
-impl TempSensor for ReadWriteTemp {}
-#[cfg(feature = "writable")]
-impl Faulty for ReadWriteTemp {}
-#[cfg(feature = "writable")]
-impl WritableSensorBase for ReadWriteTemp {}
-
-#[cfg(feature = "writable")]
-impl TryFrom<ReadOnlyTemp> for ReadWriteTemp {
-    type Error = Error;
-
-    fn try_from(read_only: ReadOnlyTemp) -> std::result::Result<Self, Self::Error> {
-        read_only.try_into_read_write()
-    }
-}
+#[cfg(feature = "writeable")]
+impl WriteableTempSensor for TempSensorStruct {}

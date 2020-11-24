@@ -27,7 +27,7 @@ use crate::units::Raw;
 use crate::{ParsingError, ParsingResult};
 use error::Result;
 
-#[cfg(feature = "writable")]
+#[cfg(feature = "writeable")]
 use std::{collections::HashMap, fs::write};
 
 use std::{
@@ -90,10 +90,10 @@ pub trait SensorBase {
     }
 }
 
-/// Base trait that all writable sensors must implement.
-#[cfg(feature = "writable")]
-pub trait WritableSensorBase: SensorBase {
-    /// Returns a list of all writable subfunction types supported by this sensor.
+/// Base trait that all writeable sensors must implement.
+#[cfg(feature = "writeable")]
+pub trait WriteableSensorBase: SensorBase {
+    /// Returns a list of all writeable subfunction types supported by this sensor.
     fn supported_write_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::write_list()
             .filter(|&s| {
@@ -125,7 +125,7 @@ pub trait WritableSensorBase: SensorBase {
         self.write_raw(SensorSubFunctionType::ResetHistory, &true.to_raw())
     }
 
-    /// Returns a SensorState struct that represents the state of all writable subfunctions of this sensor.
+    /// Returns a SensorState struct that represents the state of all writeable subfunctions of this sensor.
     fn state(&self) -> Result<SensorState> {
         let mut states = HashMap::new();
         let supported_read_write_functions = self
@@ -176,7 +176,7 @@ pub trait WritableSensorBase: SensorBase {
 }
 
 /// Trait implemented by all sensors except for pwm.
-/// It contains the functionality to use the input and enable subfunctions.
+/// It contains the functionality to read the input subfunctions.
 pub trait Sensor<P: Raw>: SensorBase {
     /// Reads the input subfunction of this sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
@@ -184,24 +184,31 @@ pub trait Sensor<P: Raw>: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::Input)?;
         P::from_raw(&raw).map_err(Error::from)
     }
+}
 
+/// Trait implemented by all sensors except for pwm.
+/// It contains the functionality to read the enable subfunctions.
+pub trait Enable: SensorBase {
     /// Reads whether or not this sensor is enabled.
-    /// Returns an error, if this sensor doesn't support the feature.
+    /// Returns an error, if the sensor doesn't support the feature.
     fn read_enable(&self) -> Result<bool> {
         let raw = self.read_raw(SensorSubFunctionType::Enable)?;
         bool::from_raw(&raw).map_err(Error::from)
     }
+}
 
-    /// Enables or disables this sensor.
-    /// Returns an error if this functionality is not supported by the sensor.
-    #[cfg(feature = "writable")]
-    fn write_enable(&self, enable: bool) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
+/// Trait implemented by all writeable sensors except for pwm.
+#[cfg(feature = "writeable")]
+pub trait WriteableEnable: WriteableSensorBase {
+    /// Sets this sensor's enabled state.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_enable(&self, enable: bool) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
     }
 }
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensorBase + Enable> WriteableEnable for S {}
 
 /// Trait implemented by all sensors that can have a faulty subfunction.
 pub trait Faulty: SensorBase {
@@ -221,17 +228,20 @@ pub trait Min<P: Raw>: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::Min)?;
         P::from_raw(&raw).map_err(Error::from)
     }
+}
 
+/// Trait implemented by all writeable sensors that can have a min subfunction.
+#[cfg(feature = "writeable")]
+pub trait WriteableMin<P: Raw>: WriteableSensorBase {
     /// Writes this sensor's min value.
-    /// Returns an error, if this sensor doesn't support the feature.
-    #[cfg(feature = "writable")]
-    fn write_min(&self, min: P) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_min(&self, min: P) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
     }
 }
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensorBase + Min<P>, P: Raw> WriteableMin<P> for S {}
 
 /// Trait implemented by all sensors that can have a max subfunction.
 pub trait Max<P: Raw>: SensorBase {
@@ -241,17 +251,20 @@ pub trait Max<P: Raw>: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::Max)?;
         P::from_raw(&raw).map_err(Error::from)
     }
+}
 
+/// Trait implemented by all writeable sensors that can have a max subfunction.
+#[cfg(feature = "writeable")]
+pub trait WriteableMax<P: Raw>: WriteableSensorBase {
     /// Writes this sensor's max value.
-    /// Returns an error, if this sensor doesn't support the feature.
-    #[cfg(feature = "writable")]
-    fn write_max(&self, max: P) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_max(&self, max: P) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
     }
 }
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensorBase + Max<P>, P: Raw> WriteableMax<P> for S {}
 
 /// Trait implemented by all sensors that can have an average subfunction.
 pub trait Average<P: Raw>: SensorBase {
@@ -291,17 +304,20 @@ pub trait Crit<P: Raw>: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::Crit)?;
         P::from_raw(&raw).map_err(Error::from)
     }
+}
 
+/// Trait implemented by all writeable sensors that can have a crit subfunction.
+#[cfg(feature = "writeable")]
+pub trait WriteableCrit<P: Raw>: WriteableSensorBase {
     /// Writes this sensor's crit value.
-    /// Returns an error, if this sensor doesn't support the feature.
-    #[cfg(feature = "writable")]
-    fn write_crit(&self, crit: P) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_crit(&self, crit: P) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
     }
 }
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensorBase + Crit<P>, P: Raw> WriteableCrit<P> for S {}
 
 /// Trait implemented by all sensors that can have a lcrit subfunction.
 pub trait LowCrit<P: Raw>: SensorBase {
@@ -311,30 +327,33 @@ pub trait LowCrit<P: Raw>: SensorBase {
         let raw = self.read_raw(SensorSubFunctionType::LowCrit)?;
         P::from_raw(&raw).map_err(Error::from)
     }
+}
 
+/// Trait implemented by all writeable sensors that can have a lcrit subfunction.
+#[cfg(feature = "writeable")]
+pub trait WriteableLowCrit<P: Raw>: WriteableSensorBase {
     /// Writes this sensor's lcrit value.
-    /// Returns an error, if this sensor doesn't support the feature.
-    #[cfg(feature = "writable")]
-    fn write_lcrit(&self, lcrit: P) -> Result<()>
-    where
-        Self: WritableSensorBase,
-    {
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_lcrit(&self, lcrit: P) -> Result<()> {
         self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw())
     }
 }
 
-/// A struct that represents the state of all writable subfunctions of a sensor.
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensorBase + LowCrit<P>, P: Raw> WriteableLowCrit<P> for S {}
+
+/// A struct that represents the state of all writeable subfunctions of a sensor.
 /// It can be used to reset a sensor to a previous state or copy its settings to another sensor.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg(feature = "writable")]
+#[cfg(feature = "writeable")]
 pub struct SensorState {
     states: HashMap<SensorSubFunctionType, String>,
 }
 
-#[cfg(feature = "writable")]
+#[cfg(feature = "writeable")]
 impl SensorState {
     /// Returns a SensorState struct created from the given sensor.
-    pub fn from_sensor(sensor: &impl WritableSensorBase) -> Result<SensorState> {
+    pub fn from_sensor(sensor: &impl WriteableSensorBase) -> Result<SensorState> {
         sensor.state()
     }
 
@@ -373,7 +392,7 @@ fn inspect_sensor<Sensor: SensorBase>(sensor: Sensor) -> ParsingResult<Sensor> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sensors::{ReadOnlyFan, ReadOnlyTemp};
+    use crate::sensors::TempSensorStruct;
     use crate::tests::*;
     use crate::{Hwmons, Parseable};
 
@@ -388,10 +407,10 @@ mod tests {
             .add_temp(1, 40000, "temp1")
             .add_fan(1, 60);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
-        let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
-        let fan = ReadOnlyFan::parse(hwmon, 1).unwrap();
+        let temp = TempSensorStruct::parse(hwmon, 1).unwrap();
+        let fan = FanSensorStruct::parse(hwmon, 1).unwrap();
 
         #[cfg(not(feature = "uom_units"))]
         assert_eq!(40.0, temp.read_input().unwrap().as_degrees_celsius());
@@ -426,9 +445,9 @@ mod tests {
 
         VirtualHwmonBuilder::create(test_path, 0, "system").add_temp(1, 40000, "test_temp1\n");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons: Hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
-        let temp = ReadOnlyTemp::parse(hwmon, 1).unwrap();
+        let temp = TempSensorStruct::parse(hwmon, 1).unwrap();
 
         assert_eq!(temp.name(), String::from("test_temp1"));
 

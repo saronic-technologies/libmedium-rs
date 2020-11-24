@@ -5,53 +5,32 @@ use crate::hwmon::*;
 use crate::units::Voltage;
 use crate::{Parseable, ParsingResult};
 
-#[cfg(feature = "writable")]
-use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
-/// Trait implemented by all voltage sensors.
-pub trait VoltSensor: SensorBase {}
-
-impl<S: VoltSensor> Sensor<Voltage> for S {}
-impl<S: VoltSensor> Min<Voltage> for S {}
-impl<S: VoltSensor> Max<Voltage> for S {}
-impl<S: VoltSensor> LowCrit<Voltage> for S {}
-impl<S: VoltSensor> Crit<Voltage> for S {}
-impl<S: VoltSensor> Average<Voltage> for S {}
-impl<S: VoltSensor> Lowest<Voltage> for S {}
-impl<S: VoltSensor> Highest<Voltage> for S {}
+/// Helper trait that sums up all the functionality of a read-only voltage sensor.
+pub trait VoltageSensor:
+    SensorBase
+    + Enable
+    + Sensor<Voltage>
+    + Min<Voltage>
+    + Max<Voltage>
+    + LowCrit<Voltage>
+    + Crit<Voltage>
+    + Average<Voltage>
+    + Lowest<Voltage>
+    + Highest<Voltage>
+    + std::fmt::Debug
+{
+}
 
 /// Struct that represents a read only voltage sensor.
 #[derive(Debug, Clone)]
-pub struct ReadOnlyVolt {
+pub(crate) struct VoltageSensorStruct {
     hwmon_path: PathBuf,
     index: u16,
 }
 
-#[cfg(feature = "writable")]
-impl ReadOnlyVolt {
-    /// Try converting this sensor into a read-write version of itself.
-    pub fn try_into_read_write(self) -> Result<ReadWriteVolt> {
-        let read_write = ReadWriteVolt {
-            hwmon_path: self.hwmon_path,
-            index: self.index,
-        };
-
-        if read_write.supported_write_sub_functions().is_empty() {
-            return Err(Error::InsufficientRights {
-                path: read_write.hwmon_path.join(format!(
-                    "{}{}",
-                    read_write.base(),
-                    read_write.index(),
-                )),
-            });
-        }
-
-        Ok(read_write)
-    }
-}
-
-impl SensorBase for ReadOnlyVolt {
+impl SensorBase for VoltageSensorStruct {
     fn base(&self) -> &'static str {
         "in"
     }
@@ -65,8 +44,8 @@ impl SensorBase for ReadOnlyVolt {
     }
 }
 
-impl Parseable for ReadOnlyVolt {
-    type Parent = ReadOnlyHwmon;
+impl Parseable for VoltageSensorStruct {
+    type Parent = Hwmon;
 
     fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let volt = Self {
@@ -78,73 +57,32 @@ impl Parseable for ReadOnlyVolt {
     }
 }
 
-impl VoltSensor for ReadOnlyVolt {}
+impl Enable for VoltageSensorStruct {}
+impl Sensor<Voltage> for VoltageSensorStruct {}
+impl Min<Voltage> for VoltageSensorStruct {}
+impl Max<Voltage> for VoltageSensorStruct {}
+impl LowCrit<Voltage> for VoltageSensorStruct {}
+impl Crit<Voltage> for VoltageSensorStruct {}
+impl Average<Voltage> for VoltageSensorStruct {}
+impl Lowest<Voltage> for VoltageSensorStruct {}
+impl Highest<Voltage> for VoltageSensorStruct {}
+impl VoltageSensor for VoltageSensorStruct {}
 
-#[cfg(feature = "writable")]
-impl From<ReadWriteVolt> for ReadOnlyVolt {
-    fn from(write_voltage: ReadWriteVolt) -> ReadOnlyVolt {
-        write_voltage.into_read_only()
-    }
+#[cfg(feature = "writeable")]
+impl WriteableSensorBase for VoltageSensorStruct {}
+
+#[cfg(feature = "writeable")]
+/// Helper trait that sums up all the functionality of a read-write voltage sensor.
+pub trait WriteableVoltageSensor:
+    VoltageSensor
+    + WriteableSensorBase
+    + WriteableEnable
+    + WriteableMin<Voltage>
+    + WriteableMax<Voltage>
+    + WriteableCrit<Voltage>
+    + WriteableLowCrit<Voltage>
+{
 }
 
-/// Struct that represents a read/write voltage sensor.
-#[cfg(feature = "writable")]
-#[derive(Debug, Clone)]
-pub struct ReadWriteVolt {
-    hwmon_path: PathBuf,
-    index: u16,
-}
-
-#[cfg(feature = "writable")]
-impl ReadWriteVolt {
-    /// Converts this sensor into a read-only version of itself.
-    pub fn into_read_only(self) -> ReadOnlyVolt {
-        ReadOnlyVolt {
-            hwmon_path: self.hwmon_path,
-            index: self.index,
-        }
-    }
-}
-
-#[cfg(feature = "writable")]
-impl SensorBase for ReadWriteVolt {
-    fn base(&self) -> &'static str {
-        "in"
-    }
-
-    fn index(&self) -> u16 {
-        self.index
-    }
-
-    fn hwmon_path(&self) -> &Path {
-        self.hwmon_path.as_path()
-    }
-}
-
-#[cfg(feature = "writable")]
-impl Parseable for ReadWriteVolt {
-    type Parent = ReadWriteHwmon;
-
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let volt = Self {
-            hwmon_path: parent.path().to_path_buf(),
-            index,
-        };
-
-        inspect_sensor(volt)
-    }
-}
-
-#[cfg(feature = "writable")]
-impl VoltSensor for ReadWriteVolt {}
-#[cfg(feature = "writable")]
-impl WritableSensorBase for ReadWriteVolt {}
-
-#[cfg(feature = "writable")]
-impl TryFrom<ReadOnlyVolt> for ReadWriteVolt {
-    type Error = Error;
-
-    fn try_from(read_only: ReadOnlyVolt) -> std::result::Result<Self, Self::Error> {
-        read_only.try_into_read_write()
-    }
-}
+#[cfg(feature = "writeable")]
+impl WriteableVoltageSensor for VoltageSensorStruct {}

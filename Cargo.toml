@@ -21,10 +21,10 @@ uom = { version = "0.30", optional = true }
 doctest = false
 
 [features]
-default = ["writable"]
+default = ["writeable"]
 
-# Feature that enables the writable versions of all structs and functions to interact with the system's sensors.
-writable = []
+# Feature that enables the writeable versions of all structs and functions to interact with the system's sensors.
+writeable = []
 
 # Feature that replaces units with those found in `uom`.
 uom_units = ["uom"]

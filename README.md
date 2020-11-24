@@ -8,7 +8,7 @@ A safe rust library to communicate with the sysfs interface of lm-sensors.
 
 Just add this to your `Cargo.toml` file:
 
-```
+```toml
 [dependencies]
 libmedium = "0.4"
 ```
@@ -17,7 +17,7 @@ libmedium = "0.4"
 
 ### Standard features
 
-* `writable`: Standard feature that enables all functions that write to sysfs. This includes setting pwm values or disabling sensors.
+* `writeable`: Standard feature that enables all functions that write to sysfs. This includes setting pwm values and disabling sensors.
 
 ### Non standard features
 
@@ -30,11 +30,11 @@ libmedium = "0.4"
 
 ```rust
 use libmedium::{
-    Hwmon, Hwmons,
+    Hwmons,
     sensors::{Sensor, SensorBase},
 };
 
-let hwmons = Hwmons::parse_read_only().unwrap();
+let hwmons = Hwmons::parse().unwrap();
 for (hwmon_index, hwmon_name, hwmon) in &hwmons {
     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
     for (_, temp_sensor) in hwmon.temps() {
@@ -44,18 +44,18 @@ for (hwmon_index, hwmon_name, hwmon) in &hwmons {
 }
 ```
 
-* Set the pwm value of all your pwm capable fans to full speed (this requires the `writable` feature to not be disabled):
+* Set the pwm value of all your pwm capable fans to full speed (this requires the `writeable` feature to not be disabled):
 
 ```rust
 use libmedium::{
-    Hwmon, Hwmons,
-    sensors::PwmSensor,
+    Hwmons,
+    sensors::WriteablePwmSensor,
     units::{Pwm, PwmEnable},
 };
 
-let hwmons = Hwmons::parse_read_write().unwrap();
+let hwmons = Hwmons::parse().unwrap();
 for (_, _, hwmon) in &hwmons {
-    for (_, pwm) in hwmon.pwms() {
+    for (_, pwm) in hwmon.writeable_pwms() {
         pwm.write_enable(PwmEnable::ManualControl).unwrap();
         pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
     }

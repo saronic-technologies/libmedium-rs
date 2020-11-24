@@ -55,10 +55,9 @@ fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
     Ok(name)
 }
 
-fn init_sensors<S, H>(hwmon: &H, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
+fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
 where
-    S: SensorBase + Parseable<Parent = H>,
-    H: Hwmon,
+    S: SensorBase + Parseable<Parent = Hwmon>,
 {
     let mut sensors = BTreeMap::new();
     for index in start_index.. {
@@ -78,186 +77,257 @@ where
     Ok(sensors)
 }
 
-/// Base trait that all hwmon must implement.
-pub trait Hwmon {
-    /// The type of current sensor this `Hwmon` supports.
-    type Current: CurrSensor;
+/// The read only variant of Hwmon. It contains all sensors found in its directory path.
+#[derive(Debug, Clone)]
+pub struct Hwmon {
+    name: String,
+    path: PathBuf,
+    currents: BTreeMap<u16, CurrentSensorStruct>,
+    energies: BTreeMap<u16, EnergySensorStruct>,
+    fans: BTreeMap<u16, FanSensorStruct>,
+    humidities: BTreeMap<u16, HumiditySensorStruct>,
+    powers: BTreeMap<u16, PowerSensorStruct>,
+    pwms: BTreeMap<u16, PwmSensorStruct>,
+    temps: BTreeMap<u16, TempSensorStruct>,
+    voltages: BTreeMap<u16, VoltageSensorStruct>,
+}
 
-    /// The type of energy sensor this `Hwmon` supports.
-    type Energy: EnergySensor;
-
-    /// The type of fan sensor this `Hwmon` supports.
-    type Fan: FanSensor;
-
-    /// The type of humidity sensor this `Hwmon` supports.
-    type Humidity: HumiditySensor;
-
-    /// The type of power sensor this `Hwmon` supports.
-    type Power: PowerSensor;
-
-    /// The type of pwm sensor this `Hwmon` supports.
-    type Pwm: PwmSensor;
-
-    /// The type of temp sensor this `Hwmon` supports.
-    type Temp: TempSensor;
-
-    /// The type of voltage sensor this `Hwmon` supports.
-    type Voltage: VoltSensor;
-
+impl Hwmon {
     /// Returns the hwmon's name.
-    fn name(&self) -> &str;
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 
     /// Returns the hwmon's path.
-    fn path(&self) -> &Path;
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
 
     /// Returns this hwmon's device path.
     /// This path does not change between reboots.
-    fn device_path(&self) -> PathBuf {
+    pub fn device_path(&self) -> PathBuf {
         // Every hwmon in sysfs has a device link so this should never panic.
         self.path().join("device").canonicalize().unwrap()
     }
 
     /// Returns all current sensors found in this `Hwmon`.
-    fn currents(&self) -> &BTreeMap<u16, Self::Current>;
+    pub fn currents(&self) -> &BTreeMap<u16, impl CurrentSensor + Clone + Send + Sync> {
+        &self.currents
+    }
 
     /// Returns all energy sensors found in this `Hwmon`.
-    fn energies(&self) -> &BTreeMap<u16, Self::Energy>;
+    pub fn energies(&self) -> &BTreeMap<u16, impl EnergySensor + Clone + Send + Sync> {
+        &self.energies
+    }
 
     /// Returns all fan sensors found in this `Hwmon`.
-    fn fans(&self) -> &BTreeMap<u16, Self::Fan>;
+    pub fn fans(&self) -> &BTreeMap<u16, impl FanSensor + Clone + Send + Sync> {
+        &self.fans
+    }
 
     /// Returns all humidity sensors found in this `Hwmon`.
-    fn humidities(&self) -> &BTreeMap<u16, Self::Humidity>;
+    pub fn humidities(&self) -> &BTreeMap<u16, impl HumiditySensor + Clone + Send + Sync> {
+        &self.humidities
+    }
 
     /// Returns all power sensors found in this `Hwmon`.
-    fn powers(&self) -> &BTreeMap<u16, Self::Power>;
+    pub fn powers(&self) -> &BTreeMap<u16, impl PowerSensor + Clone + Send + Sync> {
+        &self.powers
+    }
 
     /// Returns all pwm sensors found in this `Hwmon`.
-    fn pwms(&self) -> &BTreeMap<u16, Self::Pwm>;
+    pub fn pwms(&self) -> &BTreeMap<u16, impl PwmSensor + Clone + Send + Sync> {
+        &self.pwms
+    }
 
     /// Returns all temp sensors found in this `Hwmon`.
-    fn temps(&self) -> &BTreeMap<u16, Self::Temp>;
+    pub fn temps(&self) -> &BTreeMap<u16, impl TempSensor + Clone + Send + Sync> {
+        &self.temps
+    }
 
     /// Returns all voltage sensors found in this `Hwmon`.
-    fn voltages(&self) -> &BTreeMap<u16, Self::Voltage>;
+    pub fn voltages(&self) -> &BTreeMap<u16, impl VoltageSensor + Clone + Send + Sync> {
+        &self.voltages
+    }
 
     /// Returns the current sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn current(&self, index: u16) -> Option<&Self::Current> {
-        self.currents().get(&index)
+    pub fn current(&self, index: u16) -> Option<&(impl CurrentSensor + Clone + Send + Sync)> {
+        self.currents.get(&index)
     }
 
     /// Returns the energy sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn energy(&self, index: u16) -> Option<&Self::Energy> {
-        self.energies().get(&index)
+    pub fn energy(&self, index: u16) -> Option<&(impl EnergySensor + Clone + Send + Sync)> {
+        self.energies.get(&index)
     }
 
     /// Returns the fan sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn fan(&self, index: u16) -> Option<&Self::Fan> {
-        self.fans().get(&index)
+    pub fn fan(&self, index: u16) -> Option<&(impl FanSensor + Clone + Send + Sync)> {
+        self.fans.get(&index)
     }
 
     /// Returns the humidity sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn humidity(&self, index: u16) -> Option<&Self::Humidity> {
-        self.humidities().get(&index)
+    pub fn humidity(&self, index: u16) -> Option<&(impl HumiditySensor + Clone + Send + Sync)> {
+        self.humidities.get(&index)
     }
 
     /// Returns the power sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn power(&self, index: u16) -> Option<&Self::Power> {
-        self.powers().get(&index)
+    pub fn power(&self, index: u16) -> Option<&(impl PowerSensor + Clone + Send + Sync)> {
+        self.powers.get(&index)
     }
 
     /// Returns the pwm sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn pwm(&self, index: u16) -> Option<&Self::Pwm> {
-        self.pwms().get(&index)
+    pub fn pwm(&self, index: u16) -> Option<&(impl PwmSensor + Clone + Send + Sync)> {
+        self.pwms.get(&index)
     }
 
     /// Returns the temp sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn temp(&self, index: u16) -> Option<&Self::Temp> {
-        self.temps().get(&index)
+    pub fn temp(&self, index: u16) -> Option<&(impl TempSensor + Clone + Send + Sync)> {
+        self.temps.get(&index)
     }
 
     /// Returns the voltage sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    fn voltage(&self, index: u16) -> Option<&Self::Voltage> {
-        self.voltages().get(&index)
+    pub fn voltage(&self, index: u16) -> Option<&(impl VoltageSensor + Clone + Send + Sync)> {
+        self.voltages.get(&index)
     }
 }
 
-/// The read only variant of Hwmon. It contains all sensors found in its directory path.
-#[derive(Debug, Clone)]
-pub struct ReadOnlyHwmon {
-    name: String,
-    path: PathBuf,
-    currs: BTreeMap<u16, ReadOnlyCurr>,
-    energies: BTreeMap<u16, ReadOnlyEnergy>,
-    fans: BTreeMap<u16, ReadOnlyFan>,
-    humidities: BTreeMap<u16, ReadOnlyHumidity>,
-    powers: BTreeMap<u16, ReadOnlyPower>,
-    pwms: BTreeMap<u16, ReadOnlyPwm>,
-    temps: BTreeMap<u16, ReadOnlyTemp>,
-    voltages: BTreeMap<u16, ReadOnlyVolt>,
-}
-
-impl Hwmon for ReadOnlyHwmon {
-    type Current = ReadOnlyCurr;
-    type Energy = ReadOnlyEnergy;
-    type Fan = ReadOnlyFan;
-    type Humidity = ReadOnlyHumidity;
-    type Power = ReadOnlyPower;
-    type Pwm = ReadOnlyPwm;
-    type Temp = ReadOnlyTemp;
-    type Voltage = ReadOnlyVolt;
-
-    fn name(&self) -> &str {
-        &self.name
+#[cfg(feature = "writeable")]
+impl Hwmon {
+    /// Returns all writeable current sensors found in this `Hwmon`.
+    pub fn writeable_currents(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableCurrentSensor + Clone + Send + Sync> {
+        &self.currents
     }
 
-    fn path(&self) -> &Path {
-        &self.path.as_path()
-    }
-
-    fn currents(&self) -> &BTreeMap<u16, Self::Current> {
-        &self.currs
-    }
-
-    fn energies(&self) -> &BTreeMap<u16, Self::Energy> {
+    /// Returns all writeable energy sensors found in this `Hwmon`.
+    pub fn writeable_energies(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableEnergySensor + Clone + Send + Sync> {
         &self.energies
     }
 
-    fn fans(&self) -> &BTreeMap<u16, Self::Fan> {
+    /// Returns all writeable fan sensors found in this `Hwmon`.
+    pub fn writeable_fans(&self) -> &BTreeMap<u16, impl WriteableFanSensor + Clone + Send + Sync> {
         &self.fans
     }
 
-    fn humidities(&self) -> &BTreeMap<u16, Self::Humidity> {
+    /// Returns all writeable humidity sensors found in this `Hwmon`.
+    pub fn writeable_humidities(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableHumiditySensor + Clone + Send + Sync> {
         &self.humidities
     }
 
-    fn powers(&self) -> &BTreeMap<u16, Self::Power> {
+    /// Returns all writeable power sensors found in this `Hwmon`.
+    pub fn writeable_powers(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteablePowerSensor + Clone + Send + Sync> {
         &self.powers
     }
 
-    fn pwms(&self) -> &BTreeMap<u16, Self::Pwm> {
+    /// Returns all writeable pwm sensors found in this `Hwmon`.
+    pub fn writeable_pwms(&self) -> &BTreeMap<u16, impl WriteablePwmSensor + Clone + Send + Sync> {
         &self.pwms
     }
 
-    fn temps(&self) -> &BTreeMap<u16, Self::Temp> {
+    /// Returns all writeable temp sensors found in this `Hwmon`.
+    pub fn writeable_temps(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableTempSensor + Clone + Send + Sync> {
         &self.temps
     }
 
-    fn voltages(&self) -> &BTreeMap<u16, Self::Voltage> {
+    /// Returns all writeable voltage sensors found in this `Hwmon`.
+    pub fn writeable_voltages(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableVoltageSensor + Clone + Send + Sync> {
         &self.voltages
+    }
+
+    /// Returns the writeable current sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_current(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableCurrentSensor + Clone + Send + Sync)> {
+        self.currents.get(&index)
+    }
+
+    /// Returns the writeable energy sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_energy(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableEnergySensor + Clone + Send + Sync)> {
+        self.energies.get(&index)
+    }
+
+    /// Returns the writeable fan sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_fan(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableFanSensor + Clone + Send + Sync)> {
+        self.fans.get(&index)
+    }
+
+    /// Returns the writeable humidity sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_humidity(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableHumiditySensor + Clone + Send + Sync)> {
+        self.humidities.get(&index)
+    }
+
+    /// Returns the writeable power sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_power(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteablePowerSensor + Clone + Send + Sync)> {
+        self.powers.get(&index)
+    }
+
+    /// Returns the writeable pwm sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_pwm(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteablePwmSensor + Clone + Send + Sync)> {
+        self.pwms.get(&index)
+    }
+
+    /// Returns the writeable temp sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_temp(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableTempSensor + Clone + Send + Sync)> {
+        self.temps.get(&index)
+    }
+
+    /// Returns the writeable voltage sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_voltage(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableVoltageSensor + Clone + Send + Sync)> {
+        self.voltages.get(&index)
     }
 }
 
-impl Parseable for ReadOnlyHwmon {
-    type Parent = Hwmons<Self>;
+impl Parseable for Hwmon {
+    type Parent = Hwmons;
 
     fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let path = parent.path().join(format!("hwmon{}", index));
@@ -267,7 +337,7 @@ impl Parseable for ReadOnlyHwmon {
         let mut hwmon = Self {
             name: get_name(&path)?,
             path,
-            currs: BTreeMap::new(),
+            currents: BTreeMap::new(),
             energies: BTreeMap::new(),
             fans: BTreeMap::new(),
             humidities: BTreeMap::new(),
@@ -277,160 +347,7 @@ impl Parseable for ReadOnlyHwmon {
             voltages: BTreeMap::new(),
         };
 
-        hwmon.currs = init_sensors(&hwmon, 1)?;
-        hwmon.energies = init_sensors(&hwmon, 1)?;
-        hwmon.fans = init_sensors(&hwmon, 1)?;
-        hwmon.humidities = init_sensors(&hwmon, 1)?;
-        hwmon.powers = init_sensors(&hwmon, 1)?;
-        hwmon.pwms = init_sensors(&hwmon, 1)?;
-        hwmon.temps = init_sensors(&hwmon, 1)?;
-        hwmon.voltages = init_sensors(&hwmon, 0)?;
-
-        Ok(hwmon)
-    }
-}
-
-#[cfg(feature = "writable")]
-impl From<ReadWriteHwmon> for ReadOnlyHwmon {
-    fn from(read_write: ReadWriteHwmon) -> Self {
-        ReadOnlyHwmon {
-            name: read_write.name,
-            path: read_write.path,
-            currs: read_write
-                .currs
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            energies: read_write
-                .energies
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            fans: read_write
-                .fans
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            humidities: read_write
-                .humidities
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            powers: read_write
-                .powers
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            pwms: read_write
-                .pwms
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            temps: read_write
-                .temps
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-            voltages: read_write
-                .voltages
-                .into_iter()
-                .map(|(i, s)| (i, s.into()))
-                .collect(),
-        }
-    }
-}
-
-/// The read/write variant of Hwmon. It contains all sensors found in its directory path.
-#[cfg(feature = "writable")]
-#[derive(Debug, Clone)]
-pub struct ReadWriteHwmon {
-    name: String,
-    path: PathBuf,
-    currs: BTreeMap<u16, ReadWriteCurr>,
-    energies: BTreeMap<u16, ReadWriteEnergy>,
-    fans: BTreeMap<u16, ReadWriteFan>,
-    humidities: BTreeMap<u16, ReadWriteHumidity>,
-    powers: BTreeMap<u16, ReadWritePower>,
-    pwms: BTreeMap<u16, ReadWritePwm>,
-    temps: BTreeMap<u16, ReadWriteTemp>,
-    voltages: BTreeMap<u16, ReadWriteVolt>,
-}
-
-#[cfg(feature = "writable")]
-impl Hwmon for ReadWriteHwmon {
-    type Current = ReadWriteCurr;
-    type Energy = ReadWriteEnergy;
-    type Fan = ReadWriteFan;
-    type Humidity = ReadWriteHumidity;
-    type Power = ReadWritePower;
-    type Pwm = ReadWritePwm;
-    type Temp = ReadWriteTemp;
-    type Voltage = ReadWriteVolt;
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn path(&self) -> &Path {
-        &self.path.as_path()
-    }
-
-    fn currents(&self) -> &BTreeMap<u16, Self::Current> {
-        &self.currs
-    }
-
-    fn energies(&self) -> &BTreeMap<u16, Self::Energy> {
-        &self.energies
-    }
-
-    fn fans(&self) -> &BTreeMap<u16, Self::Fan> {
-        &self.fans
-    }
-
-    fn humidities(&self) -> &BTreeMap<u16, Self::Humidity> {
-        &self.humidities
-    }
-
-    fn powers(&self) -> &BTreeMap<u16, Self::Power> {
-        &self.powers
-    }
-
-    fn pwms(&self) -> &BTreeMap<u16, Self::Pwm> {
-        &self.pwms
-    }
-
-    fn temps(&self) -> &BTreeMap<u16, Self::Temp> {
-        &self.temps
-    }
-
-    fn voltages(&self) -> &BTreeMap<u16, Self::Voltage> {
-        &self.voltages
-    }
-}
-
-#[cfg(feature = "writable")]
-impl Parseable for ReadWriteHwmon {
-    type Parent = Hwmons<Self>;
-
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let path = parent.path().join(format!("hwmon{}", index));
-
-        check_path(&path)?;
-
-        let mut hwmon = Self {
-            name: get_name(&path)?,
-            path,
-            currs: BTreeMap::new(),
-            energies: BTreeMap::new(),
-            fans: BTreeMap::new(),
-            humidities: BTreeMap::new(),
-            powers: BTreeMap::new(),
-            pwms: BTreeMap::new(),
-            temps: BTreeMap::new(),
-            voltages: BTreeMap::new(),
-        };
-
-        hwmon.currs = init_sensors(&hwmon, 1)?;
+        hwmon.currents = init_sensors(&hwmon, 1)?;
         hwmon.energies = init_sensors(&hwmon, 1)?;
         hwmon.fans = init_sensors(&hwmon, 1)?;
         hwmon.humidities = init_sensors(&hwmon, 1)?;
@@ -445,7 +362,6 @@ impl Parseable for ReadWriteHwmon {
 
 #[cfg(test)]
 pub mod tests {
-    use super::*;
     use crate::tests::*;
     use crate::*;
 
@@ -458,7 +374,7 @@ pub mod tests {
 
         VirtualHwmonBuilder::create(test_path, 0, "system");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons: Hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
 
         assert_eq!("system", hwmon.name());
@@ -475,7 +391,7 @@ pub mod tests {
             .add_temp(1, 40000, "temp1")
             .add_temp(2, 60000, "temp2");
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons: Hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let temps = hwmon.temps();
 
@@ -495,7 +411,7 @@ pub mod tests {
             .add_pwm(1, true, true)
             .add_pwm(2, true, true);
 
-        let hwmons: Hwmons<ReadOnlyHwmon> = Hwmons::parse(test_path).unwrap();
+        let hwmons: Hwmons = Hwmons::parse_path(test_path).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let pwms = hwmon.pwms();
 
