@@ -66,7 +66,7 @@ use std::path::{Path, PathBuf};
 const HWMON_PATH: &str = "/sys/class/hwmon/";
 
 /// This crate's central struct.
-/// It stores all parsed hwmons which you can query either by name or by index.
+/// It stores all parsed [`Hwmon`](crate::hwmon::Hwmon)s which you can query either by name, device path or index.
 #[derive(Debug, Clone)]
 pub struct Hwmons {
     path: PathBuf,
