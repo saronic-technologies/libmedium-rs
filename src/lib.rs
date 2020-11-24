@@ -55,10 +55,10 @@ pub mod units;
 
 mod parsing;
 
-pub use hwmon::Hwmon;
 pub use parsing::Error as ParsingError;
 
-pub(crate) use parsing::{Parseable, Result as ParsingResult};
+use hwmon::Hwmon;
+use parsing::{Parseable, Result as ParsingResult};
 
 use std::iter::FusedIterator;
 use std::path::{Path, PathBuf};
