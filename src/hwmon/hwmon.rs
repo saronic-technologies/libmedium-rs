@@ -35,28 +35,25 @@ fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
 }
 
 fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
-    let path = path.as_ref();
+    use std::io::ErrorKind as IoErrorKind;
 
-    let name_path = path.join("name");
-    let name = match read_to_string(&name_path) {
-        Ok(name) => name.trim().to_string(),
+    let name_path = path.as_ref().join("name");
+
+    match read_to_string(&name_path) {
+        Ok(name) => Ok(name.trim().to_string()),
         Err(e) => match e.kind() {
-            std::io::ErrorKind::NotFound => {
-                return Err(ParsingError::PathDoesNotExist { path: name_path })
+            IoErrorKind::NotFound => Err(ParsingError::PathDoesNotExist { path: name_path }),
+            IoErrorKind::PermissionDenied => {
+                Err(ParsingError::InsufficientRights { path: name_path })
             }
-            std::io::ErrorKind::PermissionDenied => {
-                return Err(ParsingError::InsufficientRights { path: name_path })
-            }
-            _ => return Err(ParsingError::Other { source: e }),
+            _ => Err(ParsingError::Other { source: e }),
         },
-    };
-
-    Ok(name)
+    }
 }
 
 fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
 where
-    S: SensorBase + Parseable<Parent = Hwmon>,
+    S: Parseable<Parent = Hwmon>,
 {
     let mut sensors = BTreeMap::new();
     for index in start_index.. {
