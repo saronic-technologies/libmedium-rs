@@ -56,7 +56,7 @@ pub mod units;
 mod parsing;
 
 /// Convenience function for [`hwmon::Hwmons::parse()`](crate::hwmon::Hwmons::parse())
-pub fn parse_hwmons() -> parsing::Result<hwmon::Hwmons> {
+pub fn parse_hwmons() -> Result<hwmon::Hwmons, hwmon::ParsingError> {
     hwmon::Hwmons::parse()
 }
 

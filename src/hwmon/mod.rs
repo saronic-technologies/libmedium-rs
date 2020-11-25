@@ -6,6 +6,8 @@ mod hwmons;
 pub use hwmon::Hwmon;
 pub use hwmons::Hwmons;
 
+pub use crate::parsing::Error as ParsingError;
+
 #[cfg(test)]
 pub mod tests {
     use crate::hwmon::Hwmons;
