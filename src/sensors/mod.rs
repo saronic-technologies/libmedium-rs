@@ -31,7 +31,6 @@ use error::Result;
 use std::{collections::HashMap, fs::write};
 
 use std::{
-    fmt::Display,
     fs::read_to_string,
     path::{Path, PathBuf},
     time::Duration,
@@ -41,7 +40,12 @@ use std::{
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.
 pub trait SensorBase {
     /// Type used by the sensor for measurements.
-    type Value: Raw + Display;
+    #[cfg(feature = "uom_units")]
+    type Value: Raw;
+
+    /// Type used by the sensor for measurements.
+    #[cfg(not(feature = "uom_units"))]
+    type Value: Raw + std::fmt::Display;
 
     /// Returns this sensor's base like "temp" or "fan".
     fn base(&self) -> &'static str;
