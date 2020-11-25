@@ -101,7 +101,7 @@ pub(crate) struct PowerSensorStruct {
     index: u16,
 }
 
-impl SensorBase for PowerSensorStruct {
+impl Sensor for PowerSensorStruct {
     type Value = Power;
 
     fn base(&self) -> &'static str {
@@ -140,12 +140,12 @@ impl Lowest for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for PowerSensorStruct {}
+impl WriteableSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write power sensor.
 pub trait WriteablePowerSensor:
-    PowerSensor + WriteableSensorBase + WriteableEnable + WriteableMax + WriteableCrit
+    PowerSensor + WriteableSensor + WriteableEnable + WriteableMax + WriteableCrit
 {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

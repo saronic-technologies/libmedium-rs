@@ -8,7 +8,7 @@ use crate::units::Ratio;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only humidity sensor.
-pub trait HumiditySensor: SensorBase + Enable + Input + std::fmt::Debug {}
+pub trait HumiditySensor: Sensor + Enable + Input + std::fmt::Debug {}
 
 /// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ pub(crate) struct HumiditySensorStruct {
     index: u16,
 }
 
-impl SensorBase for HumiditySensorStruct {
+impl Sensor for HumiditySensorStruct {
     type Value = Ratio;
 
     fn base(&self) -> &'static str {
@@ -51,11 +51,11 @@ impl Input for HumiditySensorStruct {}
 impl HumiditySensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for HumiditySensorStruct {}
+impl WriteableSensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write humidity sensor.
-pub trait WriteableHumiditySensor: HumiditySensor + WriteableSensorBase + WriteableEnable {}
+pub trait WriteableHumiditySensor: HumiditySensor + WriteableSensor + WriteableEnable {}
 
 #[cfg(feature = "writeable")]
 impl WriteableHumiditySensor for HumiditySensorStruct {}

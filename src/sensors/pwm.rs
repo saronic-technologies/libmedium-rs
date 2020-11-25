@@ -7,7 +7,7 @@ use crate::units::{Frequency, Pwm, PwmEnable, PwmMode, Raw};
 use std::path::Path;
 
 /// Helper trait that sums up all functionality of a read-only pwm sensor.
-pub trait PwmSensor: SensorBase + std::fmt::Debug {
+pub trait PwmSensor: Sensor + std::fmt::Debug {
     /// Reads the pwm subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_pwm(&self) -> Result<Pwm> {
@@ -44,7 +44,7 @@ pub(crate) struct PwmSensorStruct {
     index: u16,
 }
 
-impl SensorBase for PwmSensorStruct {
+impl Sensor for PwmSensorStruct {
     type Value = Pwm;
 
     fn base(&self) -> &'static str {
@@ -76,11 +76,11 @@ impl Parseable for PwmSensorStruct {
 impl PwmSensor for PwmSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for PwmSensorStruct {}
+impl WriteableSensor for PwmSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write pwm sensor.
-pub trait WriteablePwmSensor: PwmSensor + WriteableSensorBase {
+pub trait WriteablePwmSensor: PwmSensor + WriteableSensor {
     /// Converts pwm and writes it to this pwm's pwm subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_pwm(&self, pwm: Pwm) -> Result<()> {

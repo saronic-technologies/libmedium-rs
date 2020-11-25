@@ -33,7 +33,7 @@ pub(crate) struct FanSensorStruct {
     index: u16,
 }
 
-impl SensorBase for FanSensorStruct {
+impl Sensor for FanSensorStruct {
     type Value = AngularVelocity;
 
     fn base(&self) -> &'static str {
@@ -82,12 +82,12 @@ impl Faulty for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for FanSensorStruct {}
+impl WriteableSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write fan sensor.
 pub trait WriteableFanSensor:
-    FanSensor + WriteableSensorBase + WriteableEnable + WriteableMin + WriteableMax
+    FanSensor + WriteableSensor + WriteableEnable + WriteableMin + WriteableMax
 {
     /// Converts target and writes it to this fan's target subfunction.
     ///

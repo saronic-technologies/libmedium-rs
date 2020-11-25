@@ -38,7 +38,7 @@ use std::{
 
 /// Base trait that all sensors must implement.
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.
-pub trait SensorBase {
+pub trait Sensor {
     /// Type used by the sensor for measurements.
     #[cfg(feature = "uom_units")]
     type Value: Raw;
@@ -100,7 +100,7 @@ pub trait SensorBase {
 
 /// Base trait that all writeable sensors must implement.
 #[cfg(feature = "writeable")]
-pub trait WriteableSensorBase: SensorBase {
+pub trait WriteableSensor: Sensor {
     /// Returns a list of all writeable subfunction types supported by this sensor.
     fn supported_write_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::write_list()
@@ -185,7 +185,7 @@ pub trait WriteableSensorBase: SensorBase {
 
 /// Trait implemented by all sensors except for pwm.
 /// It contains the functionality to read the input subfunctions.
-pub trait Input: SensorBase {
+pub trait Input: Sensor {
     /// Reads the input subfunction of this sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
     fn read_input(&self) -> Result<Self::Value> {
@@ -196,7 +196,7 @@ pub trait Input: SensorBase {
 
 /// Trait implemented by all sensors except for pwm.
 /// It contains the functionality to read the enable subfunctions.
-pub trait Enable: SensorBase {
+pub trait Enable: Sensor {
     /// Reads whether or not this sensor is enabled.
     /// Returns an error, if the sensor doesn't support the feature.
     fn read_enable(&self) -> Result<bool> {
@@ -207,7 +207,7 @@ pub trait Enable: SensorBase {
 
 /// Trait implemented by all writeable sensors except for pwm.
 #[cfg(feature = "writeable")]
-pub trait WriteableEnable: WriteableSensorBase {
+pub trait WriteableEnable: WriteableSensor {
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_enable(&self, enable: bool) -> Result<()> {
@@ -216,10 +216,10 @@ pub trait WriteableEnable: WriteableSensorBase {
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Enable> WriteableEnable for S {}
+impl<S: WriteableSensor + Enable> WriteableEnable for S {}
 
 /// Trait implemented by all sensors that can have a faulty subfunction.
-pub trait Faulty: SensorBase {
+pub trait Faulty: Sensor {
     /// Reads whether this sensor is faulty or not.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_faulty(&self) -> Result<bool> {
@@ -229,7 +229,7 @@ pub trait Faulty: SensorBase {
 }
 
 /// Trait implemented by all sensors that can have a min subfunction.
-pub trait Min: SensorBase {
+pub trait Min: Sensor {
     /// Reads this sensor's min value.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_min(&self) -> Result<Self::Value> {
@@ -240,7 +240,7 @@ pub trait Min: SensorBase {
 
 /// Trait implemented by all writeable sensors that can have a min subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableMin: WriteableSensorBase {
+pub trait WriteableMin: WriteableSensor {
     /// Writes this sensor's min value.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_min(&self, min: Self::Value) -> Result<()> {
@@ -249,10 +249,10 @@ pub trait WriteableMin: WriteableSensorBase {
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Min> WriteableMin for S {}
+impl<S: WriteableSensor + Min> WriteableMin for S {}
 
 /// Trait implemented by all sensors that can have a max subfunction.
-pub trait Max: SensorBase {
+pub trait Max: Sensor {
     /// Reads this sensor's max value.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_max(&self) -> Result<Self::Value> {
@@ -263,7 +263,7 @@ pub trait Max: SensorBase {
 
 /// Trait implemented by all writeable sensors that can have a max subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableMax: WriteableSensorBase {
+pub trait WriteableMax: WriteableSensor {
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_max(&self, max: Self::Value) -> Result<()> {
@@ -272,10 +272,10 @@ pub trait WriteableMax: WriteableSensorBase {
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Max> WriteableMax for S {}
+impl<S: WriteableSensor + Max> WriteableMax for S {}
 
 /// Trait implemented by all sensors that can have an average subfunction.
-pub trait Average: SensorBase {
+pub trait Average: Sensor {
     /// Reads this sensor's average value.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_average(&self) -> Result<Self::Value> {
@@ -285,7 +285,7 @@ pub trait Average: SensorBase {
 }
 
 /// Trait implemented by all sensors that can have a lowest subfunction.
-pub trait Lowest: SensorBase {
+pub trait Lowest: Sensor {
     /// Reads this sensor's historically lowest input.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_lowest(&self) -> Result<Self::Value> {
@@ -295,7 +295,7 @@ pub trait Lowest: SensorBase {
 }
 
 /// Trait implemented by all sensors that can have a highest subfunction.
-pub trait Highest: SensorBase {
+pub trait Highest: Sensor {
     /// Reads this sensor's historically highest input.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_highest(&self) -> Result<Self::Value> {
@@ -305,7 +305,7 @@ pub trait Highest: SensorBase {
 }
 
 /// Trait implemented by all sensors that can have a crit subfunction.
-pub trait Crit: SensorBase {
+pub trait Crit: Sensor {
     /// Reads this sensor's crit value.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_crit(&self) -> Result<Self::Value> {
@@ -316,7 +316,7 @@ pub trait Crit: SensorBase {
 
 /// Trait implemented by all writeable sensors that can have a crit subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableCrit: WriteableSensorBase {
+pub trait WriteableCrit: WriteableSensor {
     /// Writes this sensor's crit value.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_crit(&self, crit: Self::Value) -> Result<()> {
@@ -325,10 +325,10 @@ pub trait WriteableCrit: WriteableSensorBase {
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + Crit> WriteableCrit for S {}
+impl<S: WriteableSensor + Crit> WriteableCrit for S {}
 
 /// Trait implemented by all sensors that can have a lcrit subfunction.
-pub trait LowCrit: SensorBase {
+pub trait LowCrit: Sensor {
     /// Reads this sensor's lcrit value.
     /// Returns an error, if this sensor doesn't support the feature.
     fn read_lcrit(&self) -> Result<Self::Value> {
@@ -339,7 +339,7 @@ pub trait LowCrit: SensorBase {
 
 /// Trait implemented by all writeable sensors that can have a lcrit subfunction.
 #[cfg(feature = "writeable")]
-pub trait WriteableLowCrit: WriteableSensorBase {
+pub trait WriteableLowCrit: WriteableSensor {
     /// Writes this sensor's lcrit value.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_lcrit(&self, lcrit: Self::Value) -> Result<()> {
@@ -348,7 +348,7 @@ pub trait WriteableLowCrit: WriteableSensorBase {
 }
 
 #[cfg(feature = "writeable")]
-impl<S: WriteableSensorBase + LowCrit> WriteableLowCrit for S {}
+impl<S: WriteableSensor + LowCrit> WriteableLowCrit for S {}
 
 /// A struct that represents the state of all writeable subfunctions of a sensor.
 /// It can be used to reset a sensor to a previous state or copy its settings to another sensor.
@@ -361,7 +361,7 @@ pub struct SensorState {
 #[cfg(feature = "writeable")]
 impl SensorState {
     /// Returns a SensorState struct created from the given sensor.
-    pub fn from_sensor(sensor: &impl WriteableSensorBase) -> Result<SensorState> {
+    pub fn from_sensor(sensor: &impl WriteableSensor) -> Result<SensorState> {
         sensor.state()
     }
 
@@ -371,7 +371,7 @@ impl SensorState {
     }
 }
 
-fn inspect_sensor<Sensor: SensorBase>(sensor: Sensor) -> ParsingResult<Sensor> {
+fn inspect_sensor<S: Sensor>(sensor: S) -> ParsingResult<S> {
     let mut count = 0;
 
     for sub in SensorSubFunctionType::read_list() {

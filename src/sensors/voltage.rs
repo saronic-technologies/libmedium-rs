@@ -9,17 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only voltage sensor.
 pub trait VoltageSensor:
-    SensorBase
-    + Enable
-    + Input
-    + Min
-    + Max
-    + LowCrit
-    + Crit
-    + Average
-    + Lowest
-    + Highest
-    + std::fmt::Debug
+    Sensor + Enable + Input + Min + Max + LowCrit + Crit + Average + Lowest + Highest + std::fmt::Debug
 {
 }
 
@@ -30,7 +20,7 @@ pub(crate) struct VoltageSensorStruct {
     index: u16,
 }
 
-impl SensorBase for VoltageSensorStruct {
+impl Sensor for VoltageSensorStruct {
     type Value = Voltage;
 
     fn base(&self) -> &'static str {
@@ -71,13 +61,13 @@ impl Highest for VoltageSensorStruct {}
 impl VoltageSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for VoltageSensorStruct {}
+impl WriteableSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write voltage sensor.
 pub trait WriteableVoltageSensor:
     VoltageSensor
-    + WriteableSensorBase
+    + WriteableSensor
     + WriteableEnable
     + WriteableMin
     + WriteableMax

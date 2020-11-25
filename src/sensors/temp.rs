@@ -75,7 +75,7 @@ pub(crate) struct TempSensorStruct {
     index: u16,
 }
 
-impl SensorBase for TempSensorStruct {
+impl Sensor for TempSensorStruct {
     type Value = Temperature;
 
     fn base(&self) -> &'static str {
@@ -126,13 +126,13 @@ impl TempSensor for TempSensorStruct {}
 impl Faulty for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for TempSensorStruct {}
+impl WriteableSensor for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write temp sensor.
 pub trait WriteableTempSensor:
     TempSensor
-    + WriteableSensorBase
+    + WriteableSensor
     + WriteableEnable
     + WriteableMin
     + WriteableMax

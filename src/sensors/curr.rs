@@ -10,17 +10,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only current sensor.
 pub trait CurrentSensor:
-    SensorBase
-    + Enable
-    + Input
-    + Min
-    + Max
-    + LowCrit
-    + Crit
-    + Average
-    + Lowest
-    + Highest
-    + std::fmt::Debug
+    Sensor + Enable + Input + Min + Max + LowCrit + Crit + Average + Lowest + Highest + std::fmt::Debug
 {
 }
 
@@ -30,7 +20,7 @@ pub(crate) struct CurrentSensorStruct {
     index: u16,
 }
 
-impl SensorBase for CurrentSensorStruct {
+impl Sensor for CurrentSensorStruct {
     type Value = Current;
 
     fn base(&self) -> &'static str {
@@ -71,13 +61,13 @@ impl Highest for CurrentSensorStruct {}
 impl CurrentSensor for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensorBase for CurrentSensorStruct {}
+impl WriteableSensor for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write current sensor.
 pub trait WriteableCurrentSensor:
     CurrentSensor
-    + WriteableSensorBase
+    + WriteableSensor
     + WriteableEnable
     + WriteableMin
     + WriteableMax
