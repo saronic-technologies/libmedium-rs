@@ -2,12 +2,12 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{Raw, TempType, Temperature};
-use crate::{Parseable, ParsingResult};
 
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all the functionality of a read-only temp sensor.
+/// Helper trait that sums up all functionality of a read-only temp sensor.
 pub trait TempSensor:
     Enable + Sensor + Min + Max + Crit + LowCrit + Faulty + std::fmt::Debug
 {
@@ -129,7 +129,7 @@ impl Faulty for TempSensorStruct {}
 impl WriteableSensorBase for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write temp sensor.
+/// Helper trait that sums up all functionality of a read-write temp sensor.
 pub trait WriteableTempSensor:
     TempSensor
     + WriteableSensorBase

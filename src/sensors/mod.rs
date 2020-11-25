@@ -23,8 +23,8 @@ pub use temp::*;
 pub use voltage::*;
 
 use crate::hwmon::*;
+use crate::parsing::{Error as ParsingError, Result as ParsingResult};
 use crate::units::Raw;
-use crate::{ParsingError, ParsingResult};
 use error::Result;
 
 #[cfg(feature = "writeable")]
@@ -396,9 +396,10 @@ fn inspect_sensor<Sensor: SensorBase>(sensor: Sensor) -> ParsingResult<Sensor> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hwmon::Hwmons;
+    use crate::parsing::Parseable;
     use crate::sensors::TempSensorStruct;
     use crate::tests::*;
-    use crate::{Hwmons, Parseable};
 
     use std::fs::remove_dir_all;
     use std::path::Path;

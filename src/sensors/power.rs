@@ -2,10 +2,10 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{Power, Ratio, Raw};
-use crate::{Parseable, ParsingResult};
 
-/// Helper trait that sums up all the functionality of a read-only power sensor.
+/// Helper trait that sums up all functionality of a read-only power sensor.
 pub trait PowerSensor:
     Enable + Sensor + Max + Crit + Average + Highest + Lowest + std::fmt::Debug
 {
@@ -143,7 +143,7 @@ impl PowerSensor for PowerSensorStruct {}
 impl WriteableSensorBase for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write power sensor.
+/// Helper trait that sums up all functionality of a read-write power sensor.
 pub trait WriteablePowerSensor:
     PowerSensor + WriteableSensorBase + WriteableEnable + WriteableMax + WriteableCrit
 {

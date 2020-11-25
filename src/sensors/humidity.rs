@@ -2,12 +2,12 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::Ratio;
-use crate::{Parseable, ParsingResult};
 
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all the functionality of a read-only fan sensor.
+/// Helper trait that sums up all functionality of a read-only humidity sensor.
 pub trait HumiditySensor: SensorBase + Enable + Sensor + std::fmt::Debug {}
 
 /// Struct that represents a read only humidity sensor.
@@ -54,7 +54,7 @@ impl HumiditySensor for HumiditySensorStruct {}
 impl WriteableSensorBase for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write humidity sensor.
+/// Helper trait that sums up all functionality of a read-write humidity sensor.
 pub trait WriteableHumiditySensor: HumiditySensor + WriteableSensorBase + WriteableEnable {}
 
 #[cfg(feature = "writeable")]

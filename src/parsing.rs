@@ -9,7 +9,7 @@ pub(super) type Result<T> = std::result::Result<T, Error>;
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum Error {
-    /// You have insufficient rights. Try using the read only version of the parse_hwmons* functions.
+    /// You have insufficient rights.
     InsufficientRights { path: PathBuf },
 
     /// The path you are trying to parse is not valid.

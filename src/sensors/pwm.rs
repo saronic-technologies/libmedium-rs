@@ -1,12 +1,12 @@
 //! Module containing the pwm sensors and their related functionality.
 
 use super::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{Frequency, Pwm, PwmEnable, PwmMode, Raw};
-use crate::{Parseable, ParsingResult};
 
 use std::path::Path;
 
-/// Trait that implements functionality unique to pwm sensors.
+/// Helper trait that sums up all functionality of a read-only pwm sensor.
 pub trait PwmSensor: SensorBase + std::fmt::Debug {
     /// Reads the pwm subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
@@ -79,7 +79,7 @@ impl PwmSensor for PwmSensorStruct {}
 impl WriteableSensorBase for PwmSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write fan sensor.
+/// Helper trait that sums up all functionality of a read-write pwm sensor.
 pub trait WriteablePwmSensor: PwmSensor + WriteableSensorBase {
     /// Converts pwm and writes it to this pwm's pwm subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.

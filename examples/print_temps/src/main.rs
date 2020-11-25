@@ -1,10 +1,10 @@
 use libmedium::{
+    parse_hwmons,
     sensors::{Sensor, SensorBase},
-    Hwmons,
 };
 
 fn main() {
-    let hwmons = Hwmons::parse().unwrap();
+    let hwmons = parse_hwmons().unwrap();
     for (hwmon_index, hwmon_name, hwmon) in &hwmons {
         println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
         for (_, temp_sensor) in hwmon.temps() {

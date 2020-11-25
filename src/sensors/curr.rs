@@ -2,13 +2,13 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::Current;
-use crate::{Parseable, ParsingResult};
 
 #[cfg(feature = "writeable")]
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all the functionality of a read-only current sensor.
+/// Helper trait that sums up all functionality of a read-only current sensor.
 pub trait CurrentSensor:
     SensorBase
     + Enable
@@ -74,7 +74,7 @@ impl CurrentSensor for CurrentSensorStruct {}
 impl WriteableSensorBase for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write current sensor.
+/// Helper trait that sums up all functionality of a read-write current sensor.
 pub trait WriteableCurrentSensor:
     CurrentSensor
     + WriteableSensorBase

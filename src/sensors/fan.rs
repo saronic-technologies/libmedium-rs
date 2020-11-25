@@ -2,12 +2,12 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{AngularVelocity, FanDivisor, Raw};
-use crate::{Parseable, ParsingResult};
 
 use std::path::{Path, PathBuf};
 
-/// Trait that sums up all the functionality of a read-only fan sensor.
+/// Helper trait that sums up all functionality of a read-only fan sensor.
 pub trait FanSensor: Enable + Sensor + Min + Max + Faulty + std::fmt::Debug {
     /// Reads the target_revs subfunction of this fan sensor.
     ///
@@ -85,7 +85,7 @@ impl FanSensor for FanSensorStruct {}
 impl WriteableSensorBase for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write fan sensor.
+/// Helper trait that sums up all functionality of a read-write fan sensor.
 pub trait WriteableFanSensor:
     FanSensor + WriteableSensorBase + WriteableEnable + WriteableMin + WriteableMax
 {

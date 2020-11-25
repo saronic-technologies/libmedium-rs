@@ -2,12 +2,12 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::Voltage;
-use crate::{Parseable, ParsingResult};
 
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all the functionality of a read-only voltage sensor.
+/// Helper trait that sums up all functionality of a read-only voltage sensor.
 pub trait VoltageSensor:
     SensorBase
     + Enable
@@ -74,7 +74,7 @@ impl VoltageSensor for VoltageSensorStruct {}
 impl WriteableSensorBase for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write voltage sensor.
+/// Helper trait that sums up all functionality of a read-write voltage sensor.
 pub trait WriteableVoltageSensor:
     VoltageSensor
     + WriteableSensorBase

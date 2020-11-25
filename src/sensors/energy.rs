@@ -2,12 +2,12 @@
 
 use super::*;
 use crate::hwmon::*;
+use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::Energy;
-use crate::{Parseable, ParsingResult};
 
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all the functionality of a read-only energy sensor.
+/// Helper trait that sums up all functionality of a read-only energy sensor.
 pub trait EnergySensor: SensorBase + Enable + Sensor + std::fmt::Debug {}
 
 #[derive(Debug, Clone)]
@@ -53,7 +53,7 @@ impl EnergySensor for EnergySensorStruct {}
 impl WriteableSensorBase for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all the functionality of a read-write current sensor.
+/// Helper trait that sums up all functionality of a read-write energy sensor.
 pub trait WriteableEnergySensor: EnergySensor + WriteableSensorBase + WriteableEnable {}
 
 #[cfg(feature = "writeable")]

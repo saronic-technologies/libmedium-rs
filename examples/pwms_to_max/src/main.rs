@@ -1,11 +1,11 @@
 use libmedium::{
+    parse_hwmons,
     sensors::WriteablePwmSensor,
     units::{Pwm, PwmEnable},
-    Hwmons,
 };
 
 fn main() {
-    let hwmons = Hwmons::parse().unwrap();
+    let hwmons = parse_hwmons().unwrap();
     for (_, _, hwmon) in &hwmons {
         for (_, pwm) in hwmon.writeable_pwms() {
             pwm.write_enable(PwmEnable::ManualControl).unwrap();

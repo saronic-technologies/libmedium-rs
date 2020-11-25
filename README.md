@@ -30,11 +30,11 @@ libmedium = "0.4"
 
 ```rust
 use libmedium::{
-    Hwmons,
+    parse_hwmons,
     sensors::{Sensor, SensorBase},
 };
 
-let hwmons = Hwmons::parse().unwrap();
+let hwmons = parse_hwmons().unwrap();
 for (hwmon_index, hwmon_name, hwmon) in &hwmons {
     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
     for (_, temp_sensor) in hwmon.temps() {
@@ -48,12 +48,12 @@ for (hwmon_index, hwmon_name, hwmon) in &hwmons {
 
 ```rust
 use libmedium::{
-    Hwmons,
+    parse_hwmons,
     sensors::WriteablePwmSensor,
     units::{Pwm, PwmEnable},
 };
 
-let hwmons = Hwmons::parse().unwrap();
+let hwmons = parse_hwmons().unwrap();
 for (_, _, hwmon) in &hwmons {
     for (_, pwm) in hwmon.writeable_pwms() {
         pwm.write_enable(PwmEnable::ManualControl).unwrap();
