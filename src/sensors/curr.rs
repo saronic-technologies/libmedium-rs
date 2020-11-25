@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 pub trait CurrentSensor:
     SensorBase
     + Enable
-    + Sensor
+    + Input
     + Min
     + Max
     + LowCrit
@@ -60,7 +60,7 @@ impl Parseable for CurrentSensorStruct {
 }
 
 impl Enable for CurrentSensorStruct {}
-impl Sensor for CurrentSensorStruct {}
+impl Input for CurrentSensorStruct {}
 impl Min for CurrentSensorStruct {}
 impl Max for CurrentSensorStruct {}
 impl Crit for CurrentSensorStruct {}

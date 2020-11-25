@@ -31,7 +31,7 @@ libmedium = "0.4"
 ```rust
 use libmedium::{
     parse_hwmons,
-    sensors::{Sensor, SensorBase},
+    sensors::{Input, SensorBase},
 };
 
 let hwmons = parse_hwmons().unwrap();

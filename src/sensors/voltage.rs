@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 pub trait VoltageSensor:
     SensorBase
     + Enable
-    + Sensor
+    + Input
     + Min
     + Max
     + LowCrit
@@ -60,7 +60,7 @@ impl Parseable for VoltageSensorStruct {
 }
 
 impl Enable for VoltageSensorStruct {}
-impl Sensor for VoltageSensorStruct {}
+impl Input for VoltageSensorStruct {}
 impl Min for VoltageSensorStruct {}
 impl Max for VoltageSensorStruct {}
 impl LowCrit for VoltageSensorStruct {}

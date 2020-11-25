@@ -1,6 +1,6 @@
 use libmedium::{
     parse_hwmons,
-    sensors::{Sensor, SensorBase},
+    sensors::{Input, SensorBase},
 };
 
 fn main() {

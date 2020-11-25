@@ -9,7 +9,7 @@
 //! ```
 //! use libmedium::{
 //!     parse_hwmons,
-//!     sensors::{Sensor, SensorBase},
+//!     sensors::{Input, SensorBase},
 //! };
 //!
 //! let hwmons = parse_hwmons().unwrap();
