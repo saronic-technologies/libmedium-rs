@@ -10,7 +10,7 @@ Just add this to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-libmedium = "0.4"
+libmedium = "0.5"
 ```
 
 ## Cargo-Features
