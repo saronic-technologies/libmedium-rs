@@ -8,7 +8,9 @@ use crate::units::{AngularVelocity, FanDivisor, Raw};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only fan sensor.
-pub trait FanSensor: Enable + Input + Min + Max + Faulty + std::fmt::Debug {
+pub trait FanSensor:
+    Sensor<Value = AngularVelocity> + Enable + Input + Min + Max + Faulty + std::fmt::Debug
+{
     /// Reads the target_revs subfunction of this fan sensor.
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.

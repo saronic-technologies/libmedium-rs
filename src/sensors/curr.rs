@@ -10,7 +10,17 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only current sensor.
 pub trait CurrentSensor:
-    Sensor + Enable + Input + Min + Max + LowCrit + Crit + Average + Lowest + Highest + std::fmt::Debug
+    Sensor<Value = Current>
+    + Enable
+    + Input
+    + Min
+    + Max
+    + LowCrit
+    + Crit
+    + Average
+    + Lowest
+    + Highest
+    + std::fmt::Debug
 {
 }
 

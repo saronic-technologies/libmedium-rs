@@ -8,7 +8,7 @@ use crate::units::Energy;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only energy sensor.
-pub trait EnergySensor: Sensor + Enable + Input + std::fmt::Debug {}
+pub trait EnergySensor: Sensor<Value = Energy> + Enable + Input + std::fmt::Debug {}
 
 #[derive(Debug, Clone)]
 pub(crate) struct EnergySensorStruct {
