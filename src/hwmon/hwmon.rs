@@ -9,64 +9,41 @@ use std::path::{Path, PathBuf};
 fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
     let path = path.as_ref();
 
-    if !path.exists() {
-        return Err(ParsingError::PathDoesNotExist {
-            path: path.to_path_buf(),
-        });
-    }
-
-    if !path.is_dir() {
-        return Err(ParsingError::InvalidPath { path: path.into() });
-    }
-
     if let Err(e) = path.metadata() {
-        match e.kind() {
-            std::io::ErrorKind::NotFound => {
-                return Err(ParsingError::PathDoesNotExist { path: path.into() })
-            }
-            std::io::ErrorKind::PermissionDenied => {
-                return Err(ParsingError::InsufficientRights { path: path.into() })
-            }
-            _ => return Err(ParsingError::Other { source: e }),
-        }
+        return Err(ParsingError::hwmon_dir(e, path));
     }
 
     Ok(())
 }
 
 fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
-    use std::io::ErrorKind as IoErrorKind;
-
     let name_path = path.as_ref().join("name");
 
-    match read_to_string(&name_path) {
-        Ok(name) => Ok(name.trim().to_string()),
-        Err(e) => match e.kind() {
-            IoErrorKind::NotFound => Err(ParsingError::PathDoesNotExist { path: name_path }),
-            IoErrorKind::PermissionDenied => {
-                Err(ParsingError::InsufficientRights { path: name_path })
-            }
-            _ => Err(ParsingError::Other { source: e }),
-        },
-    }
+    read_to_string(&name_path)
+        .map(|name| name.trim().to_string())
+        .map_err(|e| ParsingError::hwmon_name(e, name_path))
 }
 
 fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
 where
     S: Parseable<Parent = Hwmon>,
 {
+    use std::io::ErrorKind as IoErrorKind;
+
     let mut sensors = BTreeMap::new();
     for index in start_index.. {
         match S::parse(hwmon, index) {
             Ok(sensor) => {
                 sensors.insert(index, sensor);
             }
-            Err(sensor_error) => match sensor_error {
-                ParsingError::InsufficientRights { path } => {
-                    return Err(ParsingError::InsufficientRights { path })
+            Err(ParsingError::Sensor { source, path }) => {
+                if source.kind() == IoErrorKind::NotFound {
+                    break;
                 }
-                _ => break,
-            },
+
+                return Err(ParsingError::sensor(source, path));
+            }
+            _ => unreachable!(),
         }
     }
 
@@ -192,6 +169,36 @@ impl Hwmon {
     /// Returns `None`, if no sensor with the given index exists.
     pub fn voltage(&self, index: u16) -> Option<&(impl VoltageSensor + Clone + Send + Sync)> {
         self.voltages.get(&index)
+    }
+
+    pub(crate) fn try_from_path(path: impl Into<PathBuf>) -> ParsingResult<Self> {
+        let path = path.into();
+
+        check_path(&path)?;
+
+        let mut hwmon = Self {
+            name: get_name(&path)?,
+            path,
+            currents: BTreeMap::new(),
+            energies: BTreeMap::new(),
+            fans: BTreeMap::new(),
+            humidities: BTreeMap::new(),
+            powers: BTreeMap::new(),
+            pwms: BTreeMap::new(),
+            temps: BTreeMap::new(),
+            voltages: BTreeMap::new(),
+        };
+
+        hwmon.currents = init_sensors(&hwmon, 1)?;
+        hwmon.energies = init_sensors(&hwmon, 1)?;
+        hwmon.fans = init_sensors(&hwmon, 1)?;
+        hwmon.humidities = init_sensors(&hwmon, 1)?;
+        hwmon.powers = init_sensors(&hwmon, 1)?;
+        hwmon.pwms = init_sensors(&hwmon, 1)?;
+        hwmon.temps = init_sensors(&hwmon, 1)?;
+        hwmon.voltages = init_sensors(&hwmon, 0)?;
+
+        Ok(hwmon)
     }
 }
 
@@ -328,30 +335,6 @@ impl Parseable for Hwmon {
     fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let path = parent.path().join(format!("hwmon{}", index));
 
-        check_path(&path)?;
-
-        let mut hwmon = Self {
-            name: get_name(&path)?,
-            path,
-            currents: BTreeMap::new(),
-            energies: BTreeMap::new(),
-            fans: BTreeMap::new(),
-            humidities: BTreeMap::new(),
-            powers: BTreeMap::new(),
-            pwms: BTreeMap::new(),
-            temps: BTreeMap::new(),
-            voltages: BTreeMap::new(),
-        };
-
-        hwmon.currents = init_sensors(&hwmon, 1)?;
-        hwmon.energies = init_sensors(&hwmon, 1)?;
-        hwmon.fans = init_sensors(&hwmon, 1)?;
-        hwmon.humidities = init_sensors(&hwmon, 1)?;
-        hwmon.powers = init_sensors(&hwmon, 1)?;
-        hwmon.pwms = init_sensors(&hwmon, 1)?;
-        hwmon.temps = init_sensors(&hwmon, 1)?;
-        hwmon.voltages = init_sensors(&hwmon, 0)?;
-
-        Ok(hwmon)
+        Self::try_from_path(path)
     }
 }

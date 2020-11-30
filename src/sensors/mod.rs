@@ -371,30 +371,18 @@ impl SensorState {
     }
 }
 
-fn inspect_sensor<S: Sensor>(sensor: S) -> ParsingResult<S> {
-    let mut count = 0;
-
-    for sub in SensorSubFunctionType::read_list() {
-        let path = sensor.subfunction_path(sub);
-
-        if path.exists() {
-            if path.metadata().is_err() {
-                return Err(ParsingError::InsufficientRights { path });
-            }
-
-            count += 1;
-        }
+fn inspect_sensor<S: Input>(sensor: S) -> ParsingResult<S> {
+    if let Err(e) = sensor
+        .subfunction_path(SensorSubFunctionType::Input)
+        .metadata()
+    {
+        return Err(ParsingError::sensor(
+            e,
+            sensor.subfunction_path(SensorSubFunctionType::Input),
+        ));
     }
 
-    if count == 0 {
-        Err(ParsingError::InvalidPath {
-            path: sensor
-                .hwmon_path()
-                .join(format!("{}{}", sensor.base(), sensor.index(),)),
-        })
-    } else {
-        Ok(sensor)
-    }
+    Ok(sensor)
 }
 
 #[cfg(test)]

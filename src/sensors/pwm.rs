@@ -69,7 +69,14 @@ impl Parseable for PwmSensorStruct {
             index,
         };
 
-        inspect_sensor(pwm)
+        if let Err(e) = pwm.subfunction_path(SensorSubFunctionType::Pwm).metadata() {
+            return Err(ParsingError::sensor(
+                e,
+                pwm.subfunction_path(SensorSubFunctionType::Pwm),
+            ));
+        }
+
+        Ok(pwm)
     }
 }
 

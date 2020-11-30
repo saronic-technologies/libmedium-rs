@@ -64,33 +64,37 @@ impl Hwmons {
     pub(crate) fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Self> {
         let path = path.as_ref();
 
-        if !path.exists() {
-            return Err(ParsingError::PathDoesNotExist {
-                path: path.to_path_buf(),
-            });
-        }
-
-        if !path.is_dir() {
-            return Err(ParsingError::InvalidPath {
-                path: path.to_path_buf(),
-            });
-        }
-
         let mut hwmons = Hwmons {
             path: path.to_path_buf(),
             hwmons: Vec::new(),
         };
 
-        for index in 0.. {
-            match Hwmon::parse(&hwmons, index) {
-                Ok(hwmon) => {
-                    hwmons.hwmons.push(hwmon);
+        match path.read_dir() {
+            Ok(dir) => {
+                for entry in dir {
+                    match entry {
+                        Ok(entry) => {
+                            match entry.file_name().to_str() {
+                                Some(file_name) => {
+                                    if !file_name.starts_with("hwmon") {
+                                        continue;
+                                    }
+                                }
+                                None => continue,
+                            }
+
+                            match Hwmon::try_from_path(entry.path()) {
+                                Ok(hwmon) => {
+                                    hwmons.hwmons.push(hwmon);
+                                }
+                                Err(e) => return Err(e),
+                            }
+                        }
+                        Err(e) => return Err(ParsingError::hwmons(e, path)),
+                    }
                 }
-                Err(e) => match e {
-                    ParsingError::PathDoesNotExist { .. } => break,
-                    e => return Err(e),
-                },
             }
+            Err(e) => return Err(ParsingError::hwmons(e, path)),
         }
 
         Ok(hwmons)
