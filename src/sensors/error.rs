@@ -32,7 +32,7 @@ pub enum Error {
     /// You have insufficient rights. Try using the read only variant of whatever returned this error.
     InsufficientRights { path: PathBuf },
 
-    /// The subfunction you requested ist not supported by this sensor.
+    /// The subfunction you requested is not supported by this sensor.
     SubtypeNotSupported { sub_type: SensorSubFunctionType },
 
     /// The sensor you tried to read from is faulty.
