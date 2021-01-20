@@ -7,7 +7,7 @@ use crate::units::{Frequency, Pwm, PwmEnable, PwmMode, Raw};
 use std::path::Path;
 
 /// Helper trait that sums up all functionality of a read-only pwm sensor.
-pub trait PwmSensor: Sensor<Value = Pwm> + std::fmt::Debug + Clone {
+pub trait PwmSensor: Sensor<Value = Pwm> + std::fmt::Debug {
     /// Reads the pwm subfunction of this pwm sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_pwm(&self) -> Result<Pwm> {

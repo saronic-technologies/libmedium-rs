@@ -9,7 +9,7 @@ use std::{
 };
 
 /// Helper trait that sums up all functionality of a read-only virtual sensor.
-pub trait VirtualSensor<T: Raw>: std::fmt::Debug + Clone {
+pub trait VirtualSensor<T: Raw>: std::fmt::Debug {
     /// Returns the path to this virtual sensor's underlying file.
     fn path(&self) -> &Path;
 

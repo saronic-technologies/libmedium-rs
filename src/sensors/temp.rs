@@ -9,16 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only temp sensor.
 pub trait TempSensor:
-    Sensor<Value = Temperature>
-    + Enable
-    + Input
-    + Min
-    + Max
-    + Crit
-    + LowCrit
-    + Faulty
-    + std::fmt::Debug
-    + Clone
+    Sensor<Value = Temperature> + Enable + Input + Min + Max + Crit + LowCrit + Faulty + std::fmt::Debug
 {
     /// Reads the type subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

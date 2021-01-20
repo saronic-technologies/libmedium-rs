@@ -8,7 +8,7 @@ use crate::units::Ratio;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only humidity sensor.
-pub trait HumiditySensor: Sensor<Value = Ratio> + Enable + Input + std::fmt::Debug + Clone {}
+pub trait HumiditySensor: Sensor<Value = Ratio> + Enable + Input + std::fmt::Debug {}
 
 /// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]
