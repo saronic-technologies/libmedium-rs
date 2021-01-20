@@ -123,7 +123,7 @@ pub trait WriteableSensor: Sensor {
         write(&path, raw_value.as_bytes()).map_err(|e| match e.kind() {
             std::io::ErrorKind::NotFound => Error::SubtypeNotSupported { sub_type },
             std::io::ErrorKind::PermissionDenied => Error::InsufficientRights { path },
-            _ => Error::Read { source: e, path },
+            _ => Error::Write { source: e, path },
         })
     }
 
