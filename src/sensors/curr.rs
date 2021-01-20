@@ -21,6 +21,7 @@ pub trait CurrentSensor:
     + Lowest
     + Highest
     + std::fmt::Debug
+    + Clone
 {
 }
 

@@ -20,6 +20,7 @@ pub trait VoltageSensor:
     + Lowest
     + Highest
     + std::fmt::Debug
+    + Clone
 {
 }
 

@@ -9,7 +9,7 @@ use std::{
 };
 
 /// Helper trait that sums up all functionality of a read-only virtual sensor.
-pub trait VirtualSensor<T: Raw> {
+pub trait VirtualSensor<T: Raw>: std::fmt::Debug + Clone {
     /// Returns the path to this virtual sensor's underlying file.
     fn path(&self) -> &Path;
 
@@ -65,7 +65,7 @@ impl<T: Raw> WriteableVirtualSensor<T> for VirtualSensorStruct {}
 /// Creates a virtual sensor from the given file at `path`.
 pub fn virtual_sensor_from_path<T: Raw>(
     path: impl Into<PathBuf>,
-) -> Result<impl VirtualSensor<T> + Debug + Clone + Send + Sync> {
+) -> Result<impl VirtualSensor<T> + Clone + Send + Sync> {
     let path = path.into();
 
     if !path.is_file() {
@@ -82,7 +82,7 @@ pub fn virtual_sensor_from_path<T: Raw>(
 /// Creates a virtual sensor from the given file at `path`.
 pub fn writeable_virtual_sensor_from_path<T: Raw>(
     path: impl Into<PathBuf>,
-) -> Result<impl WriteableVirtualSensor<T> + Debug + Clone + Send + Sync> {
+) -> Result<impl WriteableVirtualSensor<T> + Clone + Send + Sync> {
     let path = path.into();
 
     if !path.is_file() {

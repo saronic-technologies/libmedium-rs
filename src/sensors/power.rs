@@ -7,7 +7,16 @@ use crate::units::{Power, Ratio, Raw};
 
 /// Helper trait that sums up all functionality of a read-only power sensor.
 pub trait PowerSensor:
-    Sensor<Value = Power> + Enable + Input + Max + Crit + Average + Highest + Lowest + std::fmt::Debug
+    Sensor<Value = Power>
+    + Enable
+    + Input
+    + Max
+    + Crit
+    + Average
+    + Highest
+    + Lowest
+    + std::fmt::Debug
+    + Clone
 {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

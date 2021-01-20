@@ -87,99 +87,90 @@ impl Hwmon {
     }
 
     /// Returns all current sensors found in this `Hwmon`.
-    pub fn currents(&self) -> &BTreeMap<u16, impl CurrentSensor + Debug + Clone + Send + Sync> {
+    pub fn currents(&self) -> &BTreeMap<u16, impl CurrentSensor + Send + Sync> {
         &self.currents
     }
 
     /// Returns all energy sensors found in this `Hwmon`.
-    pub fn energies(&self) -> &BTreeMap<u16, impl EnergySensor + Debug + Clone + Send + Sync> {
+    pub fn energies(&self) -> &BTreeMap<u16, impl EnergySensor + Send + Sync> {
         &self.energies
     }
 
     /// Returns all fan sensors found in this `Hwmon`.
-    pub fn fans(&self) -> &BTreeMap<u16, impl FanSensor + Debug + Clone + Send + Sync> {
+    pub fn fans(&self) -> &BTreeMap<u16, impl FanSensor + Send + Sync> {
         &self.fans
     }
 
     /// Returns all humidity sensors found in this `Hwmon`.
-    pub fn humidities(&self) -> &BTreeMap<u16, impl HumiditySensor + Debug + Clone + Send + Sync> {
+    pub fn humidities(&self) -> &BTreeMap<u16, impl HumiditySensor + Send + Sync> {
         &self.humidities
     }
 
     /// Returns all power sensors found in this `Hwmon`.
-    pub fn powers(&self) -> &BTreeMap<u16, impl PowerSensor + Debug + Clone + Send + Sync> {
+    pub fn powers(&self) -> &BTreeMap<u16, impl PowerSensor + Send + Sync> {
         &self.powers
     }
 
     /// Returns all pwm sensors found in this `Hwmon`.
-    pub fn pwms(&self) -> &BTreeMap<u16, impl PwmSensor + Debug + Clone + Send + Sync> {
+    pub fn pwms(&self) -> &BTreeMap<u16, impl PwmSensor + Send + Sync> {
         &self.pwms
     }
 
     /// Returns all temp sensors found in this `Hwmon`.
-    pub fn temps(&self) -> &BTreeMap<u16, impl TempSensor + Debug + Clone + Send + Sync> {
+    pub fn temps(&self) -> &BTreeMap<u16, impl TempSensor + Send + Sync> {
         &self.temps
     }
 
     /// Returns all voltage sensors found in this `Hwmon`.
-    pub fn voltages(&self) -> &BTreeMap<u16, impl VoltageSensor + Debug + Clone + Send + Sync> {
+    pub fn voltages(&self) -> &BTreeMap<u16, impl VoltageSensor + Send + Sync> {
         &self.voltages
     }
 
     /// Returns the current sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn current(
-        &self,
-        index: u16,
-    ) -> Option<&(impl CurrentSensor + Debug + Clone + Send + Sync)> {
+    pub fn current(&self, index: u16) -> Option<&(impl CurrentSensor + Send + Sync)> {
         self.currents.get(&index)
     }
 
     /// Returns the energy sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn energy(&self, index: u16) -> Option<&(impl EnergySensor + Debug + Clone + Send + Sync)> {
+    pub fn energy(&self, index: u16) -> Option<&(impl EnergySensor + Send + Sync)> {
         self.energies.get(&index)
     }
 
     /// Returns the fan sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn fan(&self, index: u16) -> Option<&(impl FanSensor + Debug + Clone + Send + Sync)> {
+    pub fn fan(&self, index: u16) -> Option<&(impl FanSensor + Send + Sync)> {
         self.fans.get(&index)
     }
 
     /// Returns the humidity sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn humidity(
-        &self,
-        index: u16,
-    ) -> Option<&(impl HumiditySensor + Debug + Clone + Send + Sync)> {
+    pub fn humidity(&self, index: u16) -> Option<&(impl HumiditySensor + Send + Sync)> {
         self.humidities.get(&index)
     }
 
     /// Returns the power sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn power(&self, index: u16) -> Option<&(impl PowerSensor + Debug + Clone + Send + Sync)> {
+    pub fn power(&self, index: u16) -> Option<&(impl PowerSensor + Send + Sync)> {
         self.powers.get(&index)
     }
 
     /// Returns the pwm sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn pwm(&self, index: u16) -> Option<&(impl PwmSensor + Debug + Clone + Send + Sync)> {
+    pub fn pwm(&self, index: u16) -> Option<&(impl PwmSensor + Send + Sync)> {
         self.pwms.get(&index)
     }
 
     /// Returns the temp sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn temp(&self, index: u16) -> Option<&(impl TempSensor + Debug + Clone + Send + Sync)> {
+    pub fn temp(&self, index: u16) -> Option<&(impl TempSensor + Send + Sync)> {
         self.temps.get(&index)
     }
 
     /// Returns the voltage sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn voltage(
-        &self,
-        index: u16,
-    ) -> Option<&(impl VoltageSensor + Debug + Clone + Send + Sync)> {
+    pub fn voltage(&self, index: u16) -> Option<&(impl VoltageSensor + Send + Sync)> {
         self.voltages.get(&index)
     }
 
@@ -217,58 +208,44 @@ impl Hwmon {
 #[cfg(feature = "writeable")]
 impl Hwmon {
     /// Returns all writeable current sensors found in this `Hwmon`.
-    pub fn writeable_currents(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteableCurrentSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_currents(&self) -> &BTreeMap<u16, impl WriteableCurrentSensor + Send + Sync> {
         &self.currents
     }
 
     /// Returns all writeable energy sensors found in this `Hwmon`.
-    pub fn writeable_energies(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteableEnergySensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_energies(&self) -> &BTreeMap<u16, impl WriteableEnergySensor + Send + Sync> {
         &self.energies
     }
 
     /// Returns all writeable fan sensors found in this `Hwmon`.
-    pub fn writeable_fans(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteableFanSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_fans(&self) -> &BTreeMap<u16, impl WriteableFanSensor + Send + Sync> {
         &self.fans
     }
 
     /// Returns all writeable humidity sensors found in this `Hwmon`.
     pub fn writeable_humidities(
         &self,
-    ) -> &BTreeMap<u16, impl WriteableHumiditySensor + Debug + Clone + Send + Sync> {
+    ) -> &BTreeMap<u16, impl WriteableHumiditySensor + Send + Sync> {
         &self.humidities
     }
 
     /// Returns all writeable power sensors found in this `Hwmon`.
-    pub fn writeable_powers(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteablePowerSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_powers(&self) -> &BTreeMap<u16, impl WriteablePowerSensor + Send + Sync> {
         &self.powers
     }
 
     /// Returns all writeable pwm sensors found in this `Hwmon`.
-    pub fn writeable_pwms(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteablePwmSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_pwms(&self) -> &BTreeMap<u16, impl WriteablePwmSensor + Send + Sync> {
         &self.pwms
     }
 
     /// Returns all writeable temp sensors found in this `Hwmon`.
-    pub fn writeable_temps(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteableTempSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_temps(&self) -> &BTreeMap<u16, impl WriteableTempSensor + Send + Sync> {
         &self.temps
     }
 
     /// Returns all writeable voltage sensors found in this `Hwmon`.
-    pub fn writeable_voltages(
-        &self,
-    ) -> &BTreeMap<u16, impl WriteableVoltageSensor + Debug + Clone + Send + Sync> {
+    pub fn writeable_voltages(&self) -> &BTreeMap<u16, impl WriteableVoltageSensor + Send + Sync> {
         &self.voltages
     }
 
@@ -277,7 +254,7 @@ impl Hwmon {
     pub fn writeable_current(
         &self,
         index: u16,
-    ) -> Option<&(impl WriteableCurrentSensor + Debug + Clone + Send + Sync)> {
+    ) -> Option<&(impl WriteableCurrentSensor + Send + Sync)> {
         self.currents.get(&index)
     }
 
@@ -286,16 +263,13 @@ impl Hwmon {
     pub fn writeable_energy(
         &self,
         index: u16,
-    ) -> Option<&(impl WriteableEnergySensor + Debug + Clone + Send + Sync)> {
+    ) -> Option<&(impl WriteableEnergySensor + Send + Sync)> {
         self.energies.get(&index)
     }
 
     /// Returns the writeable fan sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn writeable_fan(
-        &self,
-        index: u16,
-    ) -> Option<&(impl WriteableFanSensor + Debug + Clone + Send + Sync)> {
+    pub fn writeable_fan(&self, index: u16) -> Option<&(impl WriteableFanSensor + Send + Sync)> {
         self.fans.get(&index)
     }
 
@@ -304,7 +278,7 @@ impl Hwmon {
     pub fn writeable_humidity(
         &self,
         index: u16,
-    ) -> Option<&(impl WriteableHumiditySensor + Debug + Clone + Send + Sync)> {
+    ) -> Option<&(impl WriteableHumiditySensor + Send + Sync)> {
         self.humidities.get(&index)
     }
 
@@ -313,25 +287,19 @@ impl Hwmon {
     pub fn writeable_power(
         &self,
         index: u16,
-    ) -> Option<&(impl WriteablePowerSensor + Debug + Clone + Send + Sync)> {
+    ) -> Option<&(impl WriteablePowerSensor + Send + Sync)> {
         self.powers.get(&index)
     }
 
     /// Returns the writeable pwm sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn writeable_pwm(
-        &self,
-        index: u16,
-    ) -> Option<&(impl WriteablePwmSensor + Debug + Clone + Send + Sync)> {
+    pub fn writeable_pwm(&self, index: u16) -> Option<&(impl WriteablePwmSensor + Send + Sync)> {
         self.pwms.get(&index)
     }
 
     /// Returns the writeable temp sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn writeable_temp(
-        &self,
-        index: u16,
-    ) -> Option<&(impl WriteableTempSensor + Debug + Clone + Send + Sync)> {
+    pub fn writeable_temp(&self, index: u16) -> Option<&(impl WriteableTempSensor + Send + Sync)> {
         self.temps.get(&index)
     }
 
@@ -340,7 +308,7 @@ impl Hwmon {
     pub fn writeable_voltage(
         &self,
         index: u16,
-    ) -> Option<&(impl WriteableVoltageSensor + Debug + Clone + Send + Sync)> {
+    ) -> Option<&(impl WriteableVoltageSensor + Send + Sync)> {
         self.voltages.get(&index)
     }
 }

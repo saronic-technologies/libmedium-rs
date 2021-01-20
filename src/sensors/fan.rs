@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only fan sensor.
 pub trait FanSensor:
-    Sensor<Value = AngularVelocity> + Enable + Input + Min + Max + Faulty + std::fmt::Debug
+    Sensor<Value = AngularVelocity> + Enable + Input + Min + Max + Faulty + std::fmt::Debug + Clone
 {
     /// Reads the target_revs subfunction of this fan sensor.
     ///
