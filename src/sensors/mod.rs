@@ -9,6 +9,7 @@ mod power;
 mod pwm;
 mod subfunction;
 mod temp;
+mod virt;
 mod voltage;
 
 pub use curr::*;
@@ -20,6 +21,7 @@ pub use power::*;
 pub use pwm::*;
 pub use subfunction::*;
 pub use temp::*;
+pub use virt::*;
 pub use voltage::*;
 
 use crate::hwmon::*;

@@ -1,5 +1,5 @@
 use super::Hwmon;
-use crate::parsing::{Error as ParsingError, Parseable, Result as ParsingResult};
+use crate::parsing::{Error as ParsingError, Result as ParsingResult};
 
 use std::iter::FusedIterator;
 use std::path::{Path, PathBuf};
