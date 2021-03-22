@@ -65,9 +65,11 @@ mod tests {
     use crate::hwmon::Hwmons;
 
     use std::fs;
-    use std::fs::{remove_dir_all, File, OpenOptions};
+    use std::fs::{File, OpenOptions};
     use std::io::Write;
     use std::path::{Path, PathBuf};
+
+    use temp_dir::TempDir;
 
     pub struct VirtualHwmonBuilder {
         root: PathBuf,
@@ -206,19 +208,19 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let test_path = Path::new("test_parse");
+        let test_dir = TempDir::new().unwrap();
 
-        VirtualHwmonBuilder::create(test_path, 0, "system")
+        VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
             .add_pwm(1, true, true)
             .add_pwm(2, true, true)
             .add_temp(1, 40000, "temp1")
             .add_temp(2, 60000, "temp2");
-        VirtualHwmonBuilder::create(test_path, 1, "other")
+        VirtualHwmonBuilder::create(test_dir.path(), 1, "other")
             .add_pwm(1, true, true)
             .add_temp(1, 40000, "temp1")
             .add_fan(2, 1000);
 
-        let hwmons = Hwmons::parse_path(test_path).unwrap();
+        let hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
         let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
         let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
 
@@ -239,7 +241,5 @@ mod tests {
         hwmon0.temps().get(&1u16).unwrap();
         hwmon0.temps().get(&2u16).unwrap();
         hwmon1.temps().get(&1u16).unwrap();
-
-        remove_dir_all(test_path).unwrap();
     }
 }

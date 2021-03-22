@@ -17,6 +17,9 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 uom = { version = "0.30", optional = true }
 
+[dev-dependencies]
+temp-dir = "0.1"
+
 [lib]
 doctest = false
 
