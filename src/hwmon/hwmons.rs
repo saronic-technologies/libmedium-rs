@@ -97,6 +97,8 @@ impl Hwmons {
             Err(e) => return Err(ParsingError::hwmons(e, path)),
         }
 
+        hwmons.hwmons.sort();
+
         Ok(hwmons)
     }
 }

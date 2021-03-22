@@ -2,6 +2,7 @@ use super::Hwmons;
 use crate::parsing::{Error as ParsingError, Parseable, Result as ParsingResult};
 use crate::sensors::*;
 
+use std::cmp::Ordering;
 use std::{
     collections::BTreeMap,
     fmt::Debug,
@@ -329,6 +330,26 @@ impl Hwmon {
         index: u16,
     ) -> Option<&(impl WriteableVoltageSensor + Clone + Send + Sync)> {
         self.voltages.get(&index)
+    }
+}
+
+impl PartialEq for Hwmon {
+    fn eq(&self, other: &Self) -> bool {
+        self.path.eq(other.path())
+    }
+}
+
+impl Eq for Hwmon {}
+
+impl PartialOrd for Hwmon {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.path.partial_cmp(other.path())
+    }
+}
+
+impl Ord for Hwmon {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.path.cmp(&other.path)
     }
 }
 
