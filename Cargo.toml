@@ -1,6 +1,6 @@
 [package]
 name = "libmedium"
-version = "0.5.5"
+version = "0.6.0"
 authors = ["Malte Veerman <malte.veerman@gmail.com>"]
 edition = "2021"
 license = "MIT"
