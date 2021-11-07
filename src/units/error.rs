@@ -15,7 +15,10 @@ pub enum Error {
     },
 
     /// Value to convert into unit type is invalid.
-    InvalidValue { value: f64 },
+    InvalidValue {
+        /// The invalid value
+        value: f64
+    },
 }
 
 impl Error {
