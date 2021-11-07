@@ -41,7 +41,7 @@ impl Raw for bool {
         match raw.trim() {
             "1" => Ok(true),
             "0" => Ok(false),
-            other => Err(Error::from(other)),
+            other => Err(Error::raw_conversion(other)),
         }
     }
 
@@ -68,7 +68,7 @@ impl Raw for Duration {
         raw.trim()
             .parse::<u64>()
             .map(Duration::from_millis)
-            .map_err(|_| Error::from(raw))
+            .map_err(|_| Error::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

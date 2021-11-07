@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 
@@ -8,11 +8,11 @@ use uom::si::frequency::hertz as Hertz;
 pub type Frequency = uom::si::frequency::Frequency<uom::si::SI<f64>, f64>;
 
 impl Raw for Frequency {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<f64>()
             .map(Frequency::new::<Hertz>)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

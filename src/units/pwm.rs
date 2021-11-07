@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 use std::borrow::Cow;
 use std::fmt;
 
@@ -7,19 +7,26 @@ use std::fmt;
 pub struct Pwm(u8);
 
 impl Pwm {
-    /// Construct a new Pwm struct from a pwm value between 0 and 255.
+    /// Create a new Pwm struct from a pwm value between 0 and 255.
     pub fn from_u8(u8: u8) -> Self {
         Self(u8)
     }
 
-    /// Returns this struct's pwm value between 0 and 255.
+    /// Returns this struct's pwm value.
     pub fn as_u8(self) -> u8 {
         self.0
     }
 
-    /// Construct a new Pwm struct from a pwm value in percent.
-    pub fn from_percent(percent: f64) -> Self {
-        Self((percent * 2.55) as u8)
+    /// Tries to create a new `Pwm` struct from a pwm value in percent.
+    /// Returns an error if the given value is not between 0 and 100.
+    pub fn try_from_percent(percent: impl Into<f64>) -> UnitResult<Self> {
+        let percent = percent.into();
+
+        if percent.is_nan() || percent < 0.0 || percent > 100.0 {
+            return Err(UnitError::invalid_value(percent));
+        }
+
+        Ok(Pwm((percent * 2.55) as u8))
     }
 
     /// Returns this struct's pwm value in percent.
@@ -28,11 +35,23 @@ impl Pwm {
     }
 }
 
+impl From<u8> for Pwm {
+    fn from(value: u8) -> Pwm {
+        Pwm::from_u8(value)
+    }
+}
+
+impl From<Pwm> for u8 {
+    fn from(value: Pwm) -> u8 {
+        value.0
+    }
+}
+
 impl Raw for Pwm {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.parse::<u8>()
             .map(Pwm::from_u8)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {
@@ -56,7 +75,7 @@ pub enum PwmEnable {
 }
 
 impl Raw for PwmEnable {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         match raw {
             "0" => Ok(PwmEnable::FullSpeed),
             "1" => Ok(PwmEnable::ManualControl),
@@ -89,12 +108,12 @@ pub enum PwmMode {
 }
 
 impl Raw for PwmMode {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         match raw {
             "0" => Ok(PwmMode::DC),
             "1" => Ok(PwmMode::PWM),
             "2" => Ok(PwmMode::Automatic),
-            raw => Err(raw.into()),
+            raw => Err(UnitError::raw_conversion(raw)),
         }
     }
 
@@ -110,5 +129,21 @@ impl Raw for PwmMode {
 impl Default for PwmMode {
     fn default() -> PwmMode {
         PwmMode::Automatic
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_out_of_bounds() {
+        assert!(Pwm::try_from_percent(-1.1).is_err());
+        assert!(Pwm::try_from_percent(0.0).is_ok());
+        assert!(Pwm::try_from_percent(50.0).is_ok());
+        assert!(Pwm::try_from_percent(100.0).is_ok());
+        assert!(Pwm::try_from_percent(100.001).is_err());
+        assert!(Pwm::try_from_percent(f64::INFINITY).is_err());
+        assert!(Pwm::try_from_percent(f64::NAN).is_err());
     }
 }

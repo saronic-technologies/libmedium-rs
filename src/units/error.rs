@@ -5,23 +5,40 @@ use std::{
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
 
-/// Error which can be returned from reading a raw sensor value.
+/// Error converting values or strings into usable unit types.
 #[derive(Debug)]
-pub struct Error {
-    /// The string that cannot be converted.
-    raw: String,
+pub enum Error {
+    /// Error which can be returned from reading a raw sensor value.
+    RawConversion {
+        /// The string that cannot be converted.
+        raw: String,
+    },
+
+    /// Value to convert into unit type is invalid.
+    InvalidValue { value: f64 },
+}
+
+impl Error {
+    pub(crate) fn raw_conversion(raw: impl Into<String>) -> Self {
+        Self::RawConversion { raw: raw.into() }
+    }
+
+    pub(crate) fn invalid_value(value: impl Into<f64>) -> Self {
+        Self::InvalidValue {
+            value: value.into(),
+        }
+    }
 }
 
 impl StdError for Error {}
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalid raw string: {}", &self.raw)
-    }
-}
-
-impl<T: Into<String>> From<T> for Error {
-    fn from(raw: T) -> Self {
-        Error { raw: raw.into() }
+        match self {
+            Self::RawConversion { raw } => write!(f, "Invalid raw string: {}", raw),
+            Self::InvalidValue { value } => {
+                write!(f, "Value to convert: {}, is invalid", value)
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 
@@ -8,11 +8,11 @@ use uom::si::energy::microjoule as MicroJoules;
 pub type Energy = uom::si::energy::Energy<uom::si::SI<f64>, f64>;
 
 impl Raw for Energy {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<f64>()
             .map(Energy::new::<MicroJoules>)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

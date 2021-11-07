@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 
@@ -15,7 +15,7 @@ pub enum TempType {
 }
 
 impl Raw for TempType {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         match raw {
             "1" => Ok(TempType::CpuEmbeddedDiode),
             "2" => Ok(TempType::Transistor),
@@ -23,7 +23,7 @@ impl Raw for TempType {
             "4" => Ok(TempType::Thermistor),
             "5" => Ok(TempType::AmdAmdsi),
             "6" => Ok(TempType::IntelPeci),
-            _ => Err(RawError::from(raw)),
+            _ => Err(UnitError::raw_conversion(raw)),
         }
     }
 

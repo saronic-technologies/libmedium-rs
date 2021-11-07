@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 use std::borrow::Cow;
 
 /// Struct representing a fan divisor. Fan divisors can only be powers of two.
@@ -7,9 +7,15 @@ pub struct FanDivisor(u32);
 
 impl FanDivisor {
     /// Returns a FanDivisor created from a given value. If the value given is not a power of two
-    /// the next higher power of two is chosen instead.
-    pub fn from_value(value: u32) -> FanDivisor {
-        FanDivisor(value.next_power_of_two())
+    /// an error is returned instead.
+    pub fn try_from_value(value: impl Into<u32>) -> UnitResult<FanDivisor> {
+        let value = value.into();
+
+        if !value.is_power_of_two() {
+            return Err(UnitError::invalid_value(value));
+        }
+
+        Ok(FanDivisor(value))
     }
 
     /// Returns the value stored in this `FanDivisor`.
@@ -19,14 +25,27 @@ impl FanDivisor {
 }
 
 impl Raw for FanDivisor {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<u32>()
             .map(FanDivisor)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {
         Cow::Owned(self.0.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_out_of_bounds() {
+        assert!(FanDivisor::try_from_value(0u32).is_err());
+        assert!(FanDivisor::try_from_value(1u32).is_ok());
+        assert!(FanDivisor::try_from_value(2u32).is_ok());
+        assert!(FanDivisor::try_from_value(3u32).is_err());
     }
 }

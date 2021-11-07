@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 use std::fmt;
@@ -9,23 +9,23 @@ use std::ops::{Add, Div, Mul};
 pub struct Frequency(u32);
 
 impl Frequency {
-    /// Create a Frequency struct from a value measuring times per second.
-    pub fn from_hertz(hz: u32) -> Self {
-        Frequency(hz)
+    /// Creates a `Frequency` struct from a value measuring times per second.
+    pub fn from_hertz(hz: impl Into<u32>) -> Self {
+        Frequency(hz.into())
     }
 
-    /// Return this Frequency's value in times per second.
+    /// Returns the structs's value in times per second.
     pub fn as_hertz(self) -> u32 {
         self.0
     }
 }
 
 impl Raw for Frequency {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<u32>()
             .map(Frequency::from_hertz)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 
@@ -8,11 +8,11 @@ use uom::si::ratio::percent as Percent;
 pub type Ratio = uom::si::ratio::Ratio<uom::si::SI<f64>, f64>;
 
 impl Raw for Ratio {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<f64>()
             .map(Ratio::new::<Percent>)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

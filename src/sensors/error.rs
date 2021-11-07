@@ -4,7 +4,7 @@ pub use std::{
     path::PathBuf,
 };
 
-use crate::units::Error as RawError;
+use crate::units::Error as UnitError;
 
 use super::SensorSubFunctionType;
 
@@ -26,8 +26,8 @@ pub enum Error {
         path: PathBuf,
     },
 
-    /// A RawError occurred.
-    RawError { source: RawError },
+    /// A UnitError occurred.
+    UnitError { source: UnitError },
 
     /// You have insufficient rights. Try using the read only variant of whatever returned this error.
     InsufficientRights { path: PathBuf },
@@ -47,7 +47,7 @@ impl StdError for Error {
         match self {
             Error::Read { source, .. } => Some(source),
             Error::Write { source, .. } => Some(source),
-            Error::RawError { source } => Some(source),
+            Error::UnitError { source } => Some(source),
             Error::InsufficientRights { .. } => None,
             Error::SubtypeNotSupported { .. } => None,
             Error::FaultySensor => None,
@@ -71,7 +71,7 @@ impl Display for Error {
                 path.display(),
                 source
             ),
-            Error::RawError { source } => write!(f, "Raw sensor error: {}", source),
+            Error::UnitError { source } => write!(f, "Raw sensor error: {}", source),
             Error::InsufficientRights { path } => write!(
                 f,
                 "You have insufficient rights to read/write {}",
@@ -86,8 +86,8 @@ impl Display for Error {
     }
 }
 
-impl From<RawError> for Error {
-    fn from(raw_error: RawError) -> Error {
-        Error::RawError { source: raw_error }
+impl From<UnitError> for Error {
+    fn from(raw_error: UnitError) -> Error {
+        Error::UnitError { source: raw_error }
     }
 }

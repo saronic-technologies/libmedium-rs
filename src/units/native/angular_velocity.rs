@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 use std::fmt;
@@ -9,23 +9,23 @@ use std::ops::{Add, Div, Mul};
 pub struct AngularVelocity(u32);
 
 impl AngularVelocity {
-    /// Create an AngularVelocity struct from a value measuring revolutions per minute.
-    pub fn from_rpm(rpm: u32) -> Self {
-        AngularVelocity(rpm)
+    /// Creates an `AngularVelocity` struct from a value measuring revolutions per minute.
+    pub fn from_rpm(rpm: impl Into<u32>) -> Self {
+        AngularVelocity(rpm.into())
     }
 
-    /// Return this AngularVelocity's value in revolutions per minute.
+    /// Returns the struct's value in revolutions per minute.
     pub fn as_rpm(self) -> u32 {
         self.0
     }
 }
 
 impl Raw for AngularVelocity {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<u32>()
             .map(AngularVelocity::from_rpm)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

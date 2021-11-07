@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 use std::fmt;
@@ -9,33 +9,40 @@ use std::ops::{Add, Div, Mul};
 pub struct Power(u32);
 
 impl Power {
-    /// Create a Power struct from a value measuring watts.
-    pub fn from_watts(degrees: impl Into<f64>) -> Self {
-        Self((degrees.into() * 1_000_000.0) as u32)
+    /// Tries to create a `Power` struct from a value measuring watts.
+    /// Returns an error if the given value is out of bounds.
+    pub fn try_from_watts(watts: impl Into<f64>) -> UnitResult<Self> {
+        let watts = watts.into();
+
+        if !watts.is_finite() || watts < 0.0 || watts > f64::from(u32::MAX / 1_000_000) {
+            return Err(UnitError::invalid_value(watts));
+        }
+
+        Ok(Self((watts * 1_000_000.0) as u32))
     }
 
-    /// Create a Power struct from a value measuring microwatts.
+    /// Creates a `Power` struct from a value measuring microwatts.
     pub fn from_microwatts(microwatts: impl Into<u32>) -> Self {
         Self(microwatts.into())
     }
 
-    /// Returns this struct's value as watts.
+    /// Returns the struct's value as watts.
     pub fn as_watts(self) -> f64 {
         f64::from(self.0) / 1_000_000.0
     }
 
-    /// Returns this struct's value as microwatts.
+    /// Returns the struct's value as microwatts.
     pub fn as_microwatts(self) -> u32 {
         self.0
     }
 }
 
 impl Raw for Power {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<u32>()
             .map(Power::from_microwatts)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {
@@ -70,5 +77,22 @@ impl<T: Into<u32>> Div<T> for Power {
 
     fn div(self, other: T) -> Power {
         Power(self.0 / other.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_out_of_bounds() {
+        assert!(Power::try_from_watts(f64::INFINITY).is_err());
+        assert!(Power::try_from_watts(f64::NEG_INFINITY).is_err());
+        assert!(Power::try_from_watts(f64::NAN).is_err());
+        assert!(Power::try_from_watts(-100.0).is_err());
+        assert!(Power::try_from_watts(0.0).is_ok());
+        assert!(Power::try_from_watts(50.0).is_ok());
+        assert!(Power::try_from_watts(u32::MAX / 1_000_000).is_ok());
+        assert!(Power::try_from_watts(u32::MAX / 1_000_000 + 1).is_err());
     }
 }

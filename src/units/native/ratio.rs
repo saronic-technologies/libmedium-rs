@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 use std::fmt;
@@ -9,28 +9,28 @@ use std::ops::{Add, Div, Mul};
 pub struct Ratio(u32);
 
 impl Ratio {
-    /// Create a Ratio struct from a value measuring millipercent.
+    /// Creates a `Ratio` struct from a value measuring millipercent.
     pub fn from_milli_percent(millis: u32) -> Self {
         Self(millis)
     }
 
-    /// Returns this struct's value as millipercent.
+    /// Returns the struct's value as millipercent.
     pub fn as_milli_percent(self) -> u32 {
         self.0
     }
 
-    /// Returns this struct's value as percent.
+    /// Returns the struct's value as percent.
     pub fn as_percent(self) -> f64 {
         f64::from(self.0) / 1000.0
     }
 }
 
 impl Raw for Ratio {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<u32>()
             .map(Ratio::from_milli_percent)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

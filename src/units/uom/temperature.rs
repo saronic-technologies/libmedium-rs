@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 
@@ -9,12 +9,12 @@ pub type Temperature =
     uom::si::thermodynamic_temperature::ThermodynamicTemperature<uom::si::SI<f64>, f64>;
 
 impl Raw for Temperature {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<f64>()
             .map(|celsius| celsius + 273150.0)
             .map(Temperature::new::<MilliKelvin>)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {

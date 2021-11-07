@@ -1,4 +1,4 @@
-use crate::units::{Error as RawError, Raw, Result as RawSensorResult};
+use crate::units::{Error as UnitError, Raw, Result as UnitResult};
 
 use std::borrow::Cow;
 use std::fmt;
@@ -9,19 +9,28 @@ use std::ops::{Add, Div, Mul};
 pub struct Current(i32);
 
 impl Current {
-    /// Create a Current struct from a value measuring milliamperes.
-    pub fn from_milli_amperes(millis: i32) -> Current {
-        Current(millis)
+    /// Creates a `Current` struct from a value measuring milliamperes.
+    pub fn from_milli_amperes(millis: impl Into<i32>) -> Current {
+        Current(millis.into())
     }
 
-    /// Return this Current's value in milliamperes.
+    /// Returns the struct's value in milliamperes.
     pub fn as_milli_amperes(self) -> i32 {
         self.0
     }
 
-    /// Create a Current struct from a value measuring amperes.
-    pub fn from_amperes(joules: impl Into<f64>) -> Current {
-        Self::from_milli_amperes((joules.into() * 1_000.0) as i32)
+    /// Tries to create a `Current` struct from a value measuring amperes.
+    pub fn try_from_amperes(amperes: impl Into<f64>) -> UnitResult<Current> {
+        let amperes = amperes.into();
+
+        if !amperes.is_finite()
+            || amperes > f64::from(i32::MAX / 1_000)
+            || amperes < f64::from(i32::MIN / 1_000)
+        {
+            return Err(UnitError::invalid_value(amperes));
+        }
+
+        Ok(Self::from_milli_amperes((amperes * 1_000.0) as i32))
     }
 
     /// Return this Current's value in amperes.
@@ -31,11 +40,11 @@ impl Current {
 }
 
 impl Raw for Current {
-    fn from_raw(raw: &str) -> RawSensorResult<Self> {
+    fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.trim()
             .parse::<i32>()
             .map(Current::from_milli_amperes)
-            .map_err(|_| RawError::from(raw))
+            .map_err(|_| UnitError::raw_conversion(raw))
     }
 
     fn to_raw(&self) -> Cow<str> {
@@ -70,5 +79,24 @@ impl<T: Into<i32>> Div<T> for Current {
 
     fn div(self, other: T) -> Current {
         Current(self.0 / other.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_out_of_bounds() {
+        assert!(Current::try_from_amperes(f64::INFINITY).is_err());
+        assert!(Current::try_from_amperes(f64::NEG_INFINITY).is_err());
+        assert!(Current::try_from_amperes(f64::NAN).is_err());
+        assert!(Current::try_from_amperes(-100.0).is_ok());
+        assert!(Current::try_from_amperes(0.0).is_ok());
+        assert!(Current::try_from_amperes(50.0).is_ok());
+        assert!(Current::try_from_amperes(i32::MAX / 1_000).is_ok());
+        assert!(Current::try_from_amperes(i32::MAX / 1_000 + 1).is_err());
+        assert!(Current::try_from_amperes(i32::MIN / 1_000).is_ok());
+        assert!(Current::try_from_amperes(i32::MIN / 1_000 - 1).is_err());
     }
 }

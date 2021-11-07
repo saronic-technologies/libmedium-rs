@@ -10,7 +10,7 @@ Just add this to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-libmedium = "0.5"
+libmedium = "0.6"
 ```
 
 ## Cargo-Features
@@ -57,7 +57,7 @@ let hwmons = parse_hwmons().unwrap();
 for (_, _, hwmon) in &hwmons {
     for (_, pwm) in hwmon.writeable_pwms() {
         pwm.write_enable(PwmEnable::ManualControl).unwrap();
-        pwm.write_pwm(Pwm::from_percent(100.0)).unwrap();
+        pwm.write_pwm(Pwm::from_u8(255)).unwrap();
     }
 }
 ```
