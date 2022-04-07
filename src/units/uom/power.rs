@@ -28,7 +28,7 @@ mod tests {
     #[test]
     fn test_from_raw() {
         let av = Power::from_raw("200").unwrap();
-        assert_eq!(av.get::<MicroWatt>(), 200.0);
+        assert_eq!(av.get::<MicroWatt>().round(), 200.0);
     }
 
     #[test]
