@@ -35,19 +35,17 @@ where
     use std::io::ErrorKind as IoErrorKind;
 
     let mut sensors = BTreeMap::new();
-    for index in start_index.. {
+    for index in start_index..=u16::MAX {
         match S::parse(hwmon, index) {
             Ok(sensor) => {
                 sensors.insert(index, sensor);
             }
             Err(ParsingError::Sensor { source, path }) => {
-                if source.kind() == IoErrorKind::NotFound {
-                    break;
+                if source.kind() != IoErrorKind::NotFound {
+                    return Err(ParsingError::sensor(source, path));
                 }
-
-                return Err(ParsingError::sensor(source, path));
             }
-            _ => unreachable!(),
+            Err(e) => return Err(e),
         }
     }
 
