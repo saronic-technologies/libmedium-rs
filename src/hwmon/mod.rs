@@ -34,14 +34,16 @@ pub mod tests {
 
         VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
             .add_temp(1, 40000, "temp1")
-            .add_temp(2, 60000, "temp2");
+            .add_temp(2, 60000, "temp2")
+            .add_temp(4, 30000, "temp4");
 
         let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let temps = hwmon.temps();
 
-        temps.get(&1u16).unwrap();
-        temps.get(&2u16).unwrap();
+        assert_eq!(true, temps.get(&1u16).is_some());
+        assert_eq!(true, temps.get(&2u16).is_some());
+        assert_eq!(true, temps.get(&4u16).is_some());
 
         assert_eq!(true, temps.get(&3u16).is_none());
     }
@@ -52,14 +54,16 @@ pub mod tests {
 
         VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
             .add_pwm(1, true, true)
-            .add_pwm(2, true, true);
+            .add_pwm(2, true, true)
+            .add_pwm(4, true, true);
 
         let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
         let hwmon = hwmons.hwmon_by_index(0).unwrap();
         let pwms = hwmon.pwms();
 
-        pwms.get(&1u16).unwrap();
-        pwms.get(&2u16).unwrap();
+        assert_eq!(true, pwms.get(&1u16).is_some());
+        assert_eq!(true, pwms.get(&2u16).is_some());
+        assert_eq!(true, pwms.get(&4u16).is_some());
 
         assert_eq!(true, pwms.get(&3u16).is_none());
     }

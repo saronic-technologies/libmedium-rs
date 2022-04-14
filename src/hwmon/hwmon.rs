@@ -40,12 +40,14 @@ where
             Ok(sensor) => {
                 sensors.insert(index, sensor);
             }
-            Err(ParsingError::Sensor { source, path }) => {
-                if source.kind() != IoErrorKind::NotFound {
-                    return Err(ParsingError::sensor(source, path));
+            Err(e) => match &e {
+                ParsingError::Sensor { source, .. } => {
+                    if source.kind() != IoErrorKind::NotFound {
+                        return Err(e);
+                    }
                 }
-            }
-            Err(e) => return Err(e),
+                _ => return Err(e),
+            },
         }
     }
 
