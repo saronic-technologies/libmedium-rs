@@ -2,10 +2,11 @@ use std::{
     error::Error as StdError,
     fmt::{Display, Formatter},
     io::Error as IoError,
+    num::ParseIntError,
     path::PathBuf,
 };
 
-pub(super) type Result<T> = std::result::Result<T, Error>;
+pub(crate) type Result<T> = std::result::Result<T, Error>;
 
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -18,6 +19,12 @@ pub enum Error {
 
     /// Error listing the contents of the hwmon directory
     HwmonDir { source: IoError, path: PathBuf },
+
+    /// Error parsing the hwmon's index
+    HwmonIndex {
+        source: ParseIntError,
+        path: PathBuf,
+    },
 
     /// Error parsing sensor
     Sensor { source: IoError, path: PathBuf },
@@ -42,6 +49,12 @@ impl Error {
         Error::HwmonDir { source, path }
     }
 
+    pub(crate) fn hwmon_index(source: ParseIntError, path: impl Into<PathBuf>) -> Self {
+        let path = path.into();
+
+        Error::HwmonIndex { source, path }
+    }
+
     pub(crate) fn sensor(source: IoError, path: impl Into<PathBuf>) -> Self {
         let path = path.into();
 
@@ -55,6 +68,7 @@ impl StdError for Error {
             Error::Hwmons { source, .. } => Some(source),
             Error::HwmonName { source, .. } => Some(source),
             Error::HwmonDir { source, .. } => Some(source),
+            Error::HwmonIndex { source, .. } => Some(source),
             Error::Sensor { source, .. } => Some(source),
         }
     }
@@ -78,15 +92,15 @@ impl Display for Error {
                 path.display(),
                 source
             ),
+            Error::HwmonIndex { source, path } => write!(
+                f,
+                "Error parsing index of hwmon at {}: {}",
+                path.display(),
+                source
+            ),
             Error::Sensor { source, path } => {
                 write!(f, "Error parsing sensor at {}: {}", path.display(), source)
             }
         }
     }
-}
-
-pub(crate) trait Parseable: Sized {
-    type Parent;
-
-    fn parse(parent: &Self::Parent, index: u16) -> Result<Self>;
 }

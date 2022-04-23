@@ -17,7 +17,7 @@ pub enum Error {
     /// Value to convert into unit type is invalid.
     InvalidValue {
         /// The invalid value
-        value: f64
+        value: f64,
     },
 }
 

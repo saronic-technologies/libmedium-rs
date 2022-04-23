@@ -102,16 +102,16 @@ impl Default for PwmEnable {
 #[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmMode {
-    DC,
-    PWM,
+    Dc,
+    Pwm,
     Automatic,
 }
 
 impl Raw for PwmMode {
     fn from_raw(raw: &str) -> UnitResult<Self> {
         match raw {
-            "0" => Ok(PwmMode::DC),
-            "1" => Ok(PwmMode::PWM),
+            "0" => Ok(PwmMode::Dc),
+            "1" => Ok(PwmMode::Pwm),
             "2" => Ok(PwmMode::Automatic),
             raw => Err(UnitError::raw_conversion(raw)),
         }
@@ -119,8 +119,8 @@ impl Raw for PwmMode {
 
     fn to_raw(&self) -> Cow<str> {
         match self {
-            PwmMode::DC => Cow::from("0"),
-            PwmMode::PWM => Cow::from("1"),
+            PwmMode::Dc => Cow::from("0"),
+            PwmMode::Pwm => Cow::from("1"),
             PwmMode::Automatic => Cow::from("2"),
         }
     }
