@@ -51,7 +51,7 @@ impl Raw for Pwm {
     fn from_raw(raw: &str) -> UnitResult<Self> {
         raw.parse::<u8>()
             .map(Pwm::from_u8)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

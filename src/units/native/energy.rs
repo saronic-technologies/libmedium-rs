@@ -42,7 +42,7 @@ impl Raw for Energy {
         raw.trim()
             .parse::<u32>()
             .map(Energy::from_micro_joules)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

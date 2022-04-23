@@ -30,7 +30,7 @@ impl Raw for Ratio {
         raw.trim()
             .parse::<u32>()
             .map(Ratio::from_milli_percent)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

@@ -45,7 +45,7 @@ impl Raw for Voltage {
         raw.trim()
             .parse::<i32>()
             .map(Voltage::from_milli_volts)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

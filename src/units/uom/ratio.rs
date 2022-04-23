@@ -12,7 +12,7 @@ impl Raw for Ratio {
         raw.trim()
             .parse::<f64>()
             .map(Ratio::new::<Percent>)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing_float)
     }
 
     fn to_raw(&self) -> Cow<str> {

@@ -55,7 +55,7 @@ impl Raw for Temperature {
         raw.trim()
             .parse::<i32>()
             .map(Temperature::from_millidegrees_celsius)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

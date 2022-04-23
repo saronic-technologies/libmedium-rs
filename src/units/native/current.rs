@@ -44,7 +44,7 @@ impl Raw for Current {
         raw.trim()
             .parse::<i32>()
             .map(Current::from_milli_amperes)
-            .map_err(|_| UnitError::raw_conversion(raw))
+            .map_err(UnitError::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {

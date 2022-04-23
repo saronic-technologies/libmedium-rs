@@ -68,7 +68,7 @@ impl Raw for Duration {
         raw.trim()
             .parse::<u64>()
             .map(Duration::from_millis)
-            .map_err(|_| Error::raw_conversion(raw))
+            .map_err(Error::parsing)
     }
 
     fn to_raw(&self) -> Cow<str> {
