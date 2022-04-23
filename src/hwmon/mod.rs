@@ -3,7 +3,7 @@
 mod helper_functions;
 mod iterator;
 
-pub use iterator::Iter;
+pub use iterator::{Iter, NamedIter};
 
 use crate::parsing::{Error as ParsingError, Parseable, Result as ParsingResult};
 use crate::sensors::*;
@@ -352,12 +352,10 @@ impl Hwmons {
         &self.path
     }
 
-    /// Get `Hwmon`s by their name.
+    /// Returns an iterator over all hwmons with the given name and their indices.
     /// Returns an empty iterator, if there is no `Hwmon` with the given name.
-    pub fn hwmons_by_name(&self, name: impl AsRef<str>) -> impl Iterator<Item = &Hwmon> {
-        self.hwmons
-            .values()
-            .filter(move |hwmon| hwmon.name() == name.as_ref())
+    pub fn hwmons_by_name<N: AsRef<str>>(&self, name: N) -> NamedIter<N> {
+        NamedIter::new(self.iter(), name)
     }
 
     /// Get a `Hwmon` by its index.
