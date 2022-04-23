@@ -1,5 +1,6 @@
 use crate::hwmon::Hwmons;
 use crate::tests::*;
+use std::time::Duration;
 
 use temp_dir::TempDir;
 
@@ -15,6 +16,7 @@ fn test_hwmon_parse() {
     let bar = hwmons.hwmon_by_index(1).unwrap();
 
     assert_eq!("foo", foo.name());
+    assert_eq!(Duration::from_secs(1), foo.update_interval().unwrap());
     assert_eq!(test_dir.path().join("hwmon0"), foo.path());
     assert_eq!("bar", bar.name());
     assert_eq!(test_dir.path().join("hwmon1"), bar.path());

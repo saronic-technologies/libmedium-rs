@@ -22,8 +22,6 @@ pub(crate) fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<
 where
     S: Parseable<Parent = Hwmon>,
 {
-    use std::io::ErrorKind as IoErrorKind;
-
     let mut sensors = BTreeMap::new();
     for index in start_index..=u16::MAX {
         match S::parse(hwmon, index) {

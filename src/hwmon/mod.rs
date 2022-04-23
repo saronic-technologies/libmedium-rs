@@ -1,20 +1,27 @@
 //! Module containing the Hwmon struct and related functionality.
 
+mod error;
 mod helper_functions;
 mod iterator;
 
+pub use error::Error;
 pub use iterator::{Iter, NamedIter};
+
+use error::Result;
+use helper_functions::*;
 
 use crate::parsing::{Error as ParsingError, Parseable, Result as ParsingResult};
 use crate::sensors::*;
-use helper_functions::*;
 
+use crate::units::Raw;
 use std::{
     cmp::Ordering,
     collections::BTreeMap,
     fmt::Debug,
     fs::read_to_string,
+    io::ErrorKind as IoErrorKind,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 /// Struct representing a hwmon directory.
@@ -54,6 +61,26 @@ impl Hwmon {
     pub fn device_path(&self) -> PathBuf {
         // Every hwmon in sysfs has a device link so this should never panic.
         self.path().join("device").canonicalize().unwrap()
+    }
+
+    /// Returns this hwmon's update interval.
+    /// If the hwmon does not expose the value, an error is returned.
+    pub fn update_interval(&self) -> Result<Duration> {
+        let path = self.path().join("update_interval");
+
+        match std::fs::read_to_string(&path) {
+            Ok(s) => s
+                .parse()
+                .map(Duration::from_millis)
+                .map_err(|e| Error::parsing(e, path)),
+            Err(e) => {
+                if e.kind() == IoErrorKind::NotFound {
+                    Err(Error::update_interval_not_available())
+                } else {
+                    Err(Error::io(e, path))
+                }
+            }
+        }
     }
 
     /// Returns all current sensors found in this `Hwmon`.
@@ -178,6 +205,22 @@ impl Hwmon {
 
 #[cfg(feature = "writeable")]
 impl Hwmon {
+    /// Returns this hwmon's update interval.
+    /// If the hwmon does not expose the value, an error is returned.
+    pub fn set_update_interval(&self, interval: Duration) -> Result<()> {
+        let path = self.path().join("update_interval");
+        let raw = interval.to_raw();
+
+        match std::fs::write(&path, raw.as_bytes()) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                IoErrorKind::NotFound => Err(Error::update_interval_not_available()),
+                IoErrorKind::PermissionDenied => Err(Error::insufficient_rights(path)),
+                _ => Err(Error::io(e, path)),
+            },
+        }
+    }
+
     /// Returns all writeable current sensors found in this `Hwmon`.
     pub fn writeable_currents(
         &self,

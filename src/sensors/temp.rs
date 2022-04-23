@@ -1,7 +1,7 @@
 //! Module containing the temp sensors and their related functionality.
 
 use super::*;
-use crate::hwmon::*;
+use crate::hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{Raw, TempType, Temperature};
 

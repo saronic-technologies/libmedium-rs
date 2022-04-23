@@ -27,6 +27,11 @@ impl VirtualHwmonBuilder {
             .write(name.as_ref())
             .unwrap();
 
+        File::create(path.join("update_interval"))
+            .unwrap()
+            .write("1000".as_bytes())
+            .unwrap();
+
         VirtualHwmonBuilder {
             root: root.as_ref().to_path_buf(),
             index,

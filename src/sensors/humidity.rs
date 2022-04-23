@@ -1,7 +1,7 @@
 //! Module containing the humidity sensors and their related functionality.
 
 use super::*;
-use crate::hwmon::*;
+use crate::hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::Ratio;
 
