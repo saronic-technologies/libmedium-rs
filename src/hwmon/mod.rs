@@ -70,13 +70,27 @@ impl Hwmon {
         let path = self.path().join("update_interval");
 
         match std::fs::read_to_string(&path) {
-            Ok(s) => s
-                .parse()
-                .map(Duration::from_millis)
-                .map_err(|e| Error::parsing(e, path)),
+            Ok(s) => Duration::from_raw(&s).map_err(|e| Error::unit(e, path)),
             Err(e) => {
                 if e.kind() == IoErrorKind::NotFound {
                     Err(Error::update_interval_not_available())
+                } else {
+                    Err(Error::io(e, path))
+                }
+            }
+        }
+    }
+
+    /// Returns whether this hwmon beeps if an alarm condition exists.
+    /// If the hwmon does not expose the value, an error is returned.
+    pub fn beep_enable(&self) -> Result<bool> {
+        let path = self.path().join("beep_enable");
+
+        match std::fs::read_to_string(&path) {
+            Ok(s) => bool::from_raw(&s).map_err(|e| Error::unit(e, path)),
+            Err(e) => {
+                if e.kind() == IoErrorKind::NotFound {
+                    Err(Error::beep_enable())
                 } else {
                     Err(Error::io(e, path))
                 }
@@ -219,16 +233,30 @@ impl Hwmon {
 
 #[cfg(feature = "writeable")]
 impl Hwmon {
-    /// Returns this hwmon's update interval.
+    /// Set this hwmon's update interval.
     /// If the hwmon does not expose the value, an error is returned.
     pub fn set_update_interval(&self, interval: Duration) -> Result<()> {
         let path = self.path().join("update_interval");
-        let raw = interval.to_raw();
 
-        match std::fs::write(&path, raw.as_bytes()) {
+        match std::fs::write(&path, interval.to_raw().as_bytes()) {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 IoErrorKind::NotFound => Err(Error::update_interval_not_available()),
+                IoErrorKind::PermissionDenied => Err(Error::insufficient_rights(path)),
+                _ => Err(Error::io(e, path)),
+            },
+        }
+    }
+
+    /// Set whether this hwmon beeps if an alarm condition exists.
+    /// If the hwmon does not expose the value, an error is returned.
+    pub fn set_beep_enable(&self, beep_enable: bool) -> Result<()> {
+        let path = self.path().join("beep_enable");
+
+        match std::fs::write(&path, beep_enable.to_raw().as_bytes()) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                IoErrorKind::NotFound => Err(Error::beep_enable()),
                 IoErrorKind::PermissionDenied => Err(Error::insufficient_rights(path)),
                 _ => Err(Error::io(e, path)),
             },
