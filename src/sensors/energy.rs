@@ -41,7 +41,7 @@ impl Parseable for EnergySensorStruct {
             index,
         };
 
-        inspect_sensor(energy)
+        inspect_sensor(energy, SensorSubFunctionType::Input)
     }
 }
 

@@ -20,6 +20,8 @@ pub trait CurrentSensor:
     + Average
     + Lowest
     + Highest
+    + Alarm
+    + Beep
     + std::fmt::Debug
 {
 }
@@ -55,7 +57,7 @@ impl Parseable for CurrentSensorStruct {
             index,
         };
 
-        inspect_sensor(curr)
+        inspect_sensor(curr, SensorSubFunctionType::Input)
     }
 }
 
@@ -68,6 +70,8 @@ impl LowCrit for CurrentSensorStruct {}
 impl Average for CurrentSensorStruct {}
 impl Lowest for CurrentSensorStruct {}
 impl Highest for CurrentSensorStruct {}
+impl Alarm for CurrentSensorStruct {}
+impl Beep for CurrentSensorStruct {}
 impl CurrentSensor for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -83,6 +87,8 @@ pub trait WriteableCurrentSensor:
     + WriteableMax
     + WriteableCrit
     + WriteableLowCrit
+    + WriteableAlarm
+    + WriteableBeep
 {
 }
 

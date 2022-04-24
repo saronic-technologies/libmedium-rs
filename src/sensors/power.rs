@@ -7,7 +7,17 @@ use crate::units::{Power, Ratio, Raw};
 
 /// Helper trait that sums up all functionality of a read-only power sensor.
 pub trait PowerSensor:
-    Sensor<Value = Power> + Enable + Input + Max + Crit + Average + Highest + Lowest + std::fmt::Debug
+    Sensor<Value = Power>
+    + Enable
+    + Input
+    + Max
+    + Crit
+    + Average
+    + Highest
+    + Lowest
+    + Alarm
+    + Beep
+    + std::fmt::Debug
 {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
@@ -126,7 +136,7 @@ impl Parseable for PowerSensorStruct {
             index,
         };
 
-        inspect_sensor(power)
+        inspect_sensor(power, SensorSubFunctionType::Input)
     }
 }
 
@@ -137,6 +147,8 @@ impl Crit for PowerSensorStruct {}
 impl Average for PowerSensorStruct {}
 impl Highest for PowerSensorStruct {}
 impl Lowest for PowerSensorStruct {}
+impl Alarm for PowerSensorStruct {}
+impl Beep for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -145,7 +157,13 @@ impl WriteableSensor for PowerSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write power sensor.
 pub trait WriteablePowerSensor:
-    PowerSensor + WriteableSensor + WriteableEnable + WriteableMax + WriteableCrit
+    PowerSensor
+    + WriteableSensor
+    + WriteableEnable
+    + WriteableMax
+    + WriteableCrit
+    + WriteableAlarm
+    + WriteableBeep
 {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

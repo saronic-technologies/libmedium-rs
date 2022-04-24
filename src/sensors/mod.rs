@@ -423,14 +423,14 @@ impl SensorState {
     }
 }
 
-fn inspect_sensor<S: Input>(sensor: S) -> ParsingResult<S> {
-    if let Err(e) = sensor
-        .subfunction_path(SensorSubFunctionType::Input)
-        .metadata()
-    {
+fn inspect_sensor<S: Sensor>(
+    sensor: S,
+    primary_subfunction: SensorSubFunctionType,
+) -> ParsingResult<S> {
+    if let Err(e) = sensor.subfunction_path(primary_subfunction).metadata() {
         return Err(ParsingError::sensor(
             e,
-            sensor.subfunction_path(SensorSubFunctionType::Input),
+            sensor.subfunction_path(primary_subfunction),
         ));
     }
 

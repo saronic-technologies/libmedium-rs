@@ -9,7 +9,15 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only fan sensor.
 pub trait FanSensor:
-    Sensor<Value = AngularVelocity> + Enable + Input + Min + Max + Faulty + std::fmt::Debug
+    Sensor<Value = AngularVelocity>
+    + Enable
+    + Input
+    + Min
+    + Max
+    + Faulty
+    + Alarm
+    + Beep
+    + std::fmt::Debug
 {
     /// Reads the target_revs subfunction of this fan sensor.
     ///
@@ -73,7 +81,7 @@ impl Parseable for FanSensorStruct {
             index,
         };
 
-        inspect_sensor(fan)
+        inspect_sensor(fan, SensorSubFunctionType::Input)
     }
 }
 
@@ -81,6 +89,8 @@ impl Enable for FanSensorStruct {}
 impl Min for FanSensorStruct {}
 impl Max for FanSensorStruct {}
 impl Faulty for FanSensorStruct {}
+impl Alarm for FanSensorStruct {}
+impl Beep for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -89,7 +99,13 @@ impl WriteableSensor for FanSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write fan sensor.
 pub trait WriteableFanSensor:
-    FanSensor + WriteableSensor + WriteableEnable + WriteableMin + WriteableMax
+    FanSensor
+    + WriteableSensor
+    + WriteableEnable
+    + WriteableMin
+    + WriteableMax
+    + WriteableAlarm
+    + WriteableBeep
 {
     /// Converts target and writes it to this fan's target subfunction.
     ///

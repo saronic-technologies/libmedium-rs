@@ -19,6 +19,8 @@ pub trait VoltageSensor:
     + Average
     + Lowest
     + Highest
+    + Alarm
+    + Beep
     + std::fmt::Debug
 {
 }
@@ -55,7 +57,7 @@ impl Parseable for VoltageSensorStruct {
             index,
         };
 
-        inspect_sensor(volt)
+        inspect_sensor(volt, SensorSubFunctionType::Input)
     }
 }
 
@@ -68,6 +70,8 @@ impl Crit for VoltageSensorStruct {}
 impl Average for VoltageSensorStruct {}
 impl Lowest for VoltageSensorStruct {}
 impl Highest for VoltageSensorStruct {}
+impl Alarm for VoltageSensorStruct {}
+impl Beep for VoltageSensorStruct {}
 impl VoltageSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -83,6 +87,8 @@ pub trait WriteableVoltageSensor:
     + WriteableMax
     + WriteableCrit
     + WriteableLowCrit
+    + WriteableAlarm
+    + WriteableBeep
 {
 }
 

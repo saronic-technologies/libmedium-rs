@@ -9,7 +9,17 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only temp sensor.
 pub trait TempSensor:
-    Sensor<Value = Temperature> + Enable + Input + Min + Max + Crit + LowCrit + Faulty + std::fmt::Debug
+    Sensor<Value = Temperature>
+    + Enable
+    + Input
+    + Min
+    + Max
+    + Crit
+    + LowCrit
+    + Faulty
+    + Alarm
+    + Beep
+    + std::fmt::Debug
 {
     /// Reads the type subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
@@ -100,7 +110,7 @@ impl Parseable for TempSensorStruct {
             index,
         };
 
-        inspect_sensor(temp)
+        inspect_sensor(temp, SensorSubFunctionType::Input)
     }
 }
 
@@ -122,8 +132,10 @@ impl Min for TempSensorStruct {}
 impl Max for TempSensorStruct {}
 impl Crit for TempSensorStruct {}
 impl LowCrit for TempSensorStruct {}
-impl TempSensor for TempSensorStruct {}
 impl Faulty for TempSensorStruct {}
+impl Alarm for TempSensorStruct {}
+impl Beep for TempSensorStruct {}
+impl TempSensor for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
 impl WriteableSensor for TempSensorStruct {}
@@ -138,6 +150,8 @@ pub trait WriteableTempSensor:
     + WriteableMax
     + WriteableCrit
     + WriteableLowCrit
+    + WriteableAlarm
+    + WriteableBeep
 {
     /// Converts offset and writes it to this temp's offset subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.

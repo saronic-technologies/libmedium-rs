@@ -42,7 +42,7 @@ impl Parseable for HumiditySensorStruct {
             index,
         };
 
-        inspect_sensor(humidity)
+        inspect_sensor(humidity, SensorSubFunctionType::Input)
     }
 }
 

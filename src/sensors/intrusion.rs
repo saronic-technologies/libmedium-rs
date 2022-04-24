@@ -41,17 +41,7 @@ impl Parseable for IntrusionSensorStruct {
             index,
         };
 
-        if let Err(e) = intrusion
-            .subfunction_path(SensorSubFunctionType::Alarm)
-            .metadata()
-        {
-            return Err(ParsingError::sensor(
-                e,
-                intrusion.subfunction_path(SensorSubFunctionType::Alarm),
-            ));
-        }
-
-        Ok(intrusion)
+        inspect_sensor(intrusion, SensorSubFunctionType::Alarm)
     }
 }
 
