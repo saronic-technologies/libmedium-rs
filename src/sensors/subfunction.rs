@@ -46,6 +46,8 @@ pub enum SensorSubFunctionType {
     Mode,
     Freq,
     AutoChannelsTemp,
+    Alarm,
+    Beep,
 }
 
 impl SensorSubFunctionType {
@@ -72,7 +74,7 @@ impl SensorSubFunctionType {
     }
 
     pub(crate) fn read_write_list() -> &'static [SensorSubFunctionType] {
-        const ARRAY: [SensorSubFunctionType; 24] = [
+        const ARRAY: [SensorSubFunctionType; 26] = [
             SensorSubFunctionType::Enable,
             SensorSubFunctionType::Max,
             SensorSubFunctionType::Min,
@@ -97,6 +99,8 @@ impl SensorSubFunctionType {
             SensorSubFunctionType::Mode,
             SensorSubFunctionType::Freq,
             SensorSubFunctionType::AutoChannelsTemp,
+            SensorSubFunctionType::Alarm,
+            SensorSubFunctionType::Beep,
         ];
         &ARRAY
     }
@@ -165,6 +169,8 @@ impl SensorSubFunctionType {
             SensorSubFunctionType::Mode => "_mode",
             SensorSubFunctionType::Freq => "_freq",
             SensorSubFunctionType::AutoChannelsTemp => "_auto_channels_temp",
+            SensorSubFunctionType::Alarm => "_alarm",
+            SensorSubFunctionType::Beep => "_beep",
         }
     }
 }

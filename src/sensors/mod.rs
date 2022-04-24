@@ -5,6 +5,7 @@ mod energy;
 mod error;
 mod fan;
 mod humidity;
+mod intrusion;
 mod power;
 mod pwm;
 mod subfunction;
@@ -17,6 +18,7 @@ pub use energy::*;
 pub use error::Error;
 pub use fan::*;
 pub use humidity::*;
+pub use intrusion::*;
 pub use power::*;
 pub use pwm::*;
 pub use subfunction::*;
@@ -219,6 +221,54 @@ pub trait WriteableEnable: WriteableSensor {
 
 #[cfg(feature = "writeable")]
 impl<S: WriteableSensor + Enable> WriteableEnable for S {}
+
+/// Trait implemented by all sensors except for pwm.
+/// It contains the functionality to read the alarm subfunctions.
+pub trait Alarm: Sensor {
+    /// Reads whether or not an alarm condition exists for the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Alarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+}
+
+/// Trait implemented by all writeable sensors except for pwm.
+#[cfg(feature = "writeable")]
+pub trait WriteableAlarm: WriteableSensor {
+    /// Resets this sensor's alarm condition.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn reset_alarm(&self) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Alarm, &false.to_raw())
+    }
+}
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensor + Alarm> WriteableAlarm for S {}
+
+/// Trait implemented by all sensors except for pwm.
+/// It contains the functionality to read the beep subfunctions.
+pub trait Beep: Sensor {
+    /// Reads whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_beep(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Beep)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+}
+
+/// Trait implemented by all writeable sensors except for pwm.
+#[cfg(feature = "writeable")]
+pub trait WriteableBeep: WriteableSensor {
+    /// Sets whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_beep(&self, beep: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+    }
+}
+
+#[cfg(feature = "writeable")]
+impl<S: WriteableSensor + Beep> WriteableBeep for S {}
 
 /// Trait implemented by all sensors that can have a faulty subfunction.
 pub trait Faulty: Sensor {

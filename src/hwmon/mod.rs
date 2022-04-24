@@ -34,6 +34,7 @@ pub struct Hwmon {
     energies: BTreeMap<u16, EnergySensorStruct>,
     fans: BTreeMap<u16, FanSensorStruct>,
     humidities: BTreeMap<u16, HumiditySensorStruct>,
+    intrusions: BTreeMap<u16, IntrusionSensorStruct>,
     powers: BTreeMap<u16, PowerSensorStruct>,
     pwms: BTreeMap<u16, PwmSensorStruct>,
     temps: BTreeMap<u16, TempSensorStruct>,
@@ -103,6 +104,11 @@ impl Hwmon {
         &self.humidities
     }
 
+    /// Returns all intrusion sensors found in this `Hwmon`.
+    pub fn intrusions(&self) -> &BTreeMap<u16, impl IntrusionSensor + Clone + Send + Sync> {
+        &self.intrusions
+    }
+
     /// Returns all power sensors found in this `Hwmon`.
     pub fn powers(&self) -> &BTreeMap<u16, impl PowerSensor + Clone + Send + Sync> {
         &self.powers
@@ -147,6 +153,12 @@ impl Hwmon {
         self.humidities.get(&index)
     }
 
+    /// Returns the intrusion sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn intrusion(&self, index: u16) -> Option<&(impl IntrusionSensor + Clone + Send + Sync)> {
+        self.intrusions.get(&index)
+    }
+
     /// Returns the power sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
     pub fn power(&self, index: u16) -> Option<&(impl PowerSensor + Clone + Send + Sync)> {
@@ -184,6 +196,7 @@ impl Hwmon {
             energies: BTreeMap::new(),
             fans: BTreeMap::new(),
             humidities: BTreeMap::new(),
+            intrusions: BTreeMap::new(),
             powers: BTreeMap::new(),
             pwms: BTreeMap::new(),
             temps: BTreeMap::new(),
@@ -194,6 +207,7 @@ impl Hwmon {
         hwmon.energies = init_sensors(&hwmon, 1)?;
         hwmon.fans = init_sensors(&hwmon, 1)?;
         hwmon.humidities = init_sensors(&hwmon, 1)?;
+        hwmon.intrusions = init_sensors(&hwmon, 0)?;
         hwmon.powers = init_sensors(&hwmon, 1)?;
         hwmon.pwms = init_sensors(&hwmon, 1)?;
         hwmon.temps = init_sensors(&hwmon, 1)?;
@@ -245,6 +259,13 @@ impl Hwmon {
         &self,
     ) -> &BTreeMap<u16, impl WriteableHumiditySensor + Clone + Send + Sync> {
         &self.humidities
+    }
+
+    /// Returns all writeable intrusion sensors found in this `Hwmon`.
+    pub fn writeable_intrusions(
+        &self,
+    ) -> &BTreeMap<u16, impl WriteableIntrusionSensor + Clone + Send + Sync> {
+        &self.intrusions
     }
 
     /// Returns all writeable power sensors found in this `Hwmon`.
@@ -307,6 +328,15 @@ impl Hwmon {
         index: u16,
     ) -> Option<&(impl WriteableHumiditySensor + Clone + Send + Sync)> {
         self.humidities.get(&index)
+    }
+
+    /// Returns the writeable intrusion sensor with the given index.
+    /// Returns `None`, if no sensor with the given index exists.
+    pub fn writeable_intrusion(
+        &self,
+        index: u16,
+    ) -> Option<&(impl WriteableIntrusionSensor + Clone + Send + Sync)> {
+        self.intrusions.get(&index)
     }
 
     /// Returns the writeable power sensor with the given index.
