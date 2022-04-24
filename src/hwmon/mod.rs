@@ -466,35 +466,24 @@ impl Hwmons {
 
         let mut index;
 
-        match path.read_dir() {
-            Ok(dir) => {
-                for entry in dir {
-                    match entry {
-                        Ok(entry) => {
-                            match entry.file_name().to_str() {
-                                Some(file_name) => match file_name.strip_prefix("hwmon") {
-                                    Some(rest) => {
-                                        index = rest
-                                            .parse()
-                                            .map_err(|e| ParsingError::hwmon_index(e, path))?;
-                                    }
-                                    None => continue,
-                                },
-                                None => continue,
-                            }
+        for entry in path.read_dir().map_err(|e| ParsingError::hwmons(e, path))? {
+            let entry = entry.map_err(|e| ParsingError::hwmons(e, path))?;
 
-                            match Hwmon::try_from_path(entry.path(), index) {
-                                Ok(hwmon) => {
-                                    hwmons.hwmons.insert(index, hwmon);
-                                }
-                                Err(e) => return Err(e),
-                            }
-                        }
-                        Err(e) => return Err(ParsingError::hwmons(e, path)),
+            match entry.file_name().to_str() {
+                Some(file_name) => match file_name.strip_prefix("hwmon") {
+                    Some(rest) => {
+                        index = rest
+                            .parse()
+                            .map_err(|e| ParsingError::hwmon_index(e, path))?;
                     }
-                }
+                    None => continue,
+                },
+                None => continue,
             }
-            Err(e) => return Err(ParsingError::hwmons(e, path)),
+
+            hwmons
+                .hwmons
+                .insert(index, Hwmon::try_from_path(entry.path(), index)?);
         }
 
         Ok(hwmons)
