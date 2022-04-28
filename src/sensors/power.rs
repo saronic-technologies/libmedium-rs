@@ -8,15 +8,17 @@ use crate::units::{Power, Ratio, Raw};
 /// Helper trait that sums up all functionality of a read-only power sensor.
 pub trait PowerSensor:
     Sensor<Value = Power>
-    + Enable
-    + Input
-    + Max
-    + Crit
-    + Average
-    + Highest
-    + Lowest
-    + Alarm
-    + Beep
+    + subfunctions::Enable
+    + subfunctions::Input
+    + subfunctions::Max
+    + subfunctions::Crit
+    + subfunctions::Average
+    + subfunctions::Highest
+    + subfunctions::Lowest
+    + subfunctions::Alarm
+    + subfunctions::CritAlarm
+    + subfunctions::CapAlarm
+    + subfunctions::Beep
     + std::fmt::Debug
 {
     /// Reads the accuracy subfunction of this power sensor.
@@ -140,15 +142,16 @@ impl Parseable for PowerSensorStruct {
     }
 }
 
-impl Enable for PowerSensorStruct {}
-impl Input for PowerSensorStruct {}
-impl Max for PowerSensorStruct {}
-impl Crit for PowerSensorStruct {}
-impl Average for PowerSensorStruct {}
-impl Highest for PowerSensorStruct {}
-impl Lowest for PowerSensorStruct {}
-impl Alarm for PowerSensorStruct {}
-impl Beep for PowerSensorStruct {}
+impl subfunctions::Enable for PowerSensorStruct {}
+impl subfunctions::Input for PowerSensorStruct {}
+impl subfunctions::Max for PowerSensorStruct {}
+impl subfunctions::Crit for PowerSensorStruct {}
+impl subfunctions::Average for PowerSensorStruct {}
+impl subfunctions::Highest for PowerSensorStruct {}
+impl subfunctions::Lowest for PowerSensorStruct {}
+impl subfunctions::Alarm for PowerSensorStruct {}
+impl subfunctions::CapAlarm for PowerSensorStruct {}
+impl subfunctions::Beep for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -159,11 +162,10 @@ impl WriteableSensor for PowerSensorStruct {}
 pub trait WriteablePowerSensor:
     PowerSensor
     + WriteableSensor
-    + WriteableEnable
-    + WriteableMax
-    + WriteableCrit
-    + WriteableAlarm
-    + WriteableBeep
+    + subfunctions::WriteableEnable
+    + subfunctions::WriteableMax
+    + subfunctions::WriteableCrit
+    + subfunctions::WriteableBeep
 {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

@@ -1,6 +1,7 @@
 pub use std::{
     error::Error as StdError,
     fmt::{Display, Formatter},
+    io::Error as IoError,
     path::PathBuf,
 };
 
@@ -15,16 +16,10 @@ pub(super) type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     /// Error reading from sensor.
-    Read {
-        source: std::io::Error,
-        path: PathBuf,
-    },
+    Read { source: IoError, path: PathBuf },
 
     /// Error writing to sensor.
-    Write {
-        source: std::io::Error,
-        path: PathBuf,
-    },
+    Write { source: IoError, path: PathBuf },
 
     /// A UnitError occurred.
     UnitError { source: UnitError },
@@ -40,6 +35,22 @@ pub enum Error {
 
     /// The sensor you tried to read from or write to is disabled.
     DisabledSensor,
+}
+
+impl Error {
+    pub(crate) fn read(source: IoError, path: impl Into<PathBuf>) -> Self {
+        Self::Read {
+            source,
+            path: path.into(),
+        }
+    }
+
+    pub(crate) fn write(source: IoError, path: impl Into<PathBuf>) -> Self {
+        Self::Write {
+            source,
+            path: path.into(),
+        }
+    }
 }
 
 impl StdError for Error {

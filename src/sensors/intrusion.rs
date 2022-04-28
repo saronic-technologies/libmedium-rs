@@ -7,7 +7,10 @@ use crate::parsing::{Parseable, Result as ParsingResult};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only intrusion sensor.
-pub trait IntrusionSensor: Sensor<Value = bool> + Alarm + Beep + std::fmt::Debug {}
+pub trait IntrusionSensor:
+    Sensor<Value = bool> + subfunctions::Alarm + subfunctions::Beep + std::fmt::Debug
+{
+}
 
 /// Struct that represents a read only intrusion sensor.
 #[derive(Debug, Clone)]
@@ -45,8 +48,8 @@ impl Parseable for IntrusionSensorStruct {
     }
 }
 
-impl Alarm for IntrusionSensorStruct {}
-impl Beep for IntrusionSensorStruct {}
+impl subfunctions::Alarm for IntrusionSensorStruct {}
+impl subfunctions::Beep for IntrusionSensorStruct {}
 impl IntrusionSensor for IntrusionSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -55,7 +58,7 @@ impl WriteableSensor for IntrusionSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write intrusion sensor.
 pub trait WriteableIntrusionSensor:
-    IntrusionSensor + WriteableSensor + WriteableAlarm + WriteableBeep
+    IntrusionSensor + WriteableSensor + subfunctions::WriteableBeep
 {
 }
 

@@ -21,10 +21,7 @@ pub trait VirtualSensor<T: Raw>: std::fmt::Debug {
                 std::io::ErrorKind::PermissionDenied => Err(Error::InsufficientRights {
                     path: self.path().to_path_buf(),
                 }),
-                _ => Err(Error::Read {
-                    source: e,
-                    path: self.path().to_path_buf(),
-                }),
+                _ => Err(Error::read(e, self.path())),
             },
         }
     }
@@ -51,10 +48,7 @@ pub trait WriteableVirtualSensor<T: Raw>: VirtualSensor<T> {
             std::io::ErrorKind::PermissionDenied => Error::InsufficientRights {
                 path: self.path().to_path_buf(),
             },
-            _ => Error::Write {
-                source: e,
-                path: self.path().to_path_buf(),
-            },
+            _ => Error::write(e, self.path()),
         })
     }
 }

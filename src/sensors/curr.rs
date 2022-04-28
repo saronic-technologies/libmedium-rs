@@ -11,17 +11,21 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only current sensor.
 pub trait CurrentSensor:
     Sensor<Value = Current>
-    + Enable
-    + Input
-    + Min
-    + Max
-    + LowCrit
-    + Crit
-    + Average
-    + Lowest
-    + Highest
-    + Alarm
-    + Beep
+    + subfunctions::Enable
+    + subfunctions::Input
+    + subfunctions::Min
+    + subfunctions::Max
+    + subfunctions::LowCrit
+    + subfunctions::Crit
+    + subfunctions::Average
+    + subfunctions::Lowest
+    + subfunctions::Highest
+    + subfunctions::Alarm
+    + subfunctions::MinAlarm
+    + subfunctions::MaxAlarm
+    + subfunctions::CritAlarm
+    + subfunctions::LowCritAlarm
+    + subfunctions::Beep
     + std::fmt::Debug
 {
 }
@@ -61,17 +65,17 @@ impl Parseable for CurrentSensorStruct {
     }
 }
 
-impl Enable for CurrentSensorStruct {}
-impl Input for CurrentSensorStruct {}
-impl Min for CurrentSensorStruct {}
-impl Max for CurrentSensorStruct {}
-impl Crit for CurrentSensorStruct {}
-impl LowCrit for CurrentSensorStruct {}
-impl Average for CurrentSensorStruct {}
-impl Lowest for CurrentSensorStruct {}
-impl Highest for CurrentSensorStruct {}
-impl Alarm for CurrentSensorStruct {}
-impl Beep for CurrentSensorStruct {}
+impl subfunctions::Enable for CurrentSensorStruct {}
+impl subfunctions::Input for CurrentSensorStruct {}
+impl subfunctions::Min for CurrentSensorStruct {}
+impl subfunctions::Max for CurrentSensorStruct {}
+impl subfunctions::Crit for CurrentSensorStruct {}
+impl subfunctions::LowCrit for CurrentSensorStruct {}
+impl subfunctions::Average for CurrentSensorStruct {}
+impl subfunctions::Lowest for CurrentSensorStruct {}
+impl subfunctions::Highest for CurrentSensorStruct {}
+impl subfunctions::Alarm for CurrentSensorStruct {}
+impl subfunctions::Beep for CurrentSensorStruct {}
 impl CurrentSensor for CurrentSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -82,13 +86,12 @@ impl WriteableSensor for CurrentSensorStruct {}
 pub trait WriteableCurrentSensor:
     CurrentSensor
     + WriteableSensor
-    + WriteableEnable
-    + WriteableMin
-    + WriteableMax
-    + WriteableCrit
-    + WriteableLowCrit
-    + WriteableAlarm
-    + WriteableBeep
+    + subfunctions::WriteableEnable
+    + subfunctions::WriteableMin
+    + subfunctions::WriteableMax
+    + subfunctions::WriteableCrit
+    + subfunctions::WriteableLowCrit
+    + subfunctions::WriteableBeep
 {
 }
 

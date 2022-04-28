@@ -8,7 +8,10 @@ use crate::units::Energy;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only energy sensor.
-pub trait EnergySensor: Sensor<Value = Energy> + Enable + Input + std::fmt::Debug {}
+pub trait EnergySensor:
+    Sensor<Value = Energy> + subfunctions::Enable + subfunctions::Input + std::fmt::Debug
+{
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct EnergySensorStruct {
@@ -45,8 +48,8 @@ impl Parseable for EnergySensorStruct {
     }
 }
 
-impl Enable for EnergySensorStruct {}
-impl Input for EnergySensorStruct {}
+impl subfunctions::Enable for EnergySensorStruct {}
+impl subfunctions::Input for EnergySensorStruct {}
 impl EnergySensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -54,7 +57,10 @@ impl WriteableSensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write energy sensor.
-pub trait WriteableEnergySensor: EnergySensor + WriteableSensor + WriteableEnable {}
+pub trait WriteableEnergySensor:
+    EnergySensor + WriteableSensor + subfunctions::WriteableEnable
+{
+}
 
 #[cfg(feature = "writeable")]
 impl WriteableEnergySensor for EnergySensorStruct {}

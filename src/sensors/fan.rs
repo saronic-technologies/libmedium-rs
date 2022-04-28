@@ -10,13 +10,15 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only fan sensor.
 pub trait FanSensor:
     Sensor<Value = AngularVelocity>
-    + Enable
-    + Input
-    + Min
-    + Max
-    + Faulty
-    + Alarm
-    + Beep
+    + subfunctions::Enable
+    + subfunctions::Input
+    + subfunctions::Min
+    + subfunctions::Max
+    + subfunctions::Faulty
+    + subfunctions::Alarm
+    + subfunctions::MinAlarm
+    + subfunctions::MaxAlarm
+    + subfunctions::Beep
     + std::fmt::Debug
 {
     /// Reads the target_revs subfunction of this fan sensor.
@@ -59,19 +61,6 @@ impl Sensor for FanSensorStruct {
     }
 }
 
-impl Input for FanSensorStruct {
-    /// Reads the input subfunction of this fan sensor.
-    /// Returns an error, if this sensor doesn't support the subfunction.
-    fn read_input(&self) -> Result<AngularVelocity> {
-        if self.read_faulty().unwrap_or(false) {
-            return Err(Error::FaultySensor);
-        }
-
-        let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        AngularVelocity::from_raw(&raw).map_err(Error::from)
-    }
-}
-
 impl Parseable for FanSensorStruct {
     type Parent = Hwmon;
 
@@ -85,12 +74,13 @@ impl Parseable for FanSensorStruct {
     }
 }
 
-impl Enable for FanSensorStruct {}
-impl Min for FanSensorStruct {}
-impl Max for FanSensorStruct {}
-impl Faulty for FanSensorStruct {}
-impl Alarm for FanSensorStruct {}
-impl Beep for FanSensorStruct {}
+impl subfunctions::Input for FanSensorStruct {}
+impl subfunctions::Enable for FanSensorStruct {}
+impl subfunctions::Min for FanSensorStruct {}
+impl subfunctions::Max for FanSensorStruct {}
+impl subfunctions::Faulty for FanSensorStruct {}
+impl subfunctions::Alarm for FanSensorStruct {}
+impl subfunctions::Beep for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -101,11 +91,10 @@ impl WriteableSensor for FanSensorStruct {}
 pub trait WriteableFanSensor:
     FanSensor
     + WriteableSensor
-    + WriteableEnable
-    + WriteableMin
-    + WriteableMax
-    + WriteableAlarm
-    + WriteableBeep
+    + subfunctions::WriteableEnable
+    + subfunctions::WriteableMin
+    + subfunctions::WriteableMax
+    + subfunctions::WriteableBeep
 {
     /// Converts target and writes it to this fan's target subfunction.
     ///

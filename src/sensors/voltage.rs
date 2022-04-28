@@ -10,17 +10,21 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only voltage sensor.
 pub trait VoltageSensor:
     Sensor<Value = Voltage>
-    + Enable
-    + Input
-    + Min
-    + Max
-    + LowCrit
-    + Crit
-    + Average
-    + Lowest
-    + Highest
-    + Alarm
-    + Beep
+    + subfunctions::Enable
+    + subfunctions::Input
+    + subfunctions::Min
+    + subfunctions::Max
+    + subfunctions::LowCrit
+    + subfunctions::Crit
+    + subfunctions::Average
+    + subfunctions::Lowest
+    + subfunctions::Highest
+    + subfunctions::Alarm
+    + subfunctions::MinAlarm
+    + subfunctions::MaxAlarm
+    + subfunctions::CritAlarm
+    + subfunctions::LowCritAlarm
+    + subfunctions::Beep
     + std::fmt::Debug
 {
 }
@@ -61,17 +65,17 @@ impl Parseable for VoltageSensorStruct {
     }
 }
 
-impl Enable for VoltageSensorStruct {}
-impl Input for VoltageSensorStruct {}
-impl Min for VoltageSensorStruct {}
-impl Max for VoltageSensorStruct {}
-impl LowCrit for VoltageSensorStruct {}
-impl Crit for VoltageSensorStruct {}
-impl Average for VoltageSensorStruct {}
-impl Lowest for VoltageSensorStruct {}
-impl Highest for VoltageSensorStruct {}
-impl Alarm for VoltageSensorStruct {}
-impl Beep for VoltageSensorStruct {}
+impl subfunctions::Enable for VoltageSensorStruct {}
+impl subfunctions::Input for VoltageSensorStruct {}
+impl subfunctions::Min for VoltageSensorStruct {}
+impl subfunctions::Max for VoltageSensorStruct {}
+impl subfunctions::LowCrit for VoltageSensorStruct {}
+impl subfunctions::Crit for VoltageSensorStruct {}
+impl subfunctions::Average for VoltageSensorStruct {}
+impl subfunctions::Lowest for VoltageSensorStruct {}
+impl subfunctions::Highest for VoltageSensorStruct {}
+impl subfunctions::Alarm for VoltageSensorStruct {}
+impl subfunctions::Beep for VoltageSensorStruct {}
 impl VoltageSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -82,13 +86,12 @@ impl WriteableSensor for VoltageSensorStruct {}
 pub trait WriteableVoltageSensor:
     VoltageSensor
     + WriteableSensor
-    + WriteableEnable
-    + WriteableMin
-    + WriteableMax
-    + WriteableCrit
-    + WriteableLowCrit
-    + WriteableAlarm
-    + WriteableBeep
+    + subfunctions::WriteableEnable
+    + subfunctions::WriteableMin
+    + subfunctions::WriteableMax
+    + subfunctions::WriteableCrit
+    + subfunctions::WriteableLowCrit
+    + subfunctions::WriteableBeep
 {
 }
 

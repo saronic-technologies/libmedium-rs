@@ -8,7 +8,10 @@ use crate::units::Ratio;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only humidity sensor.
-pub trait HumiditySensor: Sensor<Value = Ratio> + Enable + Input + std::fmt::Debug {}
+pub trait HumiditySensor:
+    Sensor<Value = Ratio> + subfunctions::Enable + subfunctions::Input + std::fmt::Debug
+{
+}
 
 /// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]
@@ -46,8 +49,8 @@ impl Parseable for HumiditySensorStruct {
     }
 }
 
-impl Enable for HumiditySensorStruct {}
-impl Input for HumiditySensorStruct {}
+impl subfunctions::Enable for HumiditySensorStruct {}
+impl subfunctions::Input for HumiditySensorStruct {}
 impl HumiditySensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -55,7 +58,10 @@ impl WriteableSensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write humidity sensor.
-pub trait WriteableHumiditySensor: HumiditySensor + WriteableSensor + WriteableEnable {}
+pub trait WriteableHumiditySensor:
+    HumiditySensor + WriteableSensor + subfunctions::WriteableEnable
+{
+}
 
 #[cfg(feature = "writeable")]
 impl WriteableHumiditySensor for HumiditySensorStruct {}

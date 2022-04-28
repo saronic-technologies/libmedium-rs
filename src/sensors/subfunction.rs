@@ -47,12 +47,18 @@ pub enum SensorSubFunctionType {
     Freq,
     AutoChannelsTemp,
     Alarm,
+    MinAlarm,
+    MaxAlarm,
+    CritAlarm,
+    LowCritAlarm,
+    CapAlarm,
+    EmergencyAlarm,
     Beep,
 }
 
 impl SensorSubFunctionType {
     pub(crate) fn read_only_list() -> &'static [SensorSubFunctionType] {
-        const ARRAY: [SensorSubFunctionType; 16] = [
+        const ARRAY: [SensorSubFunctionType; 23] = [
             SensorSubFunctionType::Input,
             SensorSubFunctionType::Fault,
             SensorSubFunctionType::Label,
@@ -69,12 +75,19 @@ impl SensorSubFunctionType {
             SensorSubFunctionType::Accuracy,
             SensorSubFunctionType::CapMin,
             SensorSubFunctionType::CapMax,
+            SensorSubFunctionType::Alarm,
+            SensorSubFunctionType::MinAlarm,
+            SensorSubFunctionType::MaxAlarm,
+            SensorSubFunctionType::CritAlarm,
+            SensorSubFunctionType::LowCritAlarm,
+            SensorSubFunctionType::CapAlarm,
+            SensorSubFunctionType::EmergencyAlarm,
         ];
         &ARRAY
     }
 
     pub(crate) fn read_write_list() -> &'static [SensorSubFunctionType] {
-        const ARRAY: [SensorSubFunctionType; 26] = [
+        const ARRAY: [SensorSubFunctionType; 25] = [
             SensorSubFunctionType::Enable,
             SensorSubFunctionType::Max,
             SensorSubFunctionType::Min,
@@ -99,7 +112,6 @@ impl SensorSubFunctionType {
             SensorSubFunctionType::Mode,
             SensorSubFunctionType::Freq,
             SensorSubFunctionType::AutoChannelsTemp,
-            SensorSubFunctionType::Alarm,
             SensorSubFunctionType::Beep,
         ];
         &ARRAY
@@ -170,6 +182,12 @@ impl SensorSubFunctionType {
             SensorSubFunctionType::Freq => "_freq",
             SensorSubFunctionType::AutoChannelsTemp => "_auto_channels_temp",
             SensorSubFunctionType::Alarm => "_alarm",
+            SensorSubFunctionType::MinAlarm => "_min_alarm",
+            SensorSubFunctionType::MaxAlarm => "_max_alarm",
+            SensorSubFunctionType::CritAlarm => "_crit_alarm",
+            SensorSubFunctionType::LowCritAlarm => "_lcrit_alarm",
+            SensorSubFunctionType::CapAlarm => "_cap_alarm",
+            SensorSubFunctionType::EmergencyAlarm => "_emergency_alarm",
             SensorSubFunctionType::Beep => "_beep",
         }
     }
