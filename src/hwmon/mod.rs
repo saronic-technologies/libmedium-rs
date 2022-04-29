@@ -430,7 +430,7 @@ impl Parseable for Hwmon {
     type Parent = Hwmons;
 
     fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let path = parent.path().join(format!("hwmon{}", index));
+        let path = parent.path.join(format!("hwmon{}", index));
 
         Self::try_from_path(path, index)
     }
@@ -448,11 +448,6 @@ impl Hwmons {
     /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
     pub fn parse() -> ParsingResult<Self> {
         Self::parse_path("/sys/class/hwmon/")
-    }
-
-    /// The path that was parsed to generate this object.
-    pub fn path(&self) -> &Path {
-        &self.path
     }
 
     /// Returns an iterator over all hwmons with the given name and their indices.
@@ -484,6 +479,12 @@ impl Hwmons {
     #[cfg(feature = "unrestricted_parsing")]
     pub fn parse_unrestricted(path: impl AsRef<Path>) -> ParsingResult<Self> {
         Self::parse_path(path)
+    }
+
+    /// The path that was parsed to generate this object.
+    #[cfg(feature = "unrestricted_parsing")]
+    pub fn path(&self) -> &Path {
+        &self.path
     }
 
     pub(crate) fn parse_path(path: impl AsRef<Path>) -> ParsingResult<Self> {
