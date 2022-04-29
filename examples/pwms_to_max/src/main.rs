@@ -1,6 +1,6 @@
 use libmedium::{
     parse_hwmons,
-    sensors::WriteablePwmSensor,
+    sensors::pwm::WriteablePwmSensor,
     units::{Pwm, PwmEnable},
 };
 

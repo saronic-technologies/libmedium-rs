@@ -1,4 +1,4 @@
-//! Module containing the subfunction traits.
+//! Module containing the shared subfunction traits.
 
 mod alarm;
 mod average;

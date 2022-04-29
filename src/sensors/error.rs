@@ -51,6 +51,10 @@ impl Error {
             path: path.into(),
         }
     }
+
+    pub(crate) fn insufficient_rights(path: impl Into<PathBuf>) -> Self {
+        Self::InsufficientRights { path: path.into() }
+    }
 }
 
 impl StdError for Error {

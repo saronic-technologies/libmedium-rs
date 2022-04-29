@@ -8,17 +8,17 @@ use crate::units::{Power, Ratio, Raw};
 /// Helper trait that sums up all functionality of a read-only power sensor.
 pub trait PowerSensor:
     Sensor<Value = Power>
-    + subfunctions::Enable
-    + subfunctions::Input
-    + subfunctions::Max
-    + subfunctions::Crit
-    + subfunctions::Average
-    + subfunctions::Highest
-    + subfunctions::Lowest
-    + subfunctions::Alarm
-    + subfunctions::CritAlarm
-    + subfunctions::CapAlarm
-    + subfunctions::Beep
+    + shared_subfunctions::Enable
+    + shared_subfunctions::Input
+    + shared_subfunctions::Max
+    + shared_subfunctions::Crit
+    + shared_subfunctions::Average
+    + shared_subfunctions::Highest
+    + shared_subfunctions::Lowest
+    + shared_subfunctions::Alarm
+    + shared_subfunctions::CritAlarm
+    + shared_subfunctions::CapAlarm
+    + shared_subfunctions::Beep
     + std::fmt::Debug
 {
     /// Reads the accuracy subfunction of this power sensor.
@@ -142,16 +142,16 @@ impl Parseable for PowerSensorStruct {
     }
 }
 
-impl subfunctions::Enable for PowerSensorStruct {}
-impl subfunctions::Input for PowerSensorStruct {}
-impl subfunctions::Max for PowerSensorStruct {}
-impl subfunctions::Crit for PowerSensorStruct {}
-impl subfunctions::Average for PowerSensorStruct {}
-impl subfunctions::Highest for PowerSensorStruct {}
-impl subfunctions::Lowest for PowerSensorStruct {}
-impl subfunctions::Alarm for PowerSensorStruct {}
-impl subfunctions::CapAlarm for PowerSensorStruct {}
-impl subfunctions::Beep for PowerSensorStruct {}
+impl shared_subfunctions::Enable for PowerSensorStruct {}
+impl shared_subfunctions::Input for PowerSensorStruct {}
+impl shared_subfunctions::Max for PowerSensorStruct {}
+impl shared_subfunctions::Crit for PowerSensorStruct {}
+impl shared_subfunctions::Average for PowerSensorStruct {}
+impl shared_subfunctions::Highest for PowerSensorStruct {}
+impl shared_subfunctions::Lowest for PowerSensorStruct {}
+impl shared_subfunctions::Alarm for PowerSensorStruct {}
+impl shared_subfunctions::CapAlarm for PowerSensorStruct {}
+impl shared_subfunctions::Beep for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -162,10 +162,10 @@ impl WriteableSensor for PowerSensorStruct {}
 pub trait WriteablePowerSensor:
     PowerSensor
     + WriteableSensor
-    + subfunctions::WriteableEnable
-    + subfunctions::WriteableMax
-    + subfunctions::WriteableCrit
-    + subfunctions::WriteableBeep
+    + shared_subfunctions::WriteableEnable
+    + shared_subfunctions::WriteableMax
+    + shared_subfunctions::WriteableCrit
+    + shared_subfunctions::WriteableBeep
 {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.

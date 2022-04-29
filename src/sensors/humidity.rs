@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only humidity sensor.
 pub trait HumiditySensor:
-    Sensor<Value = Ratio> + subfunctions::Enable + subfunctions::Input + std::fmt::Debug
+    Sensor<Value = Ratio> + shared_subfunctions::Enable + shared_subfunctions::Input + std::fmt::Debug
 {
 }
 
@@ -49,8 +49,8 @@ impl Parseable for HumiditySensorStruct {
     }
 }
 
-impl subfunctions::Enable for HumiditySensorStruct {}
-impl subfunctions::Input for HumiditySensorStruct {}
+impl shared_subfunctions::Enable for HumiditySensorStruct {}
+impl shared_subfunctions::Input for HumiditySensorStruct {}
 impl HumiditySensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -59,7 +59,7 @@ impl WriteableSensor for HumiditySensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write humidity sensor.
 pub trait WriteableHumiditySensor:
-    HumiditySensor + WriteableSensor + subfunctions::WriteableEnable
+    HumiditySensor + WriteableSensor + shared_subfunctions::WriteableEnable
 {
 }
 

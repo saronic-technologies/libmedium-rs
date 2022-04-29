@@ -14,7 +14,7 @@ pub trait Alarm: Sensor {
     }
 }
 
-/// Trait implemented by all sensors that support the min and alarm subfunctions.
+/// Trait implemented by all sensors that support the min and alarm shared_subfunctions.
 /// It contains the functionality to read the min_alarm subfunction.
 pub trait MinAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the min subfunction of the sensor.
@@ -27,7 +27,7 @@ pub trait MinAlarm: Sensor {
 
 impl<T: super::Min + Alarm> MinAlarm for T {}
 
-/// Trait implemented by all sensors that support the max and alarm subfunctions.
+/// Trait implemented by all sensors that support the max and alarm shared_subfunctions.
 /// It contains the functionality to read the max_alarm subfunction.
 pub trait MaxAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the max subfunction of the sensor.
@@ -40,7 +40,7 @@ pub trait MaxAlarm: Sensor {
 
 impl<T: super::Max + Alarm> MaxAlarm for T {}
 
-/// Trait implemented by all sensors that support the crit and alarm subfunctions.
+/// Trait implemented by all sensors that support the crit and alarm shared_subfunctions.
 /// It contains the functionality to read the crit_alarm subfunction.
 pub trait CritAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the crit subfunction of the sensor.
@@ -53,7 +53,7 @@ pub trait CritAlarm: Sensor {
 
 impl<T: super::Crit + Alarm> CritAlarm for T {}
 
-/// Trait implemented by all sensors that support the lcrit and alarm subfunctions.
+/// Trait implemented by all sensors that support the lcrit and alarm shared_subfunctions.
 /// It contains the functionality to read the crit_alarm subfunction.
 pub trait LowCritAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the lcrit subfunction of the sensor.
@@ -66,7 +66,7 @@ pub trait LowCritAlarm: Sensor {
 
 impl<T: super::LowCrit + Alarm> LowCritAlarm for T {}
 
-/// Trait implemented by all sensors that support the cap and alarm subfunctions.
+/// Trait implemented by all sensors that support the cap and alarm shared_subfunctions.
 /// It contains the functionality to read the crit_alarm subfunction.
 pub trait CapAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the cap subfunction of the sensor.
@@ -77,7 +77,7 @@ pub trait CapAlarm: Sensor {
     }
 }
 
-/// Trait implemented by all sensors that support the emergency and alarm subfunctions.
+/// Trait implemented by all sensors that support the emergency and alarm shared_subfunctions.
 /// It contains the functionality to read the emergency_alarm subfunction.
 pub trait EmergencyAlarm: Sensor {
     /// Reads whether or not an alarm condition exists for the emergency subfunction of the sensor.

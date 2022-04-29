@@ -1,4 +1,4 @@
-use super::subfunctions::*;
+use super::shared_subfunctions::*;
 use super::*;
 use crate::hwmon::Hwmons;
 use crate::parsing::Parseable;

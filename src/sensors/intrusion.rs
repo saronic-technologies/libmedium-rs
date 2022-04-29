@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only intrusion sensor.
 pub trait IntrusionSensor:
-    Sensor<Value = bool> + subfunctions::Alarm + subfunctions::Beep + std::fmt::Debug
+    Sensor<Value = bool> + shared_subfunctions::Alarm + shared_subfunctions::Beep + std::fmt::Debug
 {
 }
 
@@ -48,8 +48,8 @@ impl Parseable for IntrusionSensorStruct {
     }
 }
 
-impl subfunctions::Alarm for IntrusionSensorStruct {}
-impl subfunctions::Beep for IntrusionSensorStruct {}
+impl shared_subfunctions::Alarm for IntrusionSensorStruct {}
+impl shared_subfunctions::Beep for IntrusionSensorStruct {}
 impl IntrusionSensor for IntrusionSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -58,7 +58,7 @@ impl WriteableSensor for IntrusionSensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write intrusion sensor.
 pub trait WriteableIntrusionSensor:
-    IntrusionSensor + WriteableSensor + subfunctions::WriteableBeep
+    IntrusionSensor + WriteableSensor + shared_subfunctions::WriteableBeep
 {
 }
 

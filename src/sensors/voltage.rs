@@ -10,21 +10,21 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only voltage sensor.
 pub trait VoltageSensor:
     Sensor<Value = Voltage>
-    + subfunctions::Enable
-    + subfunctions::Input
-    + subfunctions::Min
-    + subfunctions::Max
-    + subfunctions::LowCrit
-    + subfunctions::Crit
-    + subfunctions::Average
-    + subfunctions::Lowest
-    + subfunctions::Highest
-    + subfunctions::Alarm
-    + subfunctions::MinAlarm
-    + subfunctions::MaxAlarm
-    + subfunctions::CritAlarm
-    + subfunctions::LowCritAlarm
-    + subfunctions::Beep
+    + shared_subfunctions::Enable
+    + shared_subfunctions::Input
+    + shared_subfunctions::Min
+    + shared_subfunctions::Max
+    + shared_subfunctions::LowCrit
+    + shared_subfunctions::Crit
+    + shared_subfunctions::Average
+    + shared_subfunctions::Lowest
+    + shared_subfunctions::Highest
+    + shared_subfunctions::Alarm
+    + shared_subfunctions::MinAlarm
+    + shared_subfunctions::MaxAlarm
+    + shared_subfunctions::CritAlarm
+    + shared_subfunctions::LowCritAlarm
+    + shared_subfunctions::Beep
     + std::fmt::Debug
 {
 }
@@ -65,17 +65,17 @@ impl Parseable for VoltageSensorStruct {
     }
 }
 
-impl subfunctions::Enable for VoltageSensorStruct {}
-impl subfunctions::Input for VoltageSensorStruct {}
-impl subfunctions::Min for VoltageSensorStruct {}
-impl subfunctions::Max for VoltageSensorStruct {}
-impl subfunctions::LowCrit for VoltageSensorStruct {}
-impl subfunctions::Crit for VoltageSensorStruct {}
-impl subfunctions::Average for VoltageSensorStruct {}
-impl subfunctions::Lowest for VoltageSensorStruct {}
-impl subfunctions::Highest for VoltageSensorStruct {}
-impl subfunctions::Alarm for VoltageSensorStruct {}
-impl subfunctions::Beep for VoltageSensorStruct {}
+impl shared_subfunctions::Enable for VoltageSensorStruct {}
+impl shared_subfunctions::Input for VoltageSensorStruct {}
+impl shared_subfunctions::Min for VoltageSensorStruct {}
+impl shared_subfunctions::Max for VoltageSensorStruct {}
+impl shared_subfunctions::LowCrit for VoltageSensorStruct {}
+impl shared_subfunctions::Crit for VoltageSensorStruct {}
+impl shared_subfunctions::Average for VoltageSensorStruct {}
+impl shared_subfunctions::Lowest for VoltageSensorStruct {}
+impl shared_subfunctions::Highest for VoltageSensorStruct {}
+impl shared_subfunctions::Alarm for VoltageSensorStruct {}
+impl shared_subfunctions::Beep for VoltageSensorStruct {}
 impl VoltageSensor for VoltageSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -86,12 +86,12 @@ impl WriteableSensor for VoltageSensorStruct {}
 pub trait WriteableVoltageSensor:
     VoltageSensor
     + WriteableSensor
-    + subfunctions::WriteableEnable
-    + subfunctions::WriteableMin
-    + subfunctions::WriteableMax
-    + subfunctions::WriteableCrit
-    + subfunctions::WriteableLowCrit
-    + subfunctions::WriteableBeep
+    + shared_subfunctions::WriteableEnable
+    + shared_subfunctions::WriteableMin
+    + shared_subfunctions::WriteableMax
+    + shared_subfunctions::WriteableCrit
+    + shared_subfunctions::WriteableLowCrit
+    + shared_subfunctions::WriteableBeep
 {
 }
 

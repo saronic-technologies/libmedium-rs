@@ -9,6 +9,7 @@ use crate::units::Error as UnitError;
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
 
+/// Error returned from interacting with an hwmon.
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum Error {

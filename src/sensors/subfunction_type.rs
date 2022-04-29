@@ -1,7 +1,8 @@
-//! Module containing sensor subfunctions.
+//! Module containing sensor subfunction types.
 
 use std::fmt::{Display, Formatter, Result};
 
+/// Enum that represents a sensor subfunction type.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum SensorSubFunctionType {

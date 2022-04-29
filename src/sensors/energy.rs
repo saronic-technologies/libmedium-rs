@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only energy sensor.
 pub trait EnergySensor:
-    Sensor<Value = Energy> + subfunctions::Enable + subfunctions::Input + std::fmt::Debug
+    Sensor<Value = Energy> + shared_subfunctions::Enable + shared_subfunctions::Input + std::fmt::Debug
 {
 }
 
@@ -48,8 +48,8 @@ impl Parseable for EnergySensorStruct {
     }
 }
 
-impl subfunctions::Enable for EnergySensorStruct {}
-impl subfunctions::Input for EnergySensorStruct {}
+impl shared_subfunctions::Enable for EnergySensorStruct {}
+impl shared_subfunctions::Input for EnergySensorStruct {}
 impl EnergySensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -58,7 +58,7 @@ impl WriteableSensor for EnergySensorStruct {}
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write energy sensor.
 pub trait WriteableEnergySensor:
-    EnergySensor + WriteableSensor + subfunctions::WriteableEnable
+    EnergySensor + WriteableSensor + shared_subfunctions::WriteableEnable
 {
 }
 

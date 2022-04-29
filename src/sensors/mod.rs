@@ -1,34 +1,24 @@
 //! Module containing the sensors and their functionality.
 
-mod curr;
-mod energy;
 mod error;
-mod fan;
-mod humidity;
-mod intrusion;
-mod power;
-mod pwm;
-mod subfunction;
-mod temp;
-mod virt;
-mod voltage;
+mod subfunction_type;
 
-pub mod subfunctions;
+pub mod curr;
+pub mod energy;
+pub mod fan;
+pub mod humidity;
+pub mod intrusion;
+pub mod power;
+pub mod pwm;
+pub mod shared_subfunctions;
+pub mod temp;
+pub mod virt;
+pub mod voltage;
 
-pub use curr::*;
-pub use energy::*;
 pub use error::Error;
-pub use fan::*;
-pub use humidity::*;
-pub use intrusion::*;
-pub use power::*;
-pub use pwm::*;
-pub use subfunction::*;
-pub use temp::*;
-pub use virt::*;
-pub use voltage::*;
+pub use subfunction_type::SensorSubFunctionType;
 
-use crate::hwmon::*;
+use crate::hwmon::Hwmon;
 use crate::parsing::{Error as ParsingError, Result as ParsingResult};
 use crate::units::Raw;
 use error::Result;
@@ -139,7 +129,7 @@ pub trait WriteableSensor: Sensor {
         self.write_raw(SensorSubFunctionType::ResetHistory, &true.to_raw())
     }
 
-    /// Returns a SensorState struct that represents the state of all writeable subfunctions of this sensor.
+    /// Returns a SensorState struct that represents the state of all writeable shared_subfunctions of this sensor.
     fn state(&self) -> Result<SensorState> {
         let mut states = HashMap::new();
         let supported_read_write_functions = self
@@ -156,7 +146,7 @@ pub trait WriteableSensor: Sensor {
     }
 
     /// Writes the given state to this sensor.
-    /// Returns an error and writes nothing if the given state contains one or more subfunctions that this sensor does not support.
+    /// Returns an error and writes nothing if the given state contains one or more shared_subfunctions that this sensor does not support.
     fn write_state(&self, state: &SensorState) -> Result<()> {
         if let Some(&sub_type) = state
             .states

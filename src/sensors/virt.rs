@@ -1,10 +1,11 @@
 //! Module containing the virtual sensors and their related functionality.
 
-use super::*;
+use super::{Error, Result};
 use crate::units::Raw;
 
 use std::{
     fmt::Debug,
+    fs::read_to_string,
     path::{Path, PathBuf},
 };
 
@@ -45,9 +46,7 @@ pub trait WriteableVirtualSensor<T: Raw>: VirtualSensor<T> {
     /// Writes to the virtual sensor.
     fn write(&self, value: &T) -> Result<()> {
         std::fs::write(&self.path(), value.to_raw().as_bytes()).map_err(|e| match e.kind() {
-            std::io::ErrorKind::PermissionDenied => Error::InsufficientRights {
-                path: self.path().to_path_buf(),
-            },
+            std::io::ErrorKind::PermissionDenied => Error::insufficient_rights(self.path()),
             _ => Error::write(e, self.path()),
         })
     }
@@ -63,10 +62,10 @@ pub fn virtual_sensor_from_path<T: Raw>(
     let path = path.into();
 
     if !path.is_file() {
-        return Err(Error::Read {
+        return Err(Error::read(
+            std::io::Error::from(std::io::ErrorKind::NotFound),
             path,
-            source: std::io::Error::from(std::io::ErrorKind::NotFound),
-        });
+        ));
     }
 
     Ok(VirtualSensorStruct { path })

@@ -1,6 +1,6 @@
 //! Module containing the temp sensors and their related functionality.
 
-use super::subfunctions::Faulty;
+use super::shared_subfunctions::Faulty;
 use super::*;
 use crate::hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
@@ -11,20 +11,20 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only temp sensor.
 pub trait TempSensor:
     Sensor<Value = Temperature>
-    + subfunctions::Enable
-    + subfunctions::Input
-    + subfunctions::Min
-    + subfunctions::Max
-    + subfunctions::Crit
-    + subfunctions::LowCrit
-    + subfunctions::Faulty
-    + subfunctions::Alarm
-    + subfunctions::MinAlarm
-    + subfunctions::MaxAlarm
-    + subfunctions::CritAlarm
-    + subfunctions::LowCritAlarm
-    + subfunctions::EmergencyAlarm
-    + subfunctions::Beep
+    + shared_subfunctions::Enable
+    + shared_subfunctions::Input
+    + shared_subfunctions::Min
+    + shared_subfunctions::Max
+    + shared_subfunctions::Crit
+    + shared_subfunctions::LowCrit
+    + shared_subfunctions::Faulty
+    + shared_subfunctions::Alarm
+    + shared_subfunctions::MinAlarm
+    + shared_subfunctions::MaxAlarm
+    + shared_subfunctions::CritAlarm
+    + shared_subfunctions::LowCritAlarm
+    + shared_subfunctions::EmergencyAlarm
+    + shared_subfunctions::Beep
     + std::fmt::Debug
 {
     /// Reads the type subfunction of this temp sensor.
@@ -120,7 +120,7 @@ impl Parseable for TempSensorStruct {
     }
 }
 
-impl subfunctions::Input for TempSensorStruct {
+impl shared_subfunctions::Input for TempSensorStruct {
     /// Reads the input subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subtype.
     fn read_input(&self) -> Result<Temperature> {
@@ -133,15 +133,15 @@ impl subfunctions::Input for TempSensorStruct {
     }
 }
 
-impl subfunctions::Enable for TempSensorStruct {}
-impl subfunctions::Min for TempSensorStruct {}
-impl subfunctions::Max for TempSensorStruct {}
-impl subfunctions::Crit for TempSensorStruct {}
-impl subfunctions::LowCrit for TempSensorStruct {}
-impl subfunctions::Faulty for TempSensorStruct {}
-impl subfunctions::Alarm for TempSensorStruct {}
-impl subfunctions::EmergencyAlarm for TempSensorStruct {}
-impl subfunctions::Beep for TempSensorStruct {}
+impl shared_subfunctions::Enable for TempSensorStruct {}
+impl shared_subfunctions::Min for TempSensorStruct {}
+impl shared_subfunctions::Max for TempSensorStruct {}
+impl shared_subfunctions::Crit for TempSensorStruct {}
+impl shared_subfunctions::LowCrit for TempSensorStruct {}
+impl shared_subfunctions::Faulty for TempSensorStruct {}
+impl shared_subfunctions::Alarm for TempSensorStruct {}
+impl shared_subfunctions::EmergencyAlarm for TempSensorStruct {}
+impl shared_subfunctions::Beep for TempSensorStruct {}
 impl TempSensor for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -152,12 +152,12 @@ impl WriteableSensor for TempSensorStruct {}
 pub trait WriteableTempSensor:
     TempSensor
     + WriteableSensor
-    + subfunctions::WriteableEnable
-    + subfunctions::WriteableMin
-    + subfunctions::WriteableMax
-    + subfunctions::WriteableCrit
-    + subfunctions::WriteableLowCrit
-    + subfunctions::WriteableBeep
+    + shared_subfunctions::WriteableEnable
+    + shared_subfunctions::WriteableMin
+    + shared_subfunctions::WriteableMax
+    + shared_subfunctions::WriteableCrit
+    + shared_subfunctions::WriteableLowCrit
+    + shared_subfunctions::WriteableBeep
 {
     /// Converts offset and writes it to this temp's offset subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.

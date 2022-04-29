@@ -11,7 +11,9 @@ use error::Result;
 use helper_functions::*;
 
 use crate::parsing::{Error as ParsingError, Parseable, Result as ParsingResult};
-use crate::sensors::*;
+use crate::sensors::{
+    curr::*, energy::*, fan::*, humidity::*, intrusion::*, power::*, pwm::*, temp::*, voltage::*,
+};
 
 use crate::units::Raw;
 use std::{

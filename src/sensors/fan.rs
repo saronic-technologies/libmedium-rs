@@ -10,15 +10,15 @@ use std::path::{Path, PathBuf};
 /// Helper trait that sums up all functionality of a read-only fan sensor.
 pub trait FanSensor:
     Sensor<Value = AngularVelocity>
-    + subfunctions::Enable
-    + subfunctions::Input
-    + subfunctions::Min
-    + subfunctions::Max
-    + subfunctions::Faulty
-    + subfunctions::Alarm
-    + subfunctions::MinAlarm
-    + subfunctions::MaxAlarm
-    + subfunctions::Beep
+    + shared_subfunctions::Enable
+    + shared_subfunctions::Input
+    + shared_subfunctions::Min
+    + shared_subfunctions::Max
+    + shared_subfunctions::Faulty
+    + shared_subfunctions::Alarm
+    + shared_subfunctions::MinAlarm
+    + shared_subfunctions::MaxAlarm
+    + shared_subfunctions::Beep
     + std::fmt::Debug
 {
     /// Reads the target_revs subfunction of this fan sensor.
@@ -74,13 +74,13 @@ impl Parseable for FanSensorStruct {
     }
 }
 
-impl subfunctions::Input for FanSensorStruct {}
-impl subfunctions::Enable for FanSensorStruct {}
-impl subfunctions::Min for FanSensorStruct {}
-impl subfunctions::Max for FanSensorStruct {}
-impl subfunctions::Faulty for FanSensorStruct {}
-impl subfunctions::Alarm for FanSensorStruct {}
-impl subfunctions::Beep for FanSensorStruct {}
+impl shared_subfunctions::Input for FanSensorStruct {}
+impl shared_subfunctions::Enable for FanSensorStruct {}
+impl shared_subfunctions::Min for FanSensorStruct {}
+impl shared_subfunctions::Max for FanSensorStruct {}
+impl shared_subfunctions::Faulty for FanSensorStruct {}
+impl shared_subfunctions::Alarm for FanSensorStruct {}
+impl shared_subfunctions::Beep for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -91,10 +91,10 @@ impl WriteableSensor for FanSensorStruct {}
 pub trait WriteableFanSensor:
     FanSensor
     + WriteableSensor
-    + subfunctions::WriteableEnable
-    + subfunctions::WriteableMin
-    + subfunctions::WriteableMax
-    + subfunctions::WriteableBeep
+    + shared_subfunctions::WriteableEnable
+    + shared_subfunctions::WriteableMin
+    + shared_subfunctions::WriteableMax
+    + shared_subfunctions::WriteableBeep
 {
     /// Converts target and writes it to this fan's target subfunction.
     ///
