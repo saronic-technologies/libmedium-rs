@@ -1,8 +1,7 @@
-use super::shared_subfunctions::*;
 use super::*;
 use crate::hwmon::Hwmons;
 use crate::parsing::Parseable;
-use crate::sensors::TempSensorStruct;
+use crate::sensors::{fan::*, temp::*};
 use crate::tests::*;
 
 use temp_dir::TempDir;

@@ -10,7 +10,6 @@ pub mod humidity;
 pub mod intrusion;
 pub mod power;
 pub mod pwm;
-pub mod shared_subfunctions;
 pub mod temp;
 pub mod virt;
 pub mod voltage;

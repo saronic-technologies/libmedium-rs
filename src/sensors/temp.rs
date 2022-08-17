@@ -1,6 +1,5 @@
 //! Module containing the temp sensors and their related functionality.
 
-use super::shared_subfunctions::Faulty;
 use super::*;
 use crate::hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
@@ -9,24 +8,7 @@ use crate::units::{Raw, TempType, Temperature};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only temp sensor.
-pub trait TempSensor:
-    Sensor<Value = Temperature>
-    + shared_subfunctions::Enable
-    + shared_subfunctions::Input
-    + shared_subfunctions::Min
-    + shared_subfunctions::Max
-    + shared_subfunctions::Crit
-    + shared_subfunctions::LowCrit
-    + shared_subfunctions::Faulty
-    + shared_subfunctions::Alarm
-    + shared_subfunctions::MinAlarm
-    + shared_subfunctions::MaxAlarm
-    + shared_subfunctions::CritAlarm
-    + shared_subfunctions::LowCritAlarm
-    + shared_subfunctions::EmergencyAlarm
-    + shared_subfunctions::Beep
-    + std::fmt::Debug
-{
+pub trait TempSensor: Sensor<Value = Temperature> + std::fmt::Debug {
     /// Reads the type subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_type(&self) -> Result<TempType> {
@@ -76,11 +58,113 @@ pub trait TempSensor:
         Temperature::from_raw(&raw).map_err(Error::from)
     }
 
+    /// Reads this sensor's lcrit value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_lcrit(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::LowCrit)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
     /// Reads the lcrit_hyst subfunction of this temp sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_lcrit_hyst(&self) -> Result<Temperature> {
         let raw = self.read_raw(SensorSubFunctionType::LowCritHyst)?;
         Temperature::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not this sensor is enabled.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_enable(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Enable)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads the input subfunction of this temp sensor.
+    /// Returns an error, if this sensor doesn't support the subtype.
+    fn read_input(&self) -> Result<Temperature> {
+        if self.read_faulty().unwrap_or(false) {
+            return Err(Error::FaultySensor);
+        }
+
+        let raw = self.read_raw(SensorSubFunctionType::Input)?;
+        Temperature::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's min value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_min(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Min)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's max value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_max(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Max)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's crit value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_crit(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Crit)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether this sensor is faulty or not.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_faulty(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Fault)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Alarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the min subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_min_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::MinAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the max subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_max_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::MaxAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the crit subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_crit_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::CritAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the lcrit subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_lcrit_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::LowCritAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the emergency subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_emergency_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::EmergencyAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_beep(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Beep)?;
+        bool::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -120,28 +204,6 @@ impl Parseable for TempSensorStruct {
     }
 }
 
-impl shared_subfunctions::Input for TempSensorStruct {
-    /// Reads the input subfunction of this temp sensor.
-    /// Returns an error, if this sensor doesn't support the subtype.
-    fn read_input(&self) -> Result<Temperature> {
-        if self.read_faulty().unwrap_or(false) {
-            return Err(Error::FaultySensor);
-        }
-
-        let raw = self.read_raw(SensorSubFunctionType::Input)?;
-        Temperature::from_raw(&raw).map_err(Error::from)
-    }
-}
-
-impl shared_subfunctions::Enable for TempSensorStruct {}
-impl shared_subfunctions::Min for TempSensorStruct {}
-impl shared_subfunctions::Max for TempSensorStruct {}
-impl shared_subfunctions::Crit for TempSensorStruct {}
-impl shared_subfunctions::LowCrit for TempSensorStruct {}
-impl shared_subfunctions::Faulty for TempSensorStruct {}
-impl shared_subfunctions::Alarm for TempSensorStruct {}
-impl shared_subfunctions::EmergencyAlarm for TempSensorStruct {}
-impl shared_subfunctions::Beep for TempSensorStruct {}
 impl TempSensor for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -149,16 +211,7 @@ impl WriteableSensor for TempSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write temp sensor.
-pub trait WriteableTempSensor:
-    TempSensor
-    + WriteableSensor
-    + shared_subfunctions::WriteableEnable
-    + shared_subfunctions::WriteableMin
-    + shared_subfunctions::WriteableMax
-    + shared_subfunctions::WriteableCrit
-    + shared_subfunctions::WriteableLowCrit
-    + shared_subfunctions::WriteableBeep
-{
+pub trait WriteableTempSensor: TempSensor + WriteableSensor {
     /// Converts offset and writes it to this temp's offset subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_offset(&self, offset: Temperature) -> Result<()> {
@@ -198,10 +251,46 @@ pub trait WriteableTempSensor:
         )
     }
 
+    /// Writes this sensor's lcrit value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_lcrit(&self, lcrit: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw())
+    }
+
     /// Converts lcrit_hyst and writes it to this temp's lcrit_hyst subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_lcrit_hyst(&self, lcrit_hyst: Temperature) -> Result<()> {
         self.write_raw(SensorSubFunctionType::LowCritHyst, &lcrit_hyst.to_raw())
+    }
+
+    /// Sets this sensor's enabled state.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_enable(&self, enable: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+    }
+
+    /// Writes this sensor's min value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_min(&self, min: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
+    }
+
+    /// Writes this sensor's max value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_max(&self, max: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+    }
+
+    /// Writes this sensor's crit value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_crit(&self, crit: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
+    }
+
+    /// Sets whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_beep(&self, beep: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
     }
 }
 

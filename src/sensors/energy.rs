@@ -8,9 +8,20 @@ use crate::units::Energy;
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only energy sensor.
-pub trait EnergySensor:
-    Sensor<Value = Energy> + shared_subfunctions::Enable + shared_subfunctions::Input + std::fmt::Debug
-{
+pub trait EnergySensor: Sensor<Value = Energy> + std::fmt::Debug {
+    /// Reads whether or not this sensor is enabled.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_enable(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Enable)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads the input subfunction of this sensor.
+    /// Returns an error, if this sensor doesn't support the subtype.
+    fn read_input(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Input)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -48,8 +59,6 @@ impl Parseable for EnergySensorStruct {
     }
 }
 
-impl shared_subfunctions::Enable for EnergySensorStruct {}
-impl shared_subfunctions::Input for EnergySensorStruct {}
 impl EnergySensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -57,9 +66,12 @@ impl WriteableSensor for EnergySensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write energy sensor.
-pub trait WriteableEnergySensor:
-    EnergySensor + WriteableSensor + shared_subfunctions::WriteableEnable
-{
+pub trait WriteableEnergySensor: EnergySensor + WriteableSensor {
+    /// Sets this sensor's enabled state.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_enable(&self, enable: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+    }
 }
 
 #[cfg(feature = "writeable")]

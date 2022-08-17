@@ -71,7 +71,7 @@ impl Hwmon {
     pub fn update_interval(&self) -> Result<Duration> {
         let path = self.path().join("update_interval");
 
-        match std::fs::read_to_string(&path) {
+        match read_to_string(&path) {
             Ok(s) => Duration::from_raw(&s).map_err(|e| Error::unit(e, path)),
             Err(e) => {
                 if e.kind() == IoErrorKind::NotFound {
@@ -88,7 +88,7 @@ impl Hwmon {
     pub fn beep_enable(&self) -> Result<bool> {
         let path = self.path().join("beep_enable");
 
-        match std::fs::read_to_string(&path) {
+        match read_to_string(&path) {
             Ok(s) => bool::from_raw(&s).map_err(|e| Error::unit(e, path)),
             Err(e) => {
                 if e.kind() == IoErrorKind::NotFound {
@@ -445,7 +445,7 @@ pub struct Hwmons {
 }
 
 impl Hwmons {
-    /// Parses /sys/class/hwmon and returns the found hwmons as a Hwmons object.
+    /// Parses /sys/class/hwmon and returns the found hwmons as a `Hwmons` object.
     pub fn parse() -> ParsingResult<Self> {
         Self::parse_path("/sys/class/hwmon/")
     }

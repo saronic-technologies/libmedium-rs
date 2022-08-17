@@ -8,19 +8,7 @@ use crate::units::{AngularVelocity, FanDivisor, Raw};
 use std::path::{Path, PathBuf};
 
 /// Helper trait that sums up all functionality of a read-only fan sensor.
-pub trait FanSensor:
-    Sensor<Value = AngularVelocity>
-    + shared_subfunctions::Enable
-    + shared_subfunctions::Input
-    + shared_subfunctions::Min
-    + shared_subfunctions::Max
-    + shared_subfunctions::Faulty
-    + shared_subfunctions::Alarm
-    + shared_subfunctions::MinAlarm
-    + shared_subfunctions::MaxAlarm
-    + shared_subfunctions::Beep
-    + std::fmt::Debug
-{
+pub trait FanSensor: Sensor<Value = AngularVelocity> + std::fmt::Debug {
     /// Reads the target_revs subfunction of this fan sensor.
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
@@ -35,6 +23,73 @@ pub trait FanSensor:
     fn read_div(&self) -> Result<FanDivisor> {
         let raw = self.read_raw(SensorSubFunctionType::Div)?;
         FanDivisor::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not this sensor is enabled.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_enable(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Enable)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads the input subfunction of this temp sensor.
+    /// Returns an error, if this sensor doesn't support the subtype.
+    fn read_input(&self) -> Result<Self::Value> {
+        if self.read_faulty().unwrap_or(false) {
+            return Err(Error::FaultySensor);
+        }
+
+        let raw = self.read_raw(SensorSubFunctionType::Input)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's min value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_min(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Min)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's max value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_max(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Max)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether this sensor is faulty or not.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_faulty(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Fault)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Alarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the min subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_min_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::MinAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the max subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_max_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::MaxAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_beep(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Beep)?;
+        bool::from_raw(&raw).map_err(Error::from)
     }
 }
 
@@ -74,13 +129,6 @@ impl Parseable for FanSensorStruct {
     }
 }
 
-impl shared_subfunctions::Input for FanSensorStruct {}
-impl shared_subfunctions::Enable for FanSensorStruct {}
-impl shared_subfunctions::Min for FanSensorStruct {}
-impl shared_subfunctions::Max for FanSensorStruct {}
-impl shared_subfunctions::Faulty for FanSensorStruct {}
-impl shared_subfunctions::Alarm for FanSensorStruct {}
-impl shared_subfunctions::Beep for FanSensorStruct {}
 impl FanSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -88,14 +136,7 @@ impl WriteableSensor for FanSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write fan sensor.
-pub trait WriteableFanSensor:
-    FanSensor
-    + WriteableSensor
-    + shared_subfunctions::WriteableEnable
-    + shared_subfunctions::WriteableMin
-    + shared_subfunctions::WriteableMax
-    + shared_subfunctions::WriteableBeep
-{
+pub trait WriteableFanSensor: FanSensor + WriteableSensor {
     /// Converts target and writes it to this fan's target subfunction.
     ///
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
@@ -108,6 +149,30 @@ pub trait WriteableFanSensor:
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_div(&self, div: FanDivisor) -> Result<()> {
         self.write_raw(SensorSubFunctionType::Div, &div.to_raw())
+    }
+
+    /// Sets this sensor's enabled state.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_enable(&self, enable: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+    }
+
+    /// Writes this sensor's min value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_min(&self, min: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
+    }
+
+    /// Writes this sensor's max value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_max(&self, max: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+    }
+
+    /// Sets whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_beep(&self, beep: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
     }
 }
 

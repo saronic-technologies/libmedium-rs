@@ -6,21 +6,7 @@ use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{Power, Ratio, Raw};
 
 /// Helper trait that sums up all functionality of a read-only power sensor.
-pub trait PowerSensor:
-    Sensor<Value = Power>
-    + shared_subfunctions::Enable
-    + shared_subfunctions::Input
-    + shared_subfunctions::Max
-    + shared_subfunctions::Crit
-    + shared_subfunctions::Average
-    + shared_subfunctions::Highest
-    + shared_subfunctions::Lowest
-    + shared_subfunctions::Alarm
-    + shared_subfunctions::CritAlarm
-    + shared_subfunctions::CapAlarm
-    + shared_subfunctions::Beep
-    + std::fmt::Debug
-{
+pub trait PowerSensor: Sensor<Value = Power> + std::fmt::Debug {
     /// Reads the accuracy subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn read_accuracy(&self) -> Result<Ratio> {
@@ -104,6 +90,83 @@ pub trait PowerSensor:
         let raw = self.read_raw(SensorSubFunctionType::AverageMin)?;
         Power::from_raw(&raw).map_err(Error::from)
     }
+
+    /// Reads whether or not this sensor is enabled.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_enable(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Enable)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads the input subfunction of this sensor.
+    /// Returns an error, if this sensor doesn't support the subtype.
+    fn read_input(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Input)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's max value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_max(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Max)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's crit value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_crit(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Crit)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's average value.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_average(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Average)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's historically highest input.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_highest(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Highest)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads this sensor's historically lowest input.
+    /// Returns an error, if this sensor doesn't support the feature.
+    fn read_lowest(&self) -> Result<Self::Value> {
+        let raw = self.read_raw(SensorSubFunctionType::Lowest)?;
+        Self::Value::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Alarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the crit subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_crit_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::CritAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition exists for the cap subfunction of the sensor.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_cap_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::CapAlarm)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
+
+    /// Reads whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn read_beep(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Beep)?;
+        bool::from_raw(&raw).map_err(Error::from)
+    }
 }
 
 /// Struct that represents a read only power sensor.
@@ -142,16 +205,6 @@ impl Parseable for PowerSensorStruct {
     }
 }
 
-impl shared_subfunctions::Enable for PowerSensorStruct {}
-impl shared_subfunctions::Input for PowerSensorStruct {}
-impl shared_subfunctions::Max for PowerSensorStruct {}
-impl shared_subfunctions::Crit for PowerSensorStruct {}
-impl shared_subfunctions::Average for PowerSensorStruct {}
-impl shared_subfunctions::Highest for PowerSensorStruct {}
-impl shared_subfunctions::Lowest for PowerSensorStruct {}
-impl shared_subfunctions::Alarm for PowerSensorStruct {}
-impl shared_subfunctions::CapAlarm for PowerSensorStruct {}
-impl shared_subfunctions::Beep for PowerSensorStruct {}
 impl PowerSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
@@ -159,14 +212,7 @@ impl WriteableSensor for PowerSensorStruct {}
 
 #[cfg(feature = "writeable")]
 /// Helper trait that sums up all functionality of a read-write power sensor.
-pub trait WriteablePowerSensor:
-    PowerSensor
-    + WriteableSensor
-    + shared_subfunctions::WriteableEnable
-    + shared_subfunctions::WriteableMax
-    + shared_subfunctions::WriteableCrit
-    + shared_subfunctions::WriteableBeep
-{
+pub trait WriteablePowerSensor: PowerSensor + WriteableSensor {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_cap(&self, cap: Power) -> Result<()> {
@@ -183,6 +229,30 @@ pub trait WriteablePowerSensor:
     /// Returns an error, if this sensor doesn't support the subfunction.
     fn write_average_interval(&self, interval: Duration) -> Result<()> {
         self.write_raw(SensorSubFunctionType::AverageInterval, &interval.to_raw())
+    }
+
+    /// Sets this sensor's enabled state.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_enable(&self, enable: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+    }
+
+    /// Writes this sensor's max value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_max(&self, max: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+    }
+
+    /// Writes this sensor's crit value.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_crit(&self, crit: Self::Value) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
+    }
+
+    /// Sets whether or not an alarm condition for the sensor also triggers beeping.
+    /// Returns an error, if the sensor doesn't support the feature.
+    fn write_beep(&self, beep: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
     }
 }
 
