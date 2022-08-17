@@ -203,6 +203,10 @@ impl Parseable for PowerSensorStruct {
 
         inspect_sensor(power, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "power"
+    }
 }
 
 impl PowerSensor for PowerSensorStruct {}

@@ -149,6 +149,10 @@ impl Parseable for CurrentSensorStruct {
 
         inspect_sensor(curr, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "curr"
+    }
 }
 
 impl CurrentSensor for CurrentSensorStruct {}

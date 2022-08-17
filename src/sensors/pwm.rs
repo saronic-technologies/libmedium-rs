@@ -71,6 +71,10 @@ impl Parseable for PwmSensorStruct {
 
         inspect_sensor(pwm, SensorSubFunctionType::Pwm)
     }
+
+    fn prefix() -> &'static str {
+        "pwm"
+    }
 }
 
 impl PwmSensor for PwmSensorStruct {}

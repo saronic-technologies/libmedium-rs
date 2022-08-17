@@ -127,6 +127,10 @@ impl Parseable for FanSensorStruct {
 
         inspect_sensor(fan, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "fan"
+    }
 }
 
 impl FanSensor for FanSensorStruct {}

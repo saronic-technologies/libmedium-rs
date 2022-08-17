@@ -22,8 +22,34 @@ pub(crate) fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<
 where
     S: Parseable<Parent = Hwmon>,
 {
+    let mut stop_index = start_index;
+
+    let dir = hwmon
+        .path()
+        .read_dir()
+        .map_err(|e| ParsingError::hwmon_dir(e, hwmon.path()))?;
+
+    for entry in dir {
+        let entry = entry.map_err(|e| ParsingError::hwmon_dir(e, hwmon.path()))?;
+        let file_name = entry.file_name().to_string_lossy().to_string();
+
+        if !file_name.starts_with(S::prefix()) {
+            continue;
+        }
+
+        let index = file_name
+            .trim_matches(|ch: char| !ch.is_digit(10))
+            .parse()
+            .unwrap_or(0);
+
+        if index > stop_index {
+            stop_index = index;
+        }
+    }
+
     let mut sensors = BTreeMap::new();
-    for index in start_index..=u16::MAX {
+
+    for index in start_index..=stop_index {
         match S::parse(hwmon, index) {
             Ok(sensor) => {
                 sensors.insert(index, sensor);

@@ -57,6 +57,10 @@ impl Parseable for IntrusionSensorStruct {
 
         inspect_sensor(intrusion, SensorSubFunctionType::Alarm)
     }
+
+    fn prefix() -> &'static str {
+        "intrusion"
+    }
 }
 
 impl IntrusionSensor for IntrusionSensorStruct {}

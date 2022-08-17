@@ -149,6 +149,10 @@ impl Parseable for VoltageSensorStruct {
 
         inspect_sensor(volt, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "in"
+    }
 }
 
 impl VoltageSensor for VoltageSensorStruct {}

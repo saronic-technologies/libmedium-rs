@@ -57,6 +57,10 @@ impl Parseable for EnergySensorStruct {
 
         inspect_sensor(energy, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "energy"
+    }
 }
 
 impl EnergySensor for EnergySensorStruct {}

@@ -58,6 +58,10 @@ impl Parseable for HumiditySensorStruct {
 
         inspect_sensor(humidity, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "humidity"
+    }
 }
 
 impl HumiditySensor for HumiditySensorStruct {}

@@ -202,6 +202,10 @@ impl Parseable for TempSensorStruct {
 
         inspect_sensor(temp, SensorSubFunctionType::Input)
     }
+
+    fn prefix() -> &'static str {
+        "temp"
+    }
 }
 
 impl TempSensor for TempSensorStruct {}

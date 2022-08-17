@@ -434,6 +434,10 @@ impl Parseable for Hwmon {
 
         Self::try_from_path(path, index)
     }
+
+    fn prefix() -> &'static str {
+        "hwmon"
+    }
 }
 
 /// This crate's central struct.
@@ -499,22 +503,25 @@ impl Hwmons {
 
         for entry in path.read_dir().map_err(|e| ParsingError::hwmons(e, path))? {
             let entry = entry.map_err(|e| ParsingError::hwmons(e, path))?;
+            let entry_path = entry.path();
 
-            match entry.file_name().to_str() {
-                Some(file_name) => match file_name.strip_prefix("hwmon") {
-                    Some(rest) => {
-                        index = rest
-                            .parse()
-                            .map_err(|e| ParsingError::hwmon_index(e, path))?;
-                    }
-                    None => continue,
-                },
-                None => continue,
+            if !entry_path.is_dir() {
+                continue;
+            }
+
+            let file_name = entry.file_name();
+
+            if let Some(index_str) = file_name.to_string_lossy().strip_prefix("hwmon") {
+                index = index_str
+                    .parse()
+                    .map_err(|e| ParsingError::hwmon_index(e, &entry_path))?;
+            } else {
+                continue;
             }
 
             hwmons
                 .hwmons
-                .insert(index, Hwmon::try_from_path(entry.path(), index)?);
+                .insert(index, Hwmon::try_from_path(entry_path, index)?);
         }
 
         Ok(hwmons)
