@@ -9,7 +9,7 @@ fn main() {
     for hwmon in &hwmons {
         for (_, pwm) in hwmon.writeable_pwms() {
             pwm.write_enable(PwmEnable::ManualControl).unwrap();
-            pwm.write_pwm(Pwm::from_u8(255)).unwrap();
+            pwm.write_pwm(Pwm::FULLSPEED).unwrap();
         }
     }
 }

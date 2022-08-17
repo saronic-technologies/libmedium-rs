@@ -7,6 +7,15 @@ use std::fmt;
 pub struct Pwm(u8);
 
 impl Pwm {
+    /// Full speed
+    pub const FULLSPEED: Pwm = Pwm(255);
+
+    /// Half speed
+    pub const HALFSPEED: Pwm = Pwm(127);
+
+    /// Fan off
+    pub const OFF: Pwm = Pwm(0);
+
     /// Create a new Pwm struct from a pwm value between 0 and 255.
     pub fn from_u8(u8: u8) -> Self {
         Self(u8)
