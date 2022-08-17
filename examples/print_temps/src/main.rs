@@ -5,8 +5,8 @@ use libmedium::{
 
 fn main() {
     let hwmons = parse_hwmons().unwrap();
-    for (hwmon_index, hwmon_name, hwmon) in &hwmons {
-        println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
+    for hwmon in &hwmons {
+        println!("hwmon{} with name {}:", hwmon.index(), hwmon.name());
         for (_, temp_sensor) in hwmon.temps() {
             let temperature = temp_sensor.read_input().unwrap();
             println!("\t{}: {}", temp_sensor.name(), temperature);

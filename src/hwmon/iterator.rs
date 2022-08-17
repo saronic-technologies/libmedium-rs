@@ -18,11 +18,11 @@ impl<'a> Iter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (u16, &'a str, &'a Hwmon);
+    type Item = &'a Hwmon;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((index, hwmon)) = self.inner.next() {
-            return Some((*index, hwmon.name(), hwmon));
+        if let Some((_, hwmon)) = self.inner.next() {
+            return Some(hwmon);
         }
         None
     }
@@ -41,7 +41,7 @@ impl<'a> ExactSizeIterator for Iter<'a> {
 }
 
 impl<'a> IntoIterator for &'a Hwmons {
-    type Item = (u16, &'a str, &'a Hwmon);
+    type Item = &'a Hwmon;
     type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -64,13 +64,13 @@ impl<'a, N: AsRef<str>> NamedIter<'a, N> {
 }
 
 impl<'a, N: AsRef<str>> Iterator for NamedIter<'a, N> {
-    type Item = (u16, &'a Hwmon);
+    type Item = &'a Hwmon;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
-            Some((index, name, hwmon)) => {
-                if name == self.name.as_ref() {
-                    Some((index, hwmon))
+            Some(hwmon) => {
+                if hwmon.name() == self.name.as_ref() {
+                    Some(hwmon)
                 } else {
                     self.next()
                 }
