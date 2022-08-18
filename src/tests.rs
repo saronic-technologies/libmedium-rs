@@ -157,8 +157,8 @@ fn test_parse() {
         .add_fan(2, 1000);
 
     let hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
-    let (_, hwmon0) = hwmons.hwmons_by_name("system").next().unwrap();
-    let (_, hwmon1) = hwmons.hwmons_by_name("other").next().unwrap();
+    let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
+    let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
 
     assert_eq!(hwmon0.name(), hwmons.hwmon_by_index(0).unwrap().name());
     assert_eq!(hwmon1.name(), hwmons.hwmon_by_index(1).unwrap().name());
