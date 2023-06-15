@@ -6,15 +6,15 @@
 //!
 //! Print the temperature of all the temp sensors in your system:
 //!
-//! ```
+//! ```no_run
 //! use libmedium::{
 //!     parse_hwmons,
-//!     sensors::{shared_subfunctions::Input, Sensor},
+//!     sensors::{Sensor, temp::TempSensor},
 //! };
 //!
 //! let hwmons = parse_hwmons().unwrap();
-//! for (hwmon_index, hwmon_name, hwmon) in &hwmons {
-//!     println!("hwmon{} with name {}:", hwmon_index, hwmon_name);
+//! for hwmon in &hwmons {
+//!     println!("hwmon{} with name {}:", hwmon.index(), hwmon.name());
 //!     for (_, temp_sensor) in hwmon.temps() {
 //!         let temperature = temp_sensor.read_input().unwrap();
 //!         println!("\t{}: {}", temp_sensor.name(), temperature);
@@ -24,15 +24,15 @@
 //!
 //! Set the pwm value of all your pwm capable fans to full speed:
 //!
-//! ```
+//! ```no_run
 //! use libmedium::{
 //!     parse_hwmons,
-//!     sensors::WriteablePwmSensor,
+//!     sensors::pwm::WriteablePwmSensor,
 //!     units::{Pwm, PwmEnable},
 //! };
 //!
 //! let hwmons = parse_hwmons().unwrap();
-//! for (_, _, hwmon) in &hwmons {
+//! for hwmon in &hwmons {
 //!     for (_, pwm) in hwmon.writeable_pwms() {
 //!         pwm.write_enable(PwmEnable::ManualControl).unwrap();
 //!         pwm.write_pwm(Pwm::try_from_percent(100.0).unwrap()).unwrap();
