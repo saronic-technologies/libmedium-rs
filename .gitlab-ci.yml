@@ -23,6 +23,8 @@ rust-latest:
   script:
     - cargo test --verbose
     - cargo test --verbose --features uom_units
+    - cargo test --doc
+    - cargo test --doc --features uom_units
     
 rust-nightly:
   stage: test
@@ -30,4 +32,6 @@ rust-nightly:
   script:
     - cargo test --verbose
     - cargo test --verbose --features uom_units
+    - cargo test --doc
+    - cargo test --doc --features uom_units
   allow_failure: true
