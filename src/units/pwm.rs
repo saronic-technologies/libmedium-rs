@@ -31,7 +31,7 @@ impl Pwm {
     pub fn try_from_percent(percent: impl Into<f64>) -> UnitResult<Self> {
         let percent = percent.into();
 
-        if percent.is_nan() || percent < 0.0 || percent > 100.0 {
+        if percent.is_nan() || !(0.0..=100.0).contains(&percent) {
             return Err(UnitError::invalid_value(percent));
         }
 
@@ -76,10 +76,11 @@ impl fmt::Display for Pwm {
 
 /// Enum that represents the control states a pwm can be in.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmEnable {
     FullSpeed,
     ManualControl,
+    #[default]
     BiosControl,
 }
 
@@ -101,18 +102,13 @@ impl Raw for PwmEnable {
     }
 }
 
-impl Default for PwmEnable {
-    fn default() -> PwmEnable {
-        PwmEnable::BiosControl
-    }
-}
-
 /// Enum that represents the modes by which a fan's speed can be regulated.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum PwmMode {
     Dc,
     Pwm,
+    #[default]
     Automatic,
 }
 
@@ -132,12 +128,6 @@ impl Raw for PwmMode {
             PwmMode::Pwm => Cow::from("1"),
             PwmMode::Automatic => Cow::from("2"),
         }
-    }
-}
-
-impl Default for PwmMode {
-    fn default() -> PwmMode {
-        PwmMode::Automatic
     }
 }
 

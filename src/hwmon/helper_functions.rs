@@ -38,7 +38,7 @@ where
         }
 
         let index = file_name
-            .trim_matches(|ch: char| !ch.is_digit(10))
+            .trim_matches(|ch: char| !ch.is_ascii_digit())
             .parse()
             .unwrap_or(0);
 
