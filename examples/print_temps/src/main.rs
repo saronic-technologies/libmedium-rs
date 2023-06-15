@@ -9,7 +9,7 @@ fn main() {
         println!("hwmon{} with name {}:", hwmon.index(), hwmon.name());
         for (_, temp_sensor) in hwmon.temps() {
             let temperature = temp_sensor.read_input().unwrap();
-            println!("\t{}: {}", temp_sensor.name(), temperature);
+            println!("\t{}: {:?}", temp_sensor.name(), temperature);
         }
     }
 }
