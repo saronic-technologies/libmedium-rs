@@ -16,18 +16,27 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 uom = { version = "0.34", optional = true }
+tokio = { version = "1", features = ["fs"], optional = true}
+async-trait = { version = "0.1", optional = true }
 
 [dev-dependencies]
 temp-dir = "0.1"
+tokio = { version = "1", features = ["fs", "macros", "rt"]}
 
 [lib]
 doctest = false
 
 [features]
-default = ["writeable"]
+default = ["sync", "writeable"]
 
 # Feature that enables the writeable versions of all structs and functions to interact with the system's sensors.
 writeable = []
+
+# Feature that uses the std library for synchronous I/O.
+sync = []
+
+# Feature that uses the tokio runtime for asynchronous I/O.
+async = ["tokio", "async-trait"]
 
 # Feature that replaces units with those found in `uom`.
 uom_units = ["uom"]

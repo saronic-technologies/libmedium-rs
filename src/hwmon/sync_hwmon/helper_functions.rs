@@ -1,4 +1,10 @@
-use super::*;
+use super::Hwmon;
+
+use crate::parsing::{Parseable, Error as ParsingError, Result as ParsingResult};
+
+use std::path::Path;
+use std::collections::BTreeMap;
+use std::io::ErrorKind as IoErrorKind;
 
 pub(crate) fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
     let path = path.as_ref();
@@ -13,7 +19,7 @@ pub(crate) fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
 pub(crate) fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
     let name_path = path.as_ref().join("name");
 
-    read_to_string(&name_path)
+    std::fs::read_to_string(&name_path)
         .map(|name| name.trim().to_string())
         .map_err(|e| ParsingError::hwmon_name(e, name_path))
 }

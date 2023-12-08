@@ -1,24 +1,25 @@
 //! Module containing the intrusion sensors and their related functionality.
 
 use super::*;
-use crate::hwmon::Hwmon;
-use crate::parsing::{Parseable, Result as ParsingResult};
+use crate::hwmon::async_hwmon::Hwmon;
+use crate::parsing::{AsyncParseable, Result as ParsingResult};
 
 use std::path::{Path, PathBuf};
 
+#[async_trait]
 /// Helper trait that sums up all functionality of a read-only intrusion sensor.
-pub trait IntrusionSensor: Sensor<Value = bool> + std::fmt::Debug {
+pub trait AsyncIntrusionSensor: AsyncSensor<Value = bool> + std::fmt::Debug {
     /// Reads whether or not an alarm condition exists for the sensor.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn read_alarm(&self) -> Result<bool> {
-        let raw = self.read_raw(SensorSubFunctionType::Alarm)?;
+    async fn read_alarm(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Alarm).await?;
         bool::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn read_beep(&self) -> Result<bool> {
-        let raw = self.read_raw(SensorSubFunctionType::Beep)?;
+    async fn read_beep(&self) -> Result<bool> {
+        let raw = self.read_raw(SensorSubFunctionType::Beep).await?;
         bool::from_raw(&raw).map_err(Error::from)
     }
 }
@@ -30,7 +31,7 @@ pub(crate) struct IntrusionSensorStruct {
     index: u16,
 }
 
-impl Sensor for IntrusionSensorStruct {
+impl AsyncSensor for IntrusionSensorStruct {
     type Value = bool;
 
     fn base(&self) -> &'static str {
@@ -46,16 +47,17 @@ impl Sensor for IntrusionSensorStruct {
     }
 }
 
-impl Parseable for IntrusionSensorStruct {
+#[async_trait]
+impl AsyncParseable for IntrusionSensorStruct {
     type Parent = Hwmon;
 
-    fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
+    async fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
         let intrusion = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        inspect_sensor(intrusion, SensorSubFunctionType::Alarm)
+        inspect_sensor(intrusion, SensorSubFunctionType::Alarm).await
     }
 
     fn prefix() -> &'static str {
@@ -63,20 +65,21 @@ impl Parseable for IntrusionSensorStruct {
     }
 }
 
-impl IntrusionSensor for IntrusionSensorStruct {}
+impl AsyncIntrusionSensor for IntrusionSensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensor for IntrusionSensorStruct {}
+impl AsyncWriteableSensor for IntrusionSensorStruct {}
 
 #[cfg(feature = "writeable")]
+#[async_trait]
 /// Helper trait that sums up all functionality of a read-write intrusion sensor.
-pub trait WriteableIntrusionSensor: IntrusionSensor + WriteableSensor {
+pub trait AsyncWriteableIntrusionSensor: AsyncIntrusionSensor + AsyncWriteableSensor {
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
-    fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+    async fn write_beep(&self, beep: bool) -> Result<()> {
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
     }
 }
 
 #[cfg(feature = "writeable")]
-impl WriteableIntrusionSensor for IntrusionSensorStruct {}
+impl AsyncWriteableIntrusionSensor for IntrusionSensorStruct {}

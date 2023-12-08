@@ -1,14 +1,14 @@
-//! Module containing the energy sensors and their related functionality.
+//! Module containing the humidity sensors and their related functionality.
 
 use super::*;
-use crate::hwmon::Hwmon;
+use crate::hwmon::sync_hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
-use crate::units::Energy;
+use crate::units::Ratio;
 
 use std::path::{Path, PathBuf};
 
-/// Helper trait that sums up all functionality of a read-only energy sensor.
-pub trait EnergySensor: Sensor<Value = Energy> + std::fmt::Debug {
+/// Helper trait that sums up all functionality of a read-only humidity sensor.
+pub trait HumiditySensor: Sensor<Value = Ratio> + std::fmt::Debug {
     /// Reads whether or not this sensor is enabled.
     /// Returns an error, if the sensor doesn't support the feature.
     fn read_enable(&self) -> Result<bool> {
@@ -24,17 +24,18 @@ pub trait EnergySensor: Sensor<Value = Energy> + std::fmt::Debug {
     }
 }
 
+/// Struct that represents a read only humidity sensor.
 #[derive(Debug, Clone)]
-pub(crate) struct EnergySensorStruct {
+pub(crate) struct HumiditySensorStruct {
     hwmon_path: PathBuf,
     index: u16,
 }
 
-impl Sensor for EnergySensorStruct {
-    type Value = Energy;
+impl Sensor for HumiditySensorStruct {
+    type Value = Ratio;
 
     fn base(&self) -> &'static str {
-        "energy"
+        "humidity"
     }
 
     fn index(&self) -> u16 {
@@ -46,31 +47,31 @@ impl Sensor for EnergySensorStruct {
     }
 }
 
-impl Parseable for EnergySensorStruct {
+impl Parseable for HumiditySensorStruct {
     type Parent = Hwmon;
 
     fn parse(parent: &Self::Parent, index: u16) -> ParsingResult<Self> {
-        let energy = Self {
+        let humidity = Self {
             hwmon_path: parent.path().to_path_buf(),
             index,
         };
 
-        inspect_sensor(energy, SensorSubFunctionType::Input)
+        inspect_sensor(humidity, SensorSubFunctionType::Input)
     }
 
     fn prefix() -> &'static str {
-        "energy"
+        "humidity"
     }
 }
 
-impl EnergySensor for EnergySensorStruct {}
+impl HumiditySensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
-impl WriteableSensor for EnergySensorStruct {}
+impl WriteableSensor for HumiditySensorStruct {}
 
 #[cfg(feature = "writeable")]
-/// Helper trait that sums up all functionality of a read-write energy sensor.
-pub trait WriteableEnergySensor: EnergySensor + WriteableSensor {
+/// Helper trait that sums up all functionality of a read-write humidity sensor.
+pub trait WriteableHumiditySensor: HumiditySensor + WriteableSensor {
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     fn write_enable(&self, enable: bool) -> Result<()> {
@@ -79,4 +80,4 @@ pub trait WriteableEnergySensor: EnergySensor + WriteableSensor {
 }
 
 #[cfg(feature = "writeable")]
-impl WriteableEnergySensor for EnergySensorStruct {}
+impl WriteableHumiditySensor for HumiditySensorStruct {}

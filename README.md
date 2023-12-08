@@ -31,7 +31,7 @@ libmedium = "0.7"
 ```rust
 use libmedium::{
     parse_hwmons,
-    sensors::{temp::TempSensor, Sensor},
+    sensors::sync_sensors::{temp::TempSensor, Sensor},
 };
 
 let hwmons = parse_hwmons().unwrap();
@@ -49,7 +49,7 @@ for hwmon in &hwmons {
 ```rust
 use libmedium::{
     parse_hwmons,
-    sensors::pwm::WriteablePwmSensor,
+    sensors::sync_sensors::pwm::WriteablePwmSensor,
     units::{Pwm, PwmEnable},
 };
 

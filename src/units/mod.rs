@@ -20,7 +20,7 @@ pub use temp_type::TempType;
 pub use native::*;
 
 #[cfg(feature = "uom_units")]
-pub use self::uom::*;
+pub use uom::*;
 
 pub(crate) use error::Result;
 

@@ -1,5 +1,3 @@
-use crate::hwmon::Hwmons;
-
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -156,7 +154,7 @@ fn test_parse() {
         .add_temp(1, 40000, "temp1")
         .add_fan(2, 1000);
 
-    let hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
+    let hwmons = crate::hwmon::sync_hwmon::Hwmons::parse_path(test_dir.path()).unwrap();
     let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
     let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
 

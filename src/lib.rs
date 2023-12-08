@@ -57,9 +57,16 @@ mod parsing;
 
 pub use parsing::Error as ParsingError;
 
-/// Convenience function for [`hwmon::Hwmons::parse`](crate::hwmon::Hwmons::parse())
-pub fn parse_hwmons() -> Result<hwmon::Hwmons, ParsingError> {
-    hwmon::Hwmons::parse()
+/// Convenience function for [`hwmon::sync_hwmon::Hwmons::parse`](crate::hwmon::sync_hwmon::Hwmons::parse())
+#[cfg(feature = "sync")]
+pub fn parse_hwmons() -> Result<hwmon::sync_hwmon::Hwmons, ParsingError> {
+    hwmon::sync_hwmon::Hwmons::parse()
+}
+
+/// Convenience function for [`hwmon::async_hwmon::Hwmons::parse`](crate::hwmon::async_hwmon::Hwmons::parse())
+#[cfg(feature = "async")]
+pub async fn parse_hwmons_async() -> Result<hwmon::async_hwmon::Hwmons, ParsingError> {
+    hwmon::async_hwmon::Hwmons::parse().await
 }
 
 #[cfg(test)]

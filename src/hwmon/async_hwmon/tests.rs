@@ -1,17 +1,19 @@
-use crate::hwmon::Hwmons;
+use super::Hwmons;
+
 use crate::tests::*;
 use std::time::Duration;
 
 use temp_dir::TempDir;
 
-#[test]
-fn test_hwmon_parse() {
+
+#[tokio::test]
+async fn test_hwmon_parse() {
     let test_dir = TempDir::new().unwrap();
 
     VirtualHwmonBuilder::create(test_dir.path(), 0, "foo");
     VirtualHwmonBuilder::create(test_dir.path(), 1, "bar");
 
-    let hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
+    let hwmons = Hwmons::parse_path(test_dir.path()).await.unwrap();
     let foo = hwmons.hwmon_by_index(0).unwrap();
     let bar = hwmons.hwmon_by_index(1).unwrap();
 
@@ -22,8 +24,8 @@ fn test_hwmon_parse() {
     assert_eq!(test_dir.path().join("hwmon1"), bar.path());
 }
 
-#[test]
-fn test_hwmon_temps() {
+#[tokio::test]
+async fn test_hwmon_temps() {
     let test_dir = TempDir::new().unwrap();
 
     VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
@@ -31,7 +33,7 @@ fn test_hwmon_temps() {
         .add_temp(2, 60000, "temp2")
         .add_temp(4, 30000, "temp4");
 
-    let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
+    let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).await.unwrap();
     let hwmon = hwmons.hwmon_by_index(0).unwrap();
     let temps = hwmon.temps();
 
@@ -42,8 +44,8 @@ fn test_hwmon_temps() {
     assert_eq!(true, temps.get(&3u16).is_none());
 }
 
-#[test]
-fn test_hwmon_pwms() {
+#[tokio::test]
+async fn test_hwmon_pwms() {
     let test_dir = TempDir::new().unwrap();
 
     VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
@@ -51,7 +53,7 @@ fn test_hwmon_pwms() {
         .add_pwm(2, true, true)
         .add_pwm(4, true, true);
 
-    let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).unwrap();
+    let hwmons: Hwmons = Hwmons::parse_path(test_dir.path()).await.unwrap();
     let hwmon = hwmons.hwmon_by_index(0).unwrap();
     let pwms = hwmon.pwms();
 

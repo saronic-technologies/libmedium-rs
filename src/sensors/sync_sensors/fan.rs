@@ -1,7 +1,7 @@
 //! Module containing the fan sensors and their related functionality.
 
 use super::*;
-use crate::hwmon::Hwmon;
+use crate::hwmon::sync_hwmon::Hwmon;
 use crate::parsing::{Parseable, Result as ParsingResult};
 use crate::units::{AngularVelocity, FanDivisor, Raw};
 

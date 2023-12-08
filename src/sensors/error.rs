@@ -5,9 +5,8 @@ pub use std::{
     path::PathBuf,
 };
 
+use crate::sensors::SensorSubFunctionType;
 use crate::units::Error as UnitError;
-
-use super::SensorSubFunctionType;
 
 pub(super) type Result<T> = std::result::Result<T, Error>;
 

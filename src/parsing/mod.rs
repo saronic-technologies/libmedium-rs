@@ -11,3 +11,13 @@ pub(crate) trait Parseable: Sized {
 
     fn prefix() -> &'static str;
 }
+
+#[cfg(feature = "async")]
+#[async_trait::async_trait]
+pub(crate) trait AsyncParseable: Sized {
+    type Parent;
+
+    async fn parse(parent: &Self::Parent, index: u16) -> Result<Self>;
+
+    fn prefix() -> &'static str;
+}
