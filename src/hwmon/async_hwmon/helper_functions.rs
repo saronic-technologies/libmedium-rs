@@ -15,7 +15,6 @@ pub(crate) fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
     Ok(())
 }
 
-
 pub(crate) async fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
     let name_path = path.as_ref().join("name");
 

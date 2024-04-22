@@ -9,7 +9,7 @@
 //! ```no_run
 //! use libmedium::{
 //!     parse_hwmons,
-//!     sensors::{Sensor, temp::TempSensor},
+//!     sensors::sync_sensors::{Sensor, temp::TempSensor},
 //! };
 //!
 //! let hwmons = parse_hwmons().unwrap();
@@ -27,7 +27,7 @@
 //! ```no_run
 //! use libmedium::{
 //!     parse_hwmons,
-//!     sensors::pwm::WriteablePwmSensor,
+//!     sensors::sync_sensors::pwm::WriteablePwmSensor,
 //!     units::{Pwm, PwmEnable},
 //! };
 //!

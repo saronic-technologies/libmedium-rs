@@ -10,7 +10,7 @@ Just add this to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-libmedium = "0.7"
+libmedium = "0.8"
 ```
 
 ## Cargo-Features
@@ -18,11 +18,13 @@ libmedium = "0.7"
 ### Standard features
 
 * `writeable`: Standard feature that enables all functions that write to sysfs. This includes setting pwm values and disabling sensors.
+* `sync`: Build synchronous versions of all sensors.
 
 ### Non standard features
 
 * `uom_units`: Sensor values are returned as types from the [`uom`](https://crates.io/crates/uom) crate.
 * `unrestricted_parsing`: This feature allows parsing of paths other than '/sys/class/hwmon'. This should only be useful for testing and debugging.
+* `async`: Build asynchronous versions of all sensors.
 
 ## Examples
 
