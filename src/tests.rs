@@ -141,7 +141,12 @@ impl VirtualHwmonBuilder {
 }
 
 #[test]
+#[cfg(feature = "sync")]
+
 fn test_parse() {
+    use crate::sensors::sync_sensors::{temp::TempSensor, Sensor};
+    use crate::units::{Raw, Temperature};
+
     let test_dir = TempDir::new().unwrap();
 
     VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
@@ -172,7 +177,96 @@ fn test_parse() {
     hwmon0.pwms().get(&1u16).unwrap();
     hwmon0.pwms().get(&2u16).unwrap();
     hwmon1.pwms().get(&1u16).unwrap();
-    hwmon0.temps().get(&1u16).unwrap();
-    hwmon0.temps().get(&2u16).unwrap();
-    hwmon1.temps().get(&1u16).unwrap();
+
+    assert_eq!(
+        hwmon0.temps().get(&1u16).unwrap().read_input().unwrap(),
+        Temperature::from_raw("40000").unwrap()
+    );
+    assert_eq!(
+        hwmon0.temps().get(&2u16).unwrap().read_input().unwrap(),
+        Temperature::from_raw("60000").unwrap()
+    );
+    assert_eq!(
+        hwmon1.temps().get(&1u16).unwrap().read_input().unwrap(),
+        Temperature::from_raw("40000").unwrap()
+    );
+
+    assert_eq!(hwmon0.temps().get(&1u16).unwrap().name(), "temp1");
+    assert_eq!(hwmon0.temps().get(&2u16).unwrap().name(), "temp2");
+    assert_eq!(hwmon1.temps().get(&1u16).unwrap().name(), "temp1");
+}
+
+#[tokio::test]
+#[cfg(feature = "async")]
+async fn async_test_parse() {
+    use crate::sensors::async_sensors::{temp::AsyncTempSensor, AsyncSensor};
+    use crate::units::{Raw, Temperature};
+
+    let test_dir = TempDir::new().unwrap();
+
+    VirtualHwmonBuilder::create(test_dir.path(), 0, "system")
+        .add_pwm(1, true, true)
+        .add_pwm(2, true, true)
+        .add_temp(1, 40000, "temp1")
+        .add_temp(2, 60000, "temp2");
+    VirtualHwmonBuilder::create(test_dir.path(), 1, "other")
+        .add_pwm(1, true, true)
+        .add_temp(1, 40000, "temp1")
+        .add_fan(2, 1000);
+
+    let hwmons = crate::hwmon::async_hwmon::Hwmons::parse_path(test_dir.path())
+        .await
+        .unwrap();
+    let hwmon0 = hwmons.hwmons_by_name("system").next().unwrap();
+    let hwmon1 = hwmons.hwmons_by_name("other").next().unwrap();
+
+    assert_eq!(hwmon0.name(), hwmons.hwmon_by_index(0).unwrap().name());
+    assert_eq!(hwmon1.name(), hwmons.hwmon_by_index(1).unwrap().name());
+
+    assert_eq!(hwmons.hwmon_by_index(2).is_none(), true);
+    assert_eq!(hwmons.hwmons_by_name("alias").next().is_none(), true);
+
+    assert_eq!(hwmon0.temps().len(), 2);
+    assert_eq!(hwmon1.temps().len(), 1);
+    assert_eq!(hwmon0.pwms().len(), 2);
+    assert_eq!(hwmon1.pwms().len(), 1);
+
+    hwmon0.pwms().get(&1u16).unwrap();
+    hwmon0.pwms().get(&2u16).unwrap();
+    hwmon1.pwms().get(&1u16).unwrap();
+
+    assert_eq!(
+        hwmon0
+            .temps()
+            .get(&1u16)
+            .unwrap()
+            .read_input()
+            .await
+            .unwrap(),
+        Temperature::from_raw("40000").unwrap()
+    );
+    assert_eq!(
+        hwmon0
+            .temps()
+            .get(&2u16)
+            .unwrap()
+            .read_input()
+            .await
+            .unwrap(),
+        Temperature::from_raw("60000").unwrap()
+    );
+    assert_eq!(
+        hwmon1
+            .temps()
+            .get(&1u16)
+            .unwrap()
+            .read_input()
+            .await
+            .unwrap(),
+        Temperature::from_raw("40000").unwrap()
+    );
+
+    assert_eq!(hwmon0.temps().get(&1u16).unwrap().name().await, "temp1");
+    assert_eq!(hwmon0.temps().get(&2u16).unwrap().name().await, "temp2");
+    assert_eq!(hwmon1.temps().get(&1u16).unwrap().name().await, "temp1");
 }
