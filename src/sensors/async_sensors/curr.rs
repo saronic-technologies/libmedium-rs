@@ -169,37 +169,43 @@ pub trait AsyncWriteableCurrentSensor: AsyncCurrentSensor + AsyncWriteableSensor
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_enable(&self, enable: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 
     /// Writes this sensor's min value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_min(&self, min: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Min, &min.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
+            .await
     }
 
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_max(&self, max: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Max, &max.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+            .await
     }
 
     /// Writes this sensor's crit value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_crit(&self, crit: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
+            .await
     }
 
     /// Writes this sensor's lcrit value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_lcrit(&self, lcrit: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw()).await
+        self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw())
+            .await
     }
 
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+            .await
     }
 }
 

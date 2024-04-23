@@ -10,6 +10,15 @@ readme = "README.md"
 keywords = ["pwm", "fan", "hwmon", "sensor"]
 categories = ["api-bindings", "hardware-support"]
 
+[lints.rust]
+unsafe_code = "forbid"
+unstable_features = "forbid"
+missing_docs = "deny"
+missing_debug_implementations = "deny"
+missing_copy_implementations = "deny"
+trivial_casts = "deny"
+trivial_numeric_casts = "deny"
+
 [badges]
 gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master" }
 maintenance = { status = "actively-developed" }

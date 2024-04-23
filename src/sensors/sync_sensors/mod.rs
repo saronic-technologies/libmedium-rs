@@ -96,7 +96,11 @@ pub trait WriteableSensor: Sensor {
     fn supported_write_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::write_list()
             .filter(|&s| {
-                std::fs::OpenOptions::new().write(true).open(self.subfunction_path(s)).map(|_| true).unwrap_or(false)
+                std::fs::OpenOptions::new()
+                    .write(true)
+                    .open(self.subfunction_path(s))
+                    .map(|_| true)
+                    .unwrap_or(false)
             })
             .collect()
     }

@@ -222,31 +222,36 @@ pub trait AsyncWriteableTempSensor: AsyncTempSensor + AsyncWriteableSensor {
     /// Converts offset and writes it to this temp's offset subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_offset(&self, offset: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Offset, &offset.to_raw())
+            .await
     }
 
     /// Converts max_hyst and writes it to this temp's max_hyst subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_max_hyst(&self, max_hyst: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::MaxHyst, &max_hyst.to_raw()).await
+        self.write_raw(SensorSubFunctionType::MaxHyst, &max_hyst.to_raw())
+            .await
     }
 
     /// Converts min_hyst and writes it to this temp's min_hyst subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_min_hyst(&self, min_hyst: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::MinHyst, &min_hyst.to_raw()).await
+        self.write_raw(SensorSubFunctionType::MinHyst, &min_hyst.to_raw())
+            .await
     }
 
     /// Converts crit_hyst and writes it to this temp's crit_hyst subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_crit_hyst(&self, crit_hyst: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::CritHyst, &crit_hyst.to_raw()).await
+        self.write_raw(SensorSubFunctionType::CritHyst, &crit_hyst.to_raw())
+            .await
     }
 
     /// Converts emergency and writes it to this temp's emergency subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_emergency(&self, emergency: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Emergency, &emergency.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Emergency, &emergency.to_raw())
+            .await
     }
 
     /// Converts emergency_hyst and writes it to this temp's emergency_hyst subfunction.
@@ -255,49 +260,57 @@ pub trait AsyncWriteableTempSensor: AsyncTempSensor + AsyncWriteableSensor {
         self.write_raw(
             SensorSubFunctionType::EmergencyHyst,
             &emergency_hyst.to_raw(),
-        ).await
+        )
+        .await
     }
 
     /// Writes this sensor's lcrit value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_lcrit(&self, lcrit: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw()).await
+        self.write_raw(SensorSubFunctionType::LowCrit, &lcrit.to_raw())
+            .await
     }
 
     /// Converts lcrit_hyst and writes it to this temp's lcrit_hyst subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_lcrit_hyst(&self, lcrit_hyst: Temperature) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::LowCritHyst, &lcrit_hyst.to_raw()).await
+        self.write_raw(SensorSubFunctionType::LowCritHyst, &lcrit_hyst.to_raw())
+            .await
     }
 
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_enable(&self, enable: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 
     /// Writes this sensor's min value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_min(&self, min: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Min, &min.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
+            .await
     }
 
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_max(&self, max: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Max, &max.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+            .await
     }
 
     /// Writes this sensor's crit value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_crit(&self, crit: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
+            .await
     }
 
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+            .await
     }
 }
 

@@ -40,15 +40,6 @@
 //! }
 //! ```
 
-#![deny(
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts
-)]
-#![forbid(unsafe_code, unstable_features)]
-
 pub mod hwmon;
 pub mod sensors;
 pub mod units;

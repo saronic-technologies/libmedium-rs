@@ -2,8 +2,8 @@ use super::*;
 
 use crate::parsing::{Error as ParsingError, Result as ParsingResult};
 
-use std::path::Path;
 use std::io::ErrorKind as IoErrorKind;
+use std::path::Path;
 
 pub(crate) fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
     let path = path.as_ref();
@@ -18,12 +18,16 @@ pub(crate) fn check_path(path: impl AsRef<Path>) -> ParsingResult<()> {
 pub(crate) async fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
     let name_path = path.as_ref().join("name");
 
-    tokio::fs::read_to_string(&name_path).await
+    tokio::fs::read_to_string(&name_path)
+        .await
         .map(|name| name.trim().to_string())
         .map_err(|e| ParsingError::hwmon_name(e, name_path))
 }
 
-pub(crate) async fn init_sensors<S>(hwmon: &Hwmon, start_index: u16) -> ParsingResult<BTreeMap<u16, S>>
+pub(crate) async fn init_sensors<S>(
+    hwmon: &Hwmon,
+    start_index: u16,
+) -> ParsingResult<BTreeMap<u16, S>>
 where
     S: AsyncParseable<Parent = Hwmon>,
 {

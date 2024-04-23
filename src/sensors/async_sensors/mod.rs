@@ -33,7 +33,7 @@ use std::path::{Path, PathBuf};
 /// Base trait that all sensors must implement.
 /// It contains the functionality to get a sensor's name, index or supported subfunctions.
 #[async_trait]
-pub trait AsyncSensor : Sync {
+pub trait AsyncSensor: Sync {
     /// Type used by the sensor for measurements.
     #[cfg(feature = "uom_units")]
     type Value: Raw;
@@ -55,7 +55,11 @@ pub trait AsyncSensor : Sync {
     fn supported_read_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::read_list()
             .filter(|&s| {
-                std::fs::OpenOptions::new().read(true).open(self.subfunction_path(s)).map(|_| true).unwrap_or(false)
+                std::fs::OpenOptions::new()
+                    .read(true)
+                    .open(self.subfunction_path(s))
+                    .map(|_| true)
+                    .unwrap_or(false)
             })
             .collect()
     }
@@ -63,7 +67,8 @@ pub trait AsyncSensor : Sync {
     /// If this sensor has a label, its contents are returned.
     /// Otherwise a plain sensor descriptor is returned.
     async fn name(&self) -> String {
-        self.read_raw(SensorSubFunctionType::Label).await
+        self.read_raw(SensorSubFunctionType::Label)
+            .await
             .unwrap_or_else(|_| format!("{}{}", self.base(), self.index()))
     }
 
@@ -103,7 +108,11 @@ pub trait AsyncWriteableSensor: AsyncSensor {
     fn supported_write_sub_functions(&self) -> Vec<SensorSubFunctionType> {
         SensorSubFunctionType::write_list()
             .filter(|&s| {
-                std::fs::OpenOptions::new().write(true).open(self.subfunction_path(s)).map(|_| true).unwrap_or(false)
+                std::fs::OpenOptions::new()
+                    .write(true)
+                    .open(self.subfunction_path(s))
+                    .map(|_| true)
+                    .unwrap_or(false)
             })
             .collect()
     }
@@ -114,7 +123,12 @@ pub trait AsyncWriteableSensor: AsyncSensor {
             .iter()
             .copied()
             .filter(|&s| {
-                std::fs::OpenOptions::new().read(true).write(true).open(self.subfunction_path(s)).map(|_| true).unwrap_or(false)
+                std::fs::OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .open(self.subfunction_path(s))
+                    .map(|_| true)
+                    .unwrap_or(false)
             })
             .collect()
     }
@@ -126,17 +140,20 @@ pub trait AsyncWriteableSensor: AsyncSensor {
     async fn write_raw(&self, sub_type: SensorSubFunctionType, raw_value: &str) -> Result<()> {
         let path = self.subfunction_path(sub_type);
 
-        write(&path, raw_value.as_bytes()).await.map_err(|e| match e.kind() {
-            std::io::ErrorKind::NotFound => Error::SubtypeNotSupported { sub_type },
-            std::io::ErrorKind::PermissionDenied => Error::InsufficientRights { path },
-            _ => Error::Write { source: e, path },
-        })
+        write(&path, raw_value.as_bytes())
+            .await
+            .map_err(|e| match e.kind() {
+                std::io::ErrorKind::NotFound => Error::SubtypeNotSupported { sub_type },
+                std::io::ErrorKind::PermissionDenied => Error::InsufficientRights { path },
+                _ => Error::Write { source: e, path },
+            })
     }
 
     /// Resets this sensor's history.
     /// Returns an error if this functionality is not supported by the sensor.
     async fn reset_history(&self) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::ResetHistory, &true.to_raw()).await
+        self.write_raw(SensorSubFunctionType::ResetHistory, &true.to_raw())
+            .await
     }
 
     /// Returns a SensorState struct that represents the state of all writeable shared_subfunctions of this sensor.

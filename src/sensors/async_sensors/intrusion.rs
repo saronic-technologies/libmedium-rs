@@ -77,7 +77,8 @@ pub trait AsyncWriteableIntrusionSensor: AsyncIntrusionSensor + AsyncWriteableSe
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+            .await
     }
 }
 

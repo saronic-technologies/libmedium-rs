@@ -149,37 +149,43 @@ pub trait AsyncWriteableFanSensor: AsyncFanSensor + AsyncWriteableSensor {
     /// Only makes sense if the chip supports closed-loop fan speed control based on the measured fan speed.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_target(&self, target: AngularVelocity) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Target, &target.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Target, &target.to_raw())
+            .await
     }
 
     /// Converts div and writes it to this fan's divisor subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_div(&self, div: FanDivisor) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Div, &div.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Div, &div.to_raw())
+            .await
     }
 
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_enable(&self, enable: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 
     /// Writes this sensor's min value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_min(&self, min: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Min, &min.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Min, &min.to_raw())
+            .await
     }
 
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_max(&self, max: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Max, &max.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+            .await
     }
 
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+            .await
     }
 }
 

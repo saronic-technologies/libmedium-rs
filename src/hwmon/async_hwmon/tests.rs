@@ -5,7 +5,6 @@ use std::time::Duration;
 
 use temp_dir::TempDir;
 
-
 #[tokio::test]
 async fn test_hwmon_parse() {
     let test_dir = TempDir::new().unwrap();

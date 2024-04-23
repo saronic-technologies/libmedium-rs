@@ -48,10 +48,12 @@ impl<T: Raw> AsyncVirtualSensor<T> for VirtualSensorStruct {
 pub trait AsyncWriteableVirtualSensor<T: Raw + Sync>: AsyncVirtualSensor<T> {
     /// Writes to the virtual sensor.
     async fn write(&self, value: &T) -> Result<()> {
-        tokio::fs::write(self.path(), value.to_raw().as_bytes()).await.map_err(|e| match e.kind() {
-            std::io::ErrorKind::PermissionDenied => Error::insufficient_rights(self.path()),
-            _ => Error::write(e, self.path()),
-        })
+        tokio::fs::write(self.path(), value.to_raw().as_bytes())
+            .await
+            .map_err(|e| match e.kind() {
+                std::io::ErrorKind::PermissionDenied => Error::insufficient_rights(self.path()),
+                _ => Error::write(e, self.path()),
+            })
     }
 }
 

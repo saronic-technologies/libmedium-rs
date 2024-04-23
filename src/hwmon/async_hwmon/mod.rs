@@ -8,7 +8,7 @@ use helper_functions::*;
 
 pub use iterator::{Iter, NamedIter};
 
-use crate::parsing::{Error as ParsingError, AsyncParseable, Result as ParsingResult};
+use crate::parsing::{AsyncParseable, Error as ParsingError, Result as ParsingResult};
 use crate::sensors::async_sensors::{
     curr::*, energy::*, fan::*, humidity::*, intrusion::*, power::*, pwm::*, temp::*, voltage::*,
 };
@@ -165,13 +165,19 @@ impl Hwmon {
 
     /// Returns the humidity sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn humidity(&self, index: u16) -> Option<&(impl AsyncHumiditySensor + Clone + Send + Sync)> {
+    pub fn humidity(
+        &self,
+        index: u16,
+    ) -> Option<&(impl AsyncHumiditySensor + Clone + Send + Sync)> {
         self.humidities.get(&index)
     }
 
     /// Returns the intrusion sensor with the given index.
     /// Returns `None`, if no sensor with the given index exists.
-    pub fn intrusion(&self, index: u16) -> Option<&(impl AsyncIntrusionSensor + Clone + Send + Sync)> {
+    pub fn intrusion(
+        &self,
+        index: u16,
+    ) -> Option<&(impl AsyncIntrusionSensor + Clone + Send + Sync)> {
         self.intrusions.get(&index)
     }
 
@@ -280,7 +286,9 @@ impl Hwmon {
     }
 
     /// Returns all writeable fan sensors found in this `Hwmon`.
-    pub fn writeable_fans(&self) -> &BTreeMap<u16, impl AsyncWriteableFanSensor + Clone + Send + Sync> {
+    pub fn writeable_fans(
+        &self,
+    ) -> &BTreeMap<u16, impl AsyncWriteableFanSensor + Clone + Send + Sync> {
         &self.fans
     }
 
@@ -306,7 +314,9 @@ impl Hwmon {
     }
 
     /// Returns all writeable pwm sensors found in this `Hwmon`.
-    pub fn writeable_pwms(&self) -> &BTreeMap<u16, impl AsyncWriteablePwmSensor + Clone + Send + Sync> {
+    pub fn writeable_pwms(
+        &self,
+    ) -> &BTreeMap<u16, impl AsyncWriteablePwmSensor + Clone + Send + Sync> {
         &self.pwms
     }
 

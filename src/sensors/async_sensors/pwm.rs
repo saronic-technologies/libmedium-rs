@@ -91,25 +91,29 @@ pub trait AsyncWriteablePwmSensor: AsyncPwmSensor + AsyncWriteableSensor {
     /// Converts pwm and writes it to this pwm's pwm subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_pwm(&self, pwm: Pwm) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Pwm, &pwm.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Pwm, &pwm.to_raw())
+            .await
     }
 
     /// Converts enable and writes it to this pwm's enable subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_enable(&self, enable: PwmEnable) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 
     /// Converts mode and writes it to this pwm's mode subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_mode(&self, mode: PwmMode) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Mode, &mode.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Mode, &mode.to_raw())
+            .await
     }
 
     /// Converts freq and writes it to this pwm's freq subfunction.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_frequency(&self, freq: Frequency) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Freq, &freq.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Freq, &freq.to_raw())
+            .await
     }
 }
 

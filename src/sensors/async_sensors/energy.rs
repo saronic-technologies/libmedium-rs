@@ -77,7 +77,8 @@ pub trait AsyncWriteableEnergySensor: AsyncEnergySensor + AsyncWriteableSensor {
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_enable(&self, enable: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 }
 

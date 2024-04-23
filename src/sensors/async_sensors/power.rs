@@ -49,21 +49,27 @@ pub trait AsyncPowerSensor: AsyncSensor<Value = Power> + std::fmt::Debug {
     /// Reads the average_interval subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn read_average_interval(&self) -> Result<Duration> {
-        let raw = self.read_raw(SensorSubFunctionType::AverageInterval).await?;
+        let raw = self
+            .read_raw(SensorSubFunctionType::AverageInterval)
+            .await?;
         Duration::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_interval_max subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn read_average_interval_max(&self) -> Result<Duration> {
-        let raw = self.read_raw(SensorSubFunctionType::AverageIntervalMax).await?;
+        let raw = self
+            .read_raw(SensorSubFunctionType::AverageIntervalMax)
+            .await?;
         Duration::from_raw(&raw).map_err(Error::from)
     }
 
     /// Reads the average_interval_min subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn read_average_interval_min(&self) -> Result<Duration> {
-        let raw = self.read_raw(SensorSubFunctionType::AverageIntervalMin).await?;
+        let raw = self
+            .read_raw(SensorSubFunctionType::AverageIntervalMin)
+            .await?;
         Duration::from_raw(&raw).map_err(Error::from)
     }
 
@@ -226,43 +232,50 @@ pub trait AsyncWriteablePowerSensor: AsyncPowerSensor + AsyncWriteableSensor {
     /// Converts cap and writes it to the cap subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_cap(&self, cap: Power) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Cap, &cap.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Cap, &cap.to_raw())
+            .await
     }
 
     /// Converts cap_hyst and writes it to the cap_hyst subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_cap_hyst(&self, cap_hyst: Power) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::CapHyst, &cap_hyst.to_raw()).await
+        self.write_raw(SensorSubFunctionType::CapHyst, &cap_hyst.to_raw())
+            .await
     }
 
     /// Converts interval and writes it to the average_interval subfunction of this power sensor.
     /// Returns an error, if this sensor doesn't support the subfunction.
     async fn write_average_interval(&self, interval: Duration) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::AverageInterval, &interval.to_raw()).await
+        self.write_raw(SensorSubFunctionType::AverageInterval, &interval.to_raw())
+            .await
     }
 
     /// Sets this sensor's enabled state.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_enable(&self, enable: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Enable, &enable.to_raw())
+            .await
     }
 
     /// Writes this sensor's max value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_max(&self, max: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Max, &max.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Max, &max.to_raw())
+            .await
     }
 
     /// Writes this sensor's crit value.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_crit(&self, crit: Self::Value) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Crit, &crit.to_raw())
+            .await
     }
 
     /// Sets whether or not an alarm condition for the sensor also triggers beeping.
     /// Returns an error, if the sensor doesn't support the feature.
     async fn write_beep(&self, beep: bool) -> Result<()> {
-        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw()).await
+        self.write_raw(SensorSubFunctionType::Beep, &beep.to_raw())
+            .await
     }
 }
 
