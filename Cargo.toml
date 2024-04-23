@@ -19,10 +19,6 @@ missing_copy_implementations = "deny"
 trivial_casts = "deny"
 trivial_numeric_casts = "deny"
 
-[badges]
-gitlab = { repository = "https://gitlab.com/Maldela/libmedium", branch = "master" }
-maintenance = { status = "actively-developed" }
-
 [dependencies]
 uom = { version = "0.36", optional = true }
 tokio = { version = "1", features = ["fs"], optional = true}
