@@ -10,6 +10,7 @@ pub struct VirtualHwmonBuilder {
     index: u16,
 }
 
+#[allow(dead_code)]
 impl VirtualHwmonBuilder {
     pub fn create(
         root: impl AsRef<Path>,
@@ -142,7 +143,6 @@ impl VirtualHwmonBuilder {
 
 #[test]
 #[cfg(feature = "sync")]
-
 fn test_parse() {
     use crate::sensors::sync_sensors::{temp::TempSensor, Sensor};
     use crate::units::{Raw, Temperature};

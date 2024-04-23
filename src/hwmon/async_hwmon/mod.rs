@@ -16,11 +16,12 @@ use crate::units::Raw;
 
 use async_trait::async_trait;
 
+use tokio::fs::read_to_string;
+
 use std::{
     cmp::Ordering,
     collections::BTreeMap,
     fmt::Debug,
-    fs::read_to_string,
     io::ErrorKind as IoErrorKind,
     path::{Path, PathBuf},
     time::Duration,
@@ -68,10 +69,10 @@ impl Hwmon {
 
     /// Returns this hwmon's update interval.
     /// If the hwmon does not expose the value, an error is returned.
-    pub fn update_interval(&self) -> Result<Duration> {
+    pub async fn update_interval(&self) -> Result<Duration> {
         let path = self.path().join("update_interval");
 
-        match read_to_string(&path) {
+        match read_to_string(&path).await {
             Ok(s) => Duration::from_raw(&s).map_err(|e| Error::unit(e, path)),
             Err(e) => {
                 if e.kind() == IoErrorKind::NotFound {
@@ -85,10 +86,10 @@ impl Hwmon {
 
     /// Returns whether this hwmon beeps if an alarm condition exists.
     /// If the hwmon does not expose the value, an error is returned.
-    pub fn beep_enable(&self) -> Result<bool> {
+    pub async fn beep_enable(&self) -> Result<bool> {
         let path = self.path().join("beep_enable");
 
-        match read_to_string(&path) {
+        match read_to_string(&path).await {
             Ok(s) => bool::from_raw(&s).map_err(|e| Error::unit(e, path)),
             Err(e) => {
                 if e.kind() == IoErrorKind::NotFound {
@@ -243,10 +244,10 @@ impl Hwmon {
 impl Hwmon {
     /// Set this hwmon's update interval.
     /// If the hwmon does not expose the value, an error is returned.
-    pub fn set_update_interval(&self, interval: Duration) -> Result<()> {
+    pub async fn set_update_interval(&self, interval: Duration) -> Result<()> {
         let path = self.path().join("update_interval");
 
-        match std::fs::write(&path, interval.to_raw().as_bytes()) {
+        match tokio::fs::write(&path, interval.to_raw().as_bytes()).await {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 IoErrorKind::NotFound => Err(Error::update_interval_not_available()),
@@ -258,10 +259,10 @@ impl Hwmon {
 
     /// Set whether this hwmon beeps if an alarm condition exists.
     /// If the hwmon does not expose the value, an error is returned.
-    pub fn set_beep_enable(&self, beep_enable: bool) -> Result<()> {
+    pub async fn set_beep_enable(&self, beep_enable: bool) -> Result<()> {
         let path = self.path().join("beep_enable");
 
-        match std::fs::write(&path, beep_enable.to_raw().as_bytes()) {
+        match tokio::fs::write(&path, beep_enable.to_raw().as_bytes()).await {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 IoErrorKind::NotFound => Err(Error::beep_enable()),
