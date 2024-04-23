@@ -10,7 +10,6 @@ use crate::units::Error as UnitError;
 pub(crate) type Result<T> = std::result::Result<T, Error>;
 
 /// Error returned from interacting with an hwmon.
-#[allow(missing_docs)]
 #[derive(Debug)]
 pub enum Error {
     /// The hwmon does not expose an update interval.
@@ -20,13 +19,26 @@ pub enum Error {
     BeepEnable,
 
     /// Error reading or writing to sysfs.
-    Io { source: IoError, path: PathBuf },
+    Io {
+        /// The source of the error.
+        source: IoError,
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 
     /// Unit conversion error.
-    Unit { source: UnitError, path: PathBuf },
+    Unit {
+        /// The source of the error.
+        source: UnitError,
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 
     /// You have insufficient rights.
-    InsufficientRights { path: PathBuf },
+    InsufficientRights {
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 }
 
 impl Error {
@@ -50,6 +62,7 @@ impl Error {
         Error::Unit { source, path }
     }
 
+    #[cfg(feature = "writeable")]
     pub(crate) fn insufficient_rights(path: impl Into<PathBuf>) -> Self {
         Self::InsufficientRights { path: path.into() }
     }

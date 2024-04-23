@@ -11,23 +11,41 @@ use crate::units::Error as UnitError;
 pub(super) type Result<T> = std::result::Result<T, Error>;
 
 /// Error which can be returned from interacting with sensors.
-#[allow(missing_docs)]
 #[derive(Debug)]
 pub enum Error {
     /// Error reading from sensor.
-    Read { source: IoError, path: PathBuf },
+    Read {
+        /// The source of the error.
+        source: IoError,
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 
     /// Error writing to sensor.
-    Write { source: IoError, path: PathBuf },
+    Write {
+        /// The source of the error.
+        source: IoError,
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 
     /// A UnitError occurred.
-    UnitError { source: UnitError },
+    UnitError {
+        /// The source of the error.
+        source: UnitError,
+    },
 
     /// You have insufficient rights. Try using the read only variant of whatever returned this error.
-    InsufficientRights { path: PathBuf },
+    InsufficientRights {
+        /// The path where the error occurred.
+        path: PathBuf,
+    },
 
     /// The subfunction you requested is not supported by this sensor.
-    SubtypeNotSupported { sub_type: SensorSubFunctionType },
+    SubtypeNotSupported {
+        /// The requested subfunction
+        sub_type: SensorSubFunctionType,
+    },
 
     /// The sensor you tried to read from is faulty.
     FaultySensor,
@@ -44,6 +62,7 @@ impl Error {
         }
     }
 
+    #[cfg(feature = "writeable")]
     pub(crate) fn write(source: IoError, path: impl Into<PathBuf>) -> Self {
         Self::Write {
             source,
@@ -51,6 +70,7 @@ impl Error {
         }
     }
 
+    #[cfg(feature = "writeable")]
     pub(crate) fn insufficient_rights(path: impl Into<PathBuf>) -> Self {
         Self::InsufficientRights { path: path.into() }
     }

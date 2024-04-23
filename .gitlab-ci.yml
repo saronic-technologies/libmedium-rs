@@ -6,23 +6,23 @@ rust-latest:
   stage: build
   image: rust:latest
   script:
-    - cargo build --verbose
-    - cargo build --verbose --features uom_units
+    - cargo install cargo-all-features
+    - cargo build-all-features --verbose
 
 rust-nightly:
   stage: build
   image: rustlang/rust:nightly
   script:
-    - cargo build --verbose
-    - cargo build --verbose --features uom_units
+    - cargo install cargo-all-features
+    - cargo build-all-features --verbose
   allow_failure: true
   
 rust-latest:
   stage: test
   image: rust:latest
   script:
-    - cargo test --verbose
-    - cargo test --verbose --features uom_units
+    - cargo install cargo-all-features
+    - cargo test-all-features --verbose
     - cargo test --doc
     - cargo test --doc --features uom_units
     
@@ -30,8 +30,8 @@ rust-nightly:
   stage: test
   image: rustlang/rust:nightly
   script:
-    - cargo test --verbose
-    - cargo test --verbose --features uom_units
+    - cargo install cargo-all-features
+    - cargo test-all-features --verbose
     - cargo test --doc
     - cargo test --doc --features uom_units
   allow_failure: true

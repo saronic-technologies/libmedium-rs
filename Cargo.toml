@@ -55,3 +55,7 @@ members = [
     "examples/print_temps",
     "examples/pwms_to_max",
 ]
+
+[package.metadata.cargo-all-features]
+always_include_features = ["sync"]
+skip_optional_dependencies = true
