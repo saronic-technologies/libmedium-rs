@@ -31,6 +31,7 @@ use std::{
 #[derive(Debug, Clone)]
 pub struct Hwmon {
     name: String,
+    label: Option<String>,
     path: PathBuf,
     index: u16,
     currents: BTreeMap<u16, CurrentSensorStruct>,
@@ -48,6 +49,11 @@ impl Hwmon {
     /// Returns the hwmon's name.
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    /// Returns the hwmon's label (if any).
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_deref()
     }
 
     /// Returns the hwmon's path.
@@ -213,6 +219,7 @@ impl Hwmon {
 
         let mut hwmon = Self {
             name: get_name(&path).await?,
+            label: get_label(&path).await.ok(),
             path,
             index,
             currents: BTreeMap::new(),

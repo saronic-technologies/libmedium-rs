@@ -24,6 +24,15 @@ pub(crate) async fn get_name(path: impl AsRef<Path>) -> ParsingResult<String> {
         .map_err(|e| ParsingError::hwmon_name(e, name_path))
 }
 
+pub(crate) async fn get_label(path: impl AsRef<Path>) -> ParsingResult<String> {
+    let label_path = path.as_ref().join("label");
+
+    tokio::fs::read_to_string(&label_path)
+        .await
+        .map(|label| label.trim().to_string())
+        .map_err(|e| ParsingError::hwmon_label(e, label_path))
+}
+
 pub(crate) async fn init_sensors<S>(
     hwmon: &Hwmon,
     start_index: u16,

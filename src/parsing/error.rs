@@ -17,6 +17,9 @@ pub enum Error {
     /// Error reading hwmon name file
     HwmonName { source: IoError, path: PathBuf },
 
+    /// Error reading hwmon label file
+    HwmonLabel { source: IoError, path: PathBuf },
+
     /// Error listing the contents of the hwmon directory
     HwmonDir { source: IoError, path: PathBuf },
 
@@ -43,6 +46,12 @@ impl Error {
         Error::HwmonName { source, path }
     }
 
+    pub(crate) fn hwmon_label(source: IoError, path: impl Into<PathBuf>) -> Self {
+        let path = path.into();
+
+        Error::HwmonLabel { source, path }
+    }
+
     pub(crate) fn hwmon_dir(source: IoError, path: impl Into<PathBuf>) -> Self {
         let path = path.into();
 
@@ -67,6 +76,7 @@ impl StdError for Error {
         match self {
             Error::Hwmons { source, .. } => Some(source),
             Error::HwmonName { source, .. } => Some(source),
+            Error::HwmonLabel { source, .. } => Some(source),
             Error::HwmonDir { source, .. } => Some(source),
             Error::HwmonIndex { source, .. } => Some(source),
             Error::Sensor { source, .. } => Some(source),
@@ -83,6 +93,12 @@ impl Display for Error {
             Error::HwmonName { source, path } => write!(
                 f,
                 "Error reading hwmon name file at {}: {}",
+                path.display(),
+                source
+            ),
+            Error::HwmonLabel { source, path } => write!(
+                f,
+                "Error reading hwmon label file at {}: {}",
                 path.display(),
                 source
             ),
