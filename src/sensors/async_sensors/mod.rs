@@ -8,8 +8,10 @@ pub mod intrusion;
 pub mod power;
 pub mod pwm;
 pub mod temp;
-pub mod virt;
 pub mod voltage;
+
+#[cfg(feature = "virtual_sensors")]
+pub mod virt;
 
 use super::error::{Error, Result};
 
@@ -82,9 +84,9 @@ pub trait AsyncSensor: Sync {
         match read_to_string(&path).await {
             Ok(s) => Ok(s.trim().to_string()),
             Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => Err(Error::SubtypeNotSupported { sub_type }),
-                std::io::ErrorKind::PermissionDenied => Err(Error::InsufficientRights { path }),
-                _ => Err(Error::Read { source: e, path }),
+                std::io::ErrorKind::NotFound => Err(Error::subtype_not_supported(sub_type)),
+                std::io::ErrorKind::PermissionDenied => Err(Error::insufficient_rights(path)),
+                _ => Err(Error::read(e, path)),
             },
         }
     }
@@ -143,9 +145,9 @@ pub trait AsyncWriteableSensor: AsyncSensor {
         write(&path, raw_value.as_bytes())
             .await
             .map_err(|e| match e.kind() {
-                std::io::ErrorKind::NotFound => Error::SubtypeNotSupported { sub_type },
-                std::io::ErrorKind::PermissionDenied => Error::InsufficientRights { path },
-                _ => Error::Write { source: e, path },
+                std::io::ErrorKind::NotFound => Error::subtype_not_supported(sub_type),
+                std::io::ErrorKind::PermissionDenied => Error::insufficient_rights(path),
+                _ => Error::write(e, path),
             })
     }
 

@@ -32,7 +32,7 @@ tokio = { version = "1", features = ["fs", "macros", "rt"] }
 doctest = false
 
 [features]
-default = ["sync", "writeable"]
+default = ["sync", "virtual_sensors", "writeable"]
 
 # Feature that enables the writeable versions of all structs and functions to interact with the system's sensors.
 writeable = []
@@ -46,6 +46,10 @@ async = ["tokio", "async-trait"]
 # Feature that replaces units with those found in `uom`.
 uom_units = ["uom"]
 
+# Feature that lets you create virtual sensors.
+# Virtual sensors don't belong to sysfs but can be any file provided by a driver or the user.
+virtual_sensors = []
+
 # Feature that enables parsing of arbitrary paths for hwmons and sensors.
 # It should only be needed for debug and testing purposes.
 unrestricted_parsing = []
@@ -57,5 +61,5 @@ members = [
 ]
 
 [package.metadata.cargo-all-features]
-always_include_features = ["sync"]
+always_include_features = ["sync", "virtual_sensors", "unrestricted_parsing"]
 skip_optional_dependencies = true

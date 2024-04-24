@@ -70,9 +70,12 @@ impl Error {
         }
     }
 
-    #[cfg(feature = "writeable")]
     pub(crate) fn insufficient_rights(path: impl Into<PathBuf>) -> Self {
         Self::InsufficientRights { path: path.into() }
+    }
+
+    pub(crate) fn subtype_not_supported(sub_type: SensorSubFunctionType) -> Self {
+        Self::SubtypeNotSupported { sub_type }
     }
 }
 

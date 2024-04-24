@@ -19,6 +19,7 @@ libmedium = "0.8"
 
 * `writeable`: Standard feature that enables all functions that write to sysfs. This includes setting pwm values and disabling sensors.
 * `sync`: Build synchronous versions of all sensors.
++ `virtual_sensors`: Feature that lets you create virtual sensors. Virtual sensors don't belong to sysfs but can be any file provided by a driver or the user.
 
 ### Non standard features
 
